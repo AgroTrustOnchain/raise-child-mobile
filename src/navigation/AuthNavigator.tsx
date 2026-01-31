@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/nft/HomeScreen';
-// import LoginScreen from '../screens/auth/LoginScreen';
-// import RegisterScreen from '../screens/auth/RegisterScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -18,8 +18,8 @@ const AuthNavigator = () => {
         headerShown: false 
       }}
     >
-      <Stack.Screen name="Login" component={HomeScreen} />
-      <Stack.Screen name="Register" component={HomeScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 };
