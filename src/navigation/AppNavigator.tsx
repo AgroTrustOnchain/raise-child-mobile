@@ -2,7 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
-
 // import AuthNavigator from './AuthNavigator';
 // import MainNavigator from './MainNavigator';
 import LoadingScreen from '../screens/LoadingScreen';
@@ -19,8 +18,8 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      {/* {isAuthenticated ? <MainNavigator  /> : <AuthNavigator  />} */}
-      <MainNavigator  /> 
+      {isAuthenticated ? <MainNavigator  /> : <AuthNavigator  />}
+      {/* <MainNavigator  />  */}
     </NavigationContainer>
   );
 };
