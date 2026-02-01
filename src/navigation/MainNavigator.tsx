@@ -9,6 +9,9 @@ import CreateNFTScreen from "../screens/nft/CreateNFTScreen";
 import DiscoverScreen from "../screens/discover/DiscoverScreen";
 import AppHeader from "../components/AppHeader ";
 import CampaignDetail from "../screens/discover/CampaignDetail";
+import ChildDetailScreen from "../screens/discover/ChildDetailScreen";
+import MyTrackScreen from "../screens/track/MyTrackScreen";
+import ProofScreen from "../screens/track/ProofScreen";
 // import NFTDetailScreen from '../screens/nft/NFTDetailScreen';
 // import WalletScreen from '../screens/wallet/WalletScreen';
 // import ProfileScreen from '../screens/profile/ProfileScreen';
@@ -18,14 +21,18 @@ export type NFTStackParamList = {
   NFTDetail: { nftId: string };
   Discover: undefined;
   CampaignDetail: { nftId: string };
+  ChildDetailScreen: { childId: string };
+  MyTrackScreen: undefined;
+  ProofScreen: { childId: string };
 };
 
 export type MainTabParamList = {
   Home: undefined;
   Explore: undefined;
   Create: undefined;
-  Wallet: undefined;
+  Track: undefined;
   Profile: undefined;
+  
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -69,6 +76,32 @@ const DiscoverStack = () => {
         component={CampaignDetail} 
         options={{ title: 'Campaign Details' }} 
       />
+      <Stack.Screen 
+        name="ChildDetailScreen" 
+        component={ChildDetailScreen} 
+        options={{ title: 'Child Details' }} 
+      />
+    </Stack.Navigator>
+  );
+};
+
+const TrackStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        header: ({ route }) => <AppHeader />,
+      }}
+    >
+      <Stack.Screen
+        name="MyTrackScreen"
+        component={MyTrackScreen}
+        options={{ title: "My Track" }}
+      />
+      <Stack.Screen
+        name="ProofScreen"
+        component={ProofScreen}
+        options={{ title: "Impact Proof" }}
+      />
     </Stack.Navigator>
   );
 };
@@ -87,8 +120,8 @@ const MainNavigator = () => {
             iconName = focused ? "compass" : "compass-outline";
           } else if (route.name === "Create") {
             iconName = focused ? "add-circle" : "add-circle-outline";
-          } else if (route.name === "Wallet") {
-            iconName = focused ? "wallet" : "wallet-outline";
+          } else if (route.name === "Track") {
+            iconName = focused ? "list" : "list-outline";
           } else if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           }
@@ -105,9 +138,9 @@ const MainNavigator = () => {
         options={{ headerShown: false }}
       />
       <Tab.Screen name="Explore" component={DiscoverStack} options={{ headerShown: false }}/>
-      <Tab.Screen name="Create" component={CreateNFTScreen} />
-      {/* <Tab.Screen name="Wallet" component={WalletScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} /> */}
+      {/* <Tab.Screen name="Create" component={CreateNFTScreen} /> */}
+      <Tab.Screen name="Track" component={TrackStack} options={{ headerShown: false }}/>
+      {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
     </Tab.Navigator>
   );
 };
