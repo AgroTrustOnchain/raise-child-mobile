@@ -1,5 +1,5 @@
 // src/screens/nft/BeneficiaryDetailScreen.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { getChildById } from '../../services/child.service';
+import { API_BASE_URL } from '../../services/api.service';
+import { ActivityIndicator } from 'react-native';
 // import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
@@ -21,22 +24,57 @@ const ChildDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const beneficiary = {
-    id: '1',
-    name: 'Amani K.',
-    age: 8,
-    grade: 3,
-    image: 'https://i.pravatar.cc/400?img=1',
-    campaign: 'School Lunch Program',
-    status: 'Awaiting Sponsor',
-    story: "Amani loves mathematics and dreams of becoming a pilot one day. Living with his grandmother in a rural village, regular meals are sometimes a challenge.\n\nSponsorship ensures Amani receives a nutritious daily school lunch, allowing him to focus on his studies without hunger.",
-    benefits: [
-      { icon: 'restaurant', title: 'Daily Meals', subtitle: 'Nutritious lunch' },
-      { icon: 'medical-services', title: 'Health Checks', subtitle: 'Quarterly visits' },
-    ],
-    walletAddress: '0x71C...9A23',
-    monthlyAmount: 35,
-    sponsors: 14,
+  const [beneficiary, setBeneficiary] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = route.params as { childId?: string } | undefined;
+    const id = params?.childId as string | undefined;
+    if (id) loadChild(id);
+  }, [route.params]);
+
+  const loadChild = async (id: string) => {
+    try {
+      setLoading(true);
+      const c = await getChildById(id);
+      // map backend fields to UI model expected by this screen
+      const mapped = {
+        id: c.id,
+        name: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
+        age: (() => {
+          if (!c.date_of_birth) return undefined;
+          const b = new Date(c.date_of_birth);
+          const now = new Date();
+          let age = now.getFullYear() - b.getFullYear();
+          const m = now.getMonth() - b.getMonth();
+          if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+          return age;
+        })(),
+        grade: 0,
+        image: c.avatar_blob_id ? `${API_BASE_URL.replace(/\/+$/, '')}/blobs/${c.avatar_blob_id}` : undefined,
+        campaign: c.region || c.uploaded_by || '',
+        status: 'Awaiting Sponsor',
+        story: JSON.stringify({
+          home_address: c.home_address,
+          books_needs: c.books_needs,
+          health_insurance_need: c.health_insurance_need,
+          meal_need: c.meal_need,
+          special_need_proposals: c.special_need_proposals,
+          gifts: c.gifts,
+        }, null, 2),
+        benefits: [],
+        walletAddress: undefined,
+        monthlyAmount: 0,
+        sponsors: 0,
+        raw: c,
+      };
+      // nothing additional
+      setBeneficiary(mapped);
+    } catch (e) {
+      console.warn('loadChild failed', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -75,6 +113,22 @@ const ChildDetailScreen = () => {
       ]
     );
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (!beneficiary) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>No child data available</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -140,7 +194,7 @@ const ChildDetailScreen = () => {
 
             {/* Benefits Grid */}
             <View style={styles.benefitsGrid}>
-              {beneficiary.benefits.map((benefit, index) => (
+              {beneficiary.benefits.map((benefit : any, index : number) => (
                 <View key={index} style={styles.benefitCard}>
                   <Ionicons 
                     name={benefit.icon as any} 
