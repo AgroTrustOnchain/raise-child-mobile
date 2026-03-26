@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../utils/constants';
 
-const API_BASE_URL = 'http://localhost:3001/api'; // Update with your API URL
+export const API_BASE_URL = 'https://agrotrust-server-production.onrender.com'; // production API base URL
 
 class ApiService {
   private axiosInstance: AxiosInstance;

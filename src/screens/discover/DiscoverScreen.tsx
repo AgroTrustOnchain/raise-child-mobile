@@ -13,6 +13,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getCampaigns, mapBackendToCampaign } from '../../services/campaign.service';
+import { API_BASE_URL } from '../../services/api.service';
 import { useNavigation } from '@react-navigation/native';
 // import { useNFT } from '../../hooks/useNFT';
 // import type { NFT } from '../../services/nft.service';
@@ -32,19 +34,35 @@ const DiscoverScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
 //   useEffect(() => {
 //     loadNFTs();
 //   }, []);
 
   const onRefresh = async () => {
-    setRefreshing(true);
-    // await loadNFTs();
-    setRefreshing(false);
+    await loadCampaigns();
   };
 
-  const handleProjectPress = (nftId: string) => {
-    navigation.navigate('CampaignDetail', { nftId });
+  const loadCampaigns = async () => {
+    try {
+      setRefreshing(true);
+      setLoading(true);
+      const res = await getCampaigns(1, 50);
+      const items = Array.isArray(res.data) ? res.data : res.data || res;
+      const mapped = items.map((it: any) => mapBackendToCampaign(it, API_BASE_URL) );
+      setCampaigns(mapped);
+    } catch (e) {
+      console.warn('Failed to load campaigns', e);
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
+    }
+  };
+
+  const handleProjectPress = (nftId: string, region?: string) => {
+    navigation.navigate('CampaignDetail', { campaignId: nftId, region });
   };
 
   const renderHeader = () => (
@@ -126,7 +144,7 @@ const DiscoverScreen = () => {
     return (
       <TouchableOpacity
         style={styles.projectCard}
-        onPress={() => handleProjectPress(item.id)}
+        onPress={() => handleProjectPress(item.id, item.raw?.region || item.region)}
         activeOpacity={0.95}
       >
         {/* Project Image */}
@@ -198,10 +216,14 @@ const DiscoverScreen = () => {
     );
   };
 
+  useEffect(() => {
+    loadCampaigns();
+  }, []);
+
   return (
     <View style={styles.container}>
       <FlatList
-        data={MOCK_NFTS}
+        data={campaigns.length > 0 ? campaigns : MOCK_NFTS}
         renderItem={renderProjectCard}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={() => (

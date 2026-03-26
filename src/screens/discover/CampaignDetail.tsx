@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { getChildrenByCampaign, mapChildToBeneficiary } from '../../services/child.service';
 // import { useNFT } from '../../hooks/useNFT';
 
 interface Beneficiary {
@@ -24,64 +25,37 @@ interface Beneficiary {
   status: "available" | "sponsored";
 }
 
-const BENEFICIARIES: Beneficiary[] = [
-  {
-    id: "1",
-    name: "Amani K.",
-    age: 8,
-    grade: 3,
-    image: "https://i.pravatar.cc/150?img=1",
-    description: "Loves mathematics and dreams of becoming a pilot.",
-    status: "available",
-  },
-  {
-    id: "2",
-    name: "David M.",
-    age: 10,
-    grade: 5,
-    image: "https://i.pravatar.cc/150?img=2",
-    description: "Aspiring doctor who enjoys playing soccer after school.",
-    status: "available",
-  },
-  {
-    id: "3",
-    name: "Sarah J.",
-    age: 7,
-    grade: 2,
-    image: "https://i.pravatar.cc/150?img=3",
-    description: "Loves drawing animals and helping her mom cook.",
-    status: "sponsored",
-  },
-  {
-    id: "4",
-    name: "Lucas P.",
-    age: 6,
-    grade: 1,
-    description: "Curious about nature and wants to be a scientist.",
-    status: "available",
-  },
-  {
-    id: "5",
-    name: "Elena R.",
-    age: 9,
-    grade: 4,
-    description: "Enjoys reading stories and writing poems.",
-    status: "available",
-  },
-];
+
+// start with empty list; we'll load from API
+// Beneficiary shape is defined above in this file
 
 const CampaignDetail = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
   //   const { selectedNFT, loadNFTById } = useNFT();
   const [sortBy, setSortBy] = useState<"name" | "age">("name");
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [loadingChildren, setLoadingChildren] = useState(false);
 
-  //   useEffect(() => {
-  //     const { nftId } = route.params as { nftId: string };
-  //     if (nftId) {
-  //       loadNFTById(nftId);
-  //     }
-  //   }, [route.params]);
+  useEffect(() => {
+    const params = route.params as { nftId?: string; campaignId?: string; region?: string } | undefined;
+    const id = params?.nftId || params?.campaignId || (params ? (params as any).id : undefined);
+    const region = params?.region as string | undefined;
+    if (id || region) loadChildren({ campaignId: id, region });
+  }, [route.params]);
+
+  const loadChildren = async ({ campaignId, region }: { campaignId?: string; region?: string }) => {
+    try {
+      setLoadingChildren(true);
+      const items = await getChildrenByCampaign({ campaignId, region });
+      const mapped = (items || []).map((c: any) => mapChildToBeneficiary(c));
+      setBeneficiaries(mapped as any);
+    } catch (e) {
+      console.warn('loadChildren failed', e);
+    } finally {
+      setLoadingChildren(false);
+    }
+  };
 
   const handleSponsor = (beneficiary: Beneficiary) => {
     if (beneficiary.status === "sponsored") {
@@ -108,7 +82,7 @@ const CampaignDetail = () => {
     setSortBy((prev) => (prev === "name" ? "age" : "name"));
   };
 
-  const sortedBeneficiaries = [...BENEFICIARIES].sort((a, b) => {
+  const sortedBeneficiaries = [...beneficiaries].sort((a, b) => {
     if (sortBy === "name") {
       return a.name.localeCompare(b.name);
     }
