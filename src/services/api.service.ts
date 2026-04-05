@@ -104,6 +104,10 @@ class ApiService {
   public delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.axiosInstance.delete<T>(url, config);
   }
+
+  public async getWithdrawalProposals(page: number = 0, pageSize: number = 10) {
+    return this.get(`/withdraw-proposals?page=${page}&page_size=${pageSize}`);
+  }
 }
 
 export const apiService = new ApiService();

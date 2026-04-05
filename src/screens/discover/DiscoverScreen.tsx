@@ -49,7 +49,7 @@ const DiscoverScreen = () => {
     try {
       setRefreshing(true);
       setLoading(true);
-      const res = await getCampaigns(1, 50);
+      const res = await getCampaigns(1, 20);
       const items = Array.isArray(res.data) ? res.data : res.data || res;
       const mapped = items.map((it: any) => mapBackendToCampaign(it, API_BASE_URL) );
       setCampaigns(mapped);

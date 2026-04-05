@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiService } from './api.service';
 import { STORAGE_KEYS } from '../utils/constants';
+import { parseJWT } from '../utils/jwt';
 
 export interface LoginCredentials {
-  email: string;
-  password: string;
+  address: string;
+  sub: string;
 }
 
 export interface RegisterData {
@@ -28,15 +29,38 @@ export interface AuthResponse {
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await apiService.post<AuthResponse>('/auth/login', credentials);
-    await this.storeTokens(response.data.accessToken, response.data.refreshToken);
-    return response.data;
+    const response = await apiService.post<{ token: string }>('/auth/login', credentials);
+    
+    // API returns {token: "..."}, we need to decode it and construct AuthResponse
+    const token = response.data.token;
+    const decoded = parseJWT(token);
+    
+    // Extract user info from JWT payload
+    const authResponse: AuthResponse = {
+      user: {
+        id: decoded.sub,
+        email: '', // Not provided by API
+        name: '', // Not provided by API
+        role: decoded.roles?.[0] || 'User',
+        walletAddress: decoded.address,
+      },
+      accessToken: token,
+      refreshToken: token, // API doesn't provide refresh token, use same token
+    };
+    
+    await this.storeTokens(authResponse.accessToken, authResponse.refreshToken);
+    return authResponse;
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await apiService.post<AuthResponse>('/auth/register', data);
     await this.storeTokens(response.data.accessToken, response.data.refreshToken);
     return response.data;
+  }
+
+  async saltUser(usersub: any): Promise<any> {
+    const response = await apiService.get<{ salt: string }>(`/auth/salt/${usersub}`);
+    return response;
   }
 
   async logout(): Promise<void> {

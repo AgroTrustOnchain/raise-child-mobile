@@ -1,5 +1,10 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authService, LoginCredentials, RegisterData, AuthResponse } from '../services/auth.service';
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+  authService,
+  LoginCredentials,
+  RegisterData,
+  AuthResponse,
+} from "../services/auth.service";
 
 interface AuthState {
   user: {
@@ -22,66 +27,86 @@ const initialState: AuthState = {
 };
 
 export const loginUser = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
       const response = await authService.login(credentials);
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      return rejectWithValue(error.response?.data?.message || "Login failed");
     }
-  }
+  },
 );
 
 export const registerUser = createAsyncThunk(
-  'auth/register',
+  "auth/register",
   async (data: RegisterData, { rejectWithValue }) => {
     try {
       const response = await authService.register(data);
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+      return rejectWithValue(
+        error.response?.data?.message || "Registration failed",
+      );
     }
-  }
+  },
 );
 
 export const logoutUser = createAsyncThunk(
-  'auth/logout',
+  "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
       await authService.logout();
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Logout failed');
+      return rejectWithValue(error.response?.data?.message || "Logout failed");
     }
-  }
+  },
 );
 
 export const fetchCurrentUser = createAsyncThunk(
-  'auth/fetchCurrentUser',
+  "auth/fetchCurrentUser",
   async (_, { rejectWithValue }) => {
     try {
       const user = await authService.getCurrentUser();
       return user;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch user",
+      );
     }
-  }
+  },
 );
 
 export const connectWallet = createAsyncThunk(
-  'auth/connectWallet',
+  "auth/connectWallet",
   async (walletAddress: string, { rejectWithValue }) => {
     try {
       await authService.connectWallet(walletAddress);
       return walletAddress;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to connect wallet');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to connect wallet",
+      );
     }
-  }
+  },
+);
+
+export const saltUser = createAsyncThunk(
+  "auth/saltUser",
+  async (usersub: any, { rejectWithValue }) => {
+    try {
+      const response = await authService.saltUser(usersub);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to get salt",
+      );
+    }
+  },
 );
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setCredentials: (state, action: PayloadAction<AuthResponse>) => {
@@ -95,6 +120,11 @@ const authSlice = createSlice({
       state.error = null;
     },
     clearError: (state) => {
+      state.error = null;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
       state.error = null;
     },
   },
@@ -139,9 +169,13 @@ const authSlice = createSlice({
         if (state.user) {
           state.user.walletAddress = action.payload;
         }
+      })
+      .addCase(saltUser.fulfilled, (state, action) => {
+        // This case can be used to store the salt in the state if needed
       });
   },
 });
 
-export const { setCredentials, clearAuth, clearError } = authSlice.actions;
+export const { setCredentials, clearAuth, clearError, logout } =
+  authSlice.actions;
 export default authSlice.reducer;
