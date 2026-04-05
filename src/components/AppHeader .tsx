@@ -1,8 +1,11 @@
 // src/components/AppHeader.tsx
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../hooks/useAuth";
+import { useDispatch } from "react-redux";
+import { logout, logoutUser } from "../store/authSlice";
 
 type Props = {
   title: string;
@@ -10,6 +13,33 @@ type Props = {
 
 const AppHeader = () => {
   const insets = useSafeAreaInsets();
+  const dispatch = useDispatch()
+  // const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => {},
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          onPress: async () => {
+            try {
+              dispatch(logout());
+            } catch (error) {
+              Alert.alert("Error", "Failed to logout");
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.topBar}>
@@ -19,9 +49,17 @@ const AppHeader = () => {
         </View>
         <Text style={styles.logoText}>AgroTrust</Text>
       </View>
-      <TouchableOpacity style={styles.notificationButton}>
-        <Ionicons name="notifications-outline" size={24} color="#6B7280" />
-      </TouchableOpacity>
+      <View style={styles.headerActions}>
+        <TouchableOpacity style={styles.notificationButton}>
+          <Ionicons name="notifications-outline" size={24} color="#6B7280" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={24} color="#DC2626" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -59,7 +97,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#111827",
   },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   notificationButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoutButton: {
     width: 40,
     height: 40,
     borderRadius: 20,

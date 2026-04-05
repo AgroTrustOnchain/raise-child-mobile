@@ -21,7 +21,7 @@ import { ActivityIndicator } from 'react-native';
 const { width } = Dimensions.get('window');
 
 const ChildDetailScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute();
 
   const [beneficiary, setBeneficiary] = useState<any | null>(null);
@@ -101,6 +101,7 @@ const ChildDetailScreen = () => {
   };
 
   const handleSponsor = () => {
+    navigation.navigate("SponsorshipScreen", { childId: beneficiary.id });
     Alert.alert(
       'Sponsor Child',
       `Would you like to sponsor ${beneficiary.name} for ${beneficiary.monthlyAmount} SUI/month?`,

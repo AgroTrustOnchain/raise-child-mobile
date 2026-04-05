@@ -1,4 +1,4 @@
-// src/screens/nft/NFTDetailScreen.tsx
+// src/screens/discover/CampaignDetail.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -9,10 +9,13 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getChildrenByCampaign, mapChildToBeneficiary } from '../../services/child.service';
+import { getCenterDetail, CenterDetail } from '../../services/campaign.service';
+import { API_BASE_URL } from '../../services/api.service';
 // import { useNFT } from '../../hooks/useNFT';
 
 interface Beneficiary {
@@ -36,19 +39,36 @@ const CampaignDetail = () => {
   const [sortBy, setSortBy] = useState<"name" | "age">("name");
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [loadingChildren, setLoadingChildren] = useState(false);
+  const [centerDetail, setCenterDetail] = useState<CenterDetail | null>(null);
+  const [loadingCenter, setLoadingCenter] = useState(false);
 
   useEffect(() => {
     const params = route.params as { nftId?: string; campaignId?: string; region?: string } | undefined;
     const id = params?.nftId || params?.campaignId || (params ? (params as any).id : undefined);
     const region = params?.region as string | undefined;
-    if (id || region) loadChildren({ campaignId: id, region });
+    if (id) {
+      loadCenterDetail(id);
+      loadChildren({ campaignId: id, region });
+    }
   }, [route.params]);
+
+  const loadCenterDetail = async (centerId: string) => {
+    try {
+      setLoadingCenter(true);
+      const detail = await getCenterDetail(centerId);
+      setCenterDetail(detail);
+    } catch (e) {
+      console.warn('loadCenterDetail failed', e);
+    } finally {
+      setLoadingCenter(false);
+    }
+  };
 
   const loadChildren = async ({ campaignId, region }: { campaignId?: string; region?: string }) => {
     try {
       setLoadingChildren(true);
       const items = await getChildrenByCampaign({ campaignId, region });
-      const mapped = (items || []).map((c: any) => mapChildToBeneficiary(c));
+      const mapped = (items?.length > 0 ? items : []).map((c: any) => mapChildToBeneficiary(c));
       setBeneficiaries(mapped as any);
     } catch (e) {
       console.warn('loadChildren failed', e);
@@ -100,7 +120,7 @@ const CampaignDetail = () => {
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
         <Text style={styles.navTitle} numberOfLines={1}>
-          School Lunch Program
+          {centerDetail?.region || "Loading..."}
         </Text>
         <TouchableOpacity style={styles.navButton}>
           <Ionicons
@@ -111,34 +131,63 @@ const CampaignDetail = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Loading State */}
+      {loadingCenter && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#13ec5b" />
+        </View>
+      )}
+
       {/* Campaign Info Card */}
-      <View style={styles.infoCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.verifiedBadge}>
-            <Ionicons name="shield-checkmark" size={16} color="#13ec5b" />
-            <Text style={styles.verifiedText}>BLOCKCHAIN VERIFIED</Text>
+      {centerDetail && (
+        <View style={styles.infoCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.verifiedBadge}>
+              <Ionicons name="shield-checkmark" size={16} color="#13ec5b" />
+              <Text style={styles.verifiedText}>
+                {centerDetail.status?.toUpperCase() || "VERIFIED"}
+              </Text>
+            </View>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryText}>{centerDetail.region}</Text>
+            </View>
           </View>
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>Nutrition</Text>
-          </View>
-        </View>
 
-        <Text style={styles.poolLabel}>Total Pool Balance</Text>
-        <View style={styles.balanceRow}>
-          <Text style={styles.balanceAmount}>128,500</Text>
-          <Text style={styles.balanceCurrency}>SUI</Text>
-        </View>
+          {/* Center Image */}
+          {centerDetail.image_blob_id && (
+            <Image
+              source={{ uri: `${API_BASE_URL}/blobs/${centerDetail.image_blob_id}` }}
+              style={styles.centerImage}
+            />
+          )}
 
-        <View style={styles.progressSection}>
-          <View style={styles.progressLabels}>
-            <Text style={styles.progressLabel}>PROGRESS</Text>
-            <Text style={styles.progressPercentage}>85%</Text>
+          {/* Center Details */}
+          <View style={styles.detailsSection}>
+            <View style={styles.detailRow}>
+              <Ionicons name="location" size={20} color="#13ec5b" />
+              <Text style={styles.detailText}>{centerDetail.address}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons name="call" size={20} color="#13ec5b" />
+              <Text style={styles.detailText}>{centerDetail.phone_number}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons name="person" size={20} color="#13ec5b" />
+              <Text style={styles.detailText}>{centerDetail.profile_id}</Text>
+            </View>
           </View>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: "85%" }]} />
+
+          <Text style={styles.poolLabel}>Center Status</Text>
+          <View style={styles.statusInfo}>
+            <Text style={styles.statusLabel}>
+              Available to Confirm: {centerDetail.IsAvailableToConfirm ? "Yes" : "No"}
+            </Text>
+            <Text style={styles.statusLabel}>
+              Confirmed Register: {centerDetail.is_confirm_register ? "Yes" : "No"}
+            </Text>
           </View>
         </View>
-      </View>
+      )}
 
       {/* Beneficiaries Header */}
       <View style={styles.beneficiariesHeader}>
@@ -537,6 +586,43 @@ const styles = StyleSheet.create({
   sponsorButtonDisabled: {
     backgroundColor: "#F3F4F6",
     shadowOpacity: 0,
+  },
+  loadingContainer: {
+    paddingVertical: 32,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  centerImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  detailsSection: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  detailText: {
+    flex: 1,
+    fontSize: 14,
+    color: "#4B5563",
+    fontWeight: "500",
+  },
+  statusInfo: {
+    backgroundColor: "rgba(19, 236, 91, 0.05)",
+    padding: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  statusLabel: {
+    fontSize: 13,
+    color: "#4B5563",
+    fontWeight: "500",
   },
 });
 
