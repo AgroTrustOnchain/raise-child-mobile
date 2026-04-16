@@ -44,16 +44,18 @@ const LoginScreen = () => {
       return;
     }
 
+    const loginReponse : any = await dispatch(
+            loginUser({ address: formData.email, sub: formData.password }),
+          );
+
+          console.log(loginReponse.payload);
+
     try {
       // await login(formData);
       // Navigation handled by AppNavigator when auth state changes
       dispatch(
         setCredentials({
-          user: {
-            name,
-            role: "donor",
-            walletAddress: "",
-          },
+          user: loginReponse.payload.user,
           // accessToken: idToken,
           refreshToken: "",
         } as any),
@@ -88,6 +90,20 @@ const LoginScreen = () => {
         const sub: any = getSubFromJWT(idToken);
         console.log("Google User ID (sub):", sub);
 
+        dispatch(
+              setCredentials({
+                user: {
+                  id: sub,
+                  email,
+                  name,
+                  // role: "donor",
+                  walletAddress: "",
+                },
+                accessToken: idToken,
+                refreshToken: "",
+              } as any),
+            );
+
         // Dispatch saltUser to get user salt
         try {
           const saltResult = await dispatch(saltUser(sub)).unwrap();
@@ -105,19 +121,7 @@ const LoginScreen = () => {
 
           if (loginReponse.payload) {
             Alert.alert("Login Successful", "Welcome back!");
-            dispatch(
-              setCredentials({
-                user: {
-                  id: sub,
-                  email,
-                  name,
-                  role: "donor",
-                  walletAddress: "",
-                },
-                accessToken: idToken,
-                refreshToken: "",
-              } as any),
-            );
+            
 
             setIsInProgress(false);
             navigation.navigate("Home" as never);
@@ -125,9 +129,12 @@ const LoginScreen = () => {
             Alert.alert("Login Failed", "Unable to authenticate with Google");
             setIsInProgress(false);
           }
+
+          
         } catch (saltError) {
           console.error("Error getting user salt:", saltError);
         }
+
 
         // Store user credentials
       } else {
@@ -160,7 +167,7 @@ const LoginScreen = () => {
             {/* <View style={styles.glowCircle} /> */}
             <View style={styles.headerContent}>
               <View style={styles.iconContainer}>
-                <Ionicons name="leaf" size={32} color="#3A7D44" />
+                <Ionicons name="leaf" size={32} color="#1E40AF" />
               </View>
               <Text style={styles.title}>AgroTrust</Text>
               <Text style={styles.subtitle}>
@@ -284,6 +291,12 @@ const LoginScreen = () => {
                 <Text style={styles.signUpLink}>Create an account</Text>
               </Text>
             </TouchableOpacity>
+
+            {/* Secured Badge */}
+            <View style={styles.securedRow}>
+              <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
+              <Text style={styles.securedText}>Secured by Sui Network Protocol</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -294,7 +307,7 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F8FAFC",
   },
   scrollContent: {
     flexGrow: 1,
@@ -307,11 +320,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
     borderWidth: 1,
-    borderColor: "#F3F4F6",
+    borderColor: "#F1F5F9",
   },
   header: {
     position: "relative",
@@ -326,7 +339,7 @@ const styles = StyleSheet.create({
     left: "50%",
     width: 192,
     height: 192,
-    backgroundColor: "rgba(58, 125, 68, 0.1)",
+    backgroundColor: "#EFF6FF",
     borderRadius: 96,
     transform: [{ translateX: -96 }],
     opacity: 0.6,
@@ -338,7 +351,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 64,
     height: 64,
-    backgroundColor: "rgba(58, 125, 68, 0.1)",
+    backgroundColor: "#EFF6FF",
     borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
@@ -346,7 +359,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: "800",
     color: "#111827",
     marginBottom: 4,
     textAlign: "center",
@@ -380,17 +393,17 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "700",
     color: "#111827",
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 8,
+    backgroundColor: "#F8FAFF",
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#DBEAFE",
     paddingHorizontal: 12,
   },
   inputIcon: {
@@ -408,27 +421,28 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 12,
-    fontWeight: "500",
-    color: "#3A7D44",
+    fontWeight: "600",
+    color: "#1E40AF",
   },
   loginButton: {
-    backgroundColor: "#3A7D44",
-    paddingVertical: 14,
-    borderRadius: 12,
+    backgroundColor: "#1E40AF",
+    height: 60,
+    borderRadius: 16,
     alignItems: "center",
-    shadowColor: "#3A7D44",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    justifyContent: "center",
+    shadowColor: "#1E40AF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   loginButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 17,
+    fontWeight: "800",
   },
   divider: {
     flexDirection: "row",
@@ -480,8 +494,22 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   signUpLink: {
-    color: "#3A7D44",
-    fontWeight: "500",
+    color: "#1E40AF",
+    fontWeight: "600",
+  },
+  securedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 20,
+  },
+  securedText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#9CA3AF",
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
   },
 });
 

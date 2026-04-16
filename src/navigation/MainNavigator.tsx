@@ -1,11 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-
+import { useAppSelector } from "../store";
 import HomeScreen from "../screens/nft/HomeScreen";
-// import ExploreScreen from '../screens/nft/ExploreScreen';
-import CreateNFTScreen from "../screens/nft/CreateNFTScreen";
 import DiscoverScreen from "../screens/discover/DiscoverScreen";
 import AppHeader from "../components/AppHeader ";
 import CampaignDetail from "../screens/discover/CampaignDetail";
@@ -15,8 +13,24 @@ import ProofScreen from "../screens/track/ProofScreen";
 import WalletScreen from "../screens/wallet/WalletScreen";
 import WithdrawalScreen from "../screens/wallet/WithdrawalScreen";
 import SponsorshipScreen from "../screens/discover/Sponsorshipscreen";
-// import NFTDetailScreen from '../screens/nft/NFTDetailScreen';
-// import ProfileScreen from '../screens/profile/ProfileScreen';
+import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
+import WelfareUpdateScreen from "../screens/volunteer/Welfareupdatescreen";
+import SettingsScreen from "../screens/settings/SettingsScreen";
+import RegistrationFormScreen from "../screens/settings/RegistrationFormScreen";
+import { VolunteerNavigator } from "./VolunteerNavigator";
+
+// Define all global/modal screens that aren't in tab navigation
+export type GlobalModalParamList = {
+  WelfareUpdate: undefined;
+  WelfareUpdateDetail: { child: any };
+  Profile: undefined;
+  Volunteer: undefined;
+  RegistrationForm: undefined;
+  // CreateNFT: undefined;
+  // Add more modal screens here as needed
+  // ChildHealthReport: { childId: string };
+  // EmergencyAlert: { childId: string };
+};
 
 export type NFTStackParamList = {
   NFTHome: undefined;
@@ -35,11 +49,17 @@ export type MainTabParamList = {
   Wallet: undefined;
   Withdrawal: undefined;
   Track: undefined;
-  Profile: undefined;
+  Settings: undefined;
+};
+
+// Combined params for root navigator
+export type RootStackParamList = GlobalModalParamList & {
+  Main: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<NFTStackParamList>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 const NFTStack = () => {
   return (
@@ -53,11 +73,6 @@ const NFTStack = () => {
         component={HomeScreen}
         options={{ title: "My NFTs" }}
       />
-      {/* <Stack.Screen 
-        name="NFTDetail" 
-        component={NFTDetailScreen} 
-        options={{ title: 'NFT Details' }} 
-      /> */}
     </Stack.Navigator>
   );
 };
@@ -114,13 +129,12 @@ const TrackStack = () => {
   );
 };
 
-
-
 const MainNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         header: () => <AppHeader />,
+        
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = "home";
 
@@ -134,8 +148,8 @@ const MainNavigator = () => {
             iconName = focused ? "card" : "card-outline";
           } else if (route.name === "Track") {
             iconName = focused ? "list" : "list-outline";
-          } else if (route.name === "Profile") {
-            iconName = focused ? "person" : "person-outline";
+          } else if (route.name === "Settings") {
+            iconName = focused ? "settings" : "settings-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -149,13 +163,125 @@ const MainNavigator = () => {
         component={NFTStack}
         options={{ headerShown: false }}
       />
-      <Tab.Screen name="Explore" component={DiscoverStack} options={{ headerShown: false }}/>
-      <Tab.Screen name="Wallet" component={WalletScreen} options={{ headerShown: true }}/>
-      <Tab.Screen name="Withdrawal" component={WithdrawalScreen} options={{ headerShown: true }}/>
-      <Tab.Screen name="Track" component={TrackStack} options={{ headerShown: false }}/>
-      {/* <Tab.Screen name="Profile" component={ProfileScreen} /> */}
+      <Tab.Screen 
+        name="Explore" 
+        component={DiscoverStack} 
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen 
+        name="Wallet" 
+        component={WalletScreen} 
+        options={{ headerShown: true }}
+      />
+      <Tab.Screen 
+        name="Withdrawal" 
+        component={WithdrawalScreen} 
+        options={{ headerShown: true }}
+      />
+      <Tab.Screen 
+        name="Track" 
+        component={TrackStack} 
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen 
+        name="Settings" 
+        component={SettingsScreen} 
+        options={{ headerShown: false }}
+      />
     </Tab.Navigator>
   );
 };
 
-export default MainNavigator;
+/**
+ * RootNavigator with Global Modal Stack
+ * 
+ * This navigator handles:
+ * - Main tab navigation
+ * - Global modal screens (welfare updates, alerts, etc.)
+ * 
+ * Benefits:
+ * - Modals appear above all tab content
+ * - Can navigate to modals from anywhere in the app
+ * - Modals don't mess with tab state
+ */
+export const RootNavigator = () => {
+  const { user } = useAppSelector((state) => state.auth);
+
+  return (
+    <RootStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        // animationEnabled: true,
+      }}
+    >
+      {/* Main Tab Navigation */}
+      <RootStack.Group>
+        <RootStack.Screen
+          name="Main"
+          component={MainNavigator}
+          // options={{ animationEnabled: false }}
+        />
+      </RootStack.Group>
+
+      {/* Global Modal Stack - appears above everything */}
+      <RootStack.Group screenOptions={{ presentation: 'modal' }}>
+        <RootStack.Screen
+          name="WelfareUpdate"
+          component={WelfareUpdateScreen}
+          options={{
+            title: 'Welfare Update',
+            headerShown: false,
+            // animationEnabled: true,
+          }}
+        />
+        <RootStack.Screen
+          name="WelfareUpdateDetail"
+          component={WelfareUpdateScreen}
+          options={{
+            title: 'Welfare Update',
+            headerShown: false,
+            // animationEnabled: true,
+          }}
+        />
+        <RootStack.Screen
+          name="Profile"
+          component={PersonalInformationScreen}
+          options={{
+            title: 'Create NFT',
+            headerShown: false,
+            // animationEnabled: true,
+          }}
+        />
+        <RootStack.Screen
+          name="Volunteer"
+          component={VolunteerNavigator}
+          options={{
+            title: 'Volunteer Mode',
+            headerShown: false,
+            // animationEnabled: true,
+          }}
+        />
+        <RootStack.Screen
+          name="RegistrationForm"
+          component={RegistrationFormScreen}
+          options={{
+            title: 'Registration Form',
+            headerShown: false,
+            // animationEnabled: true,
+          }}
+        />
+        {/* Add more global modal screens here as needed */}
+        {/* <RootStack.Screen
+          name="ChildHealthReport"
+          component={ChildHealthReportScreen}
+          options={{
+            title: 'Health Report',
+            headerShown: false,
+          }}
+        /> */}
+      </RootStack.Group>
+    </RootStack.Navigator>
+  );
+};
+
+export default RootNavigator;

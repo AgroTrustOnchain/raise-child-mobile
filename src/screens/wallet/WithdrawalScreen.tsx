@@ -9,6 +9,10 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +45,9 @@ const WithdrawalScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [showRefuseModal, setShowRefuseModal] = useState(false);
+  const [refuseReason, setRefuseReason] = useState('');
+  const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
 
   const fetchWithdrawals = useCallback(async (pageNum: number, append = false) => {
     try {
@@ -48,6 +55,7 @@ const WithdrawalScreen = () => {
       setError(null);
 
       const response = await getWithdrawalProposals(pageNum, 10);
+      console.log(response)
       const mapped = response.data.map(mapWithdrawalProposal);
 
       setWithdrawals(prev => (append ? [...prev, ...mapped] : mapped));
@@ -71,7 +79,15 @@ const WithdrawalScreen = () => {
     }
   };
 
-  const handleVote = (id: string, voteType: 'for' | 'against') => {
+  const handleVote = (id: string, voteType: 'for' | 'against', reason?: string) => {
+    if (voteType === 'against' && !reason) {
+      // Open modal for refusal reason when voting against
+      setSelectedProposalId(id);
+      setRefuseReason('');
+      setShowRefuseModal(true);
+      return;
+    }
+
     Alert.alert(
       'Confirm Vote',
       `Vote ${voteType === 'for' ? 'FOR' : 'AGAINST'} this withdrawal?`,
@@ -81,16 +97,34 @@ const WithdrawalScreen = () => {
           text: 'Confirm',
           onPress: async () => {
             try {
-              await voteWithdrawalProposal(id, voteType === 'for' ? 'approve' : 'refuse');
+              await voteWithdrawalProposal(
+                id,
+                voteType === 'for' ? 'approve' : 'refuse',
+                reason
+              );
               Alert.alert('Vote Recorded', 'Your vote has been submitted successfully.');
               fetchWithdrawals(0);
-            } catch {
-              Alert.alert('Error', 'Failed to submit vote. Please try again.');
+            } catch (error: any) {
+              Alert.alert(
+                'Error',
+                error.message || 'Failed to submit vote. Please try again.'
+              );
             }
           },
         },
       ]
     );
+  };
+
+  const handleSubmitRefuseReason = () => {
+    if (!refuseReason.trim()) {
+      Alert.alert('Required', 'Please provide a reason for voting against.');
+      return;
+    }
+    setShowRefuseModal(false);
+    if (selectedProposalId) {
+      handleVote(selectedProposalId, 'against', refuseReason);
+    }
   };
 
   const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
@@ -184,33 +218,34 @@ const WithdrawalScreen = () => {
   );
 
   return (
-    <View style={[styles.container]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Withdrawals</Text>
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={() => fetchWithdrawals(0)}
-          disabled={loading}
-        >
-          <MaterialIcons name="refresh" size={22} color="#1e40af" />
-        </TouchableOpacity>
-      </View>
-
-      {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#1e40af" />
-          <Text style={styles.loadingText}>Loading proposals…</Text>
-        </View>
-      ) : error ? (
-        <View style={styles.centered}>
-          <MaterialIcons name="error-outline" size={52} color="#dc2626" />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => fetchWithdrawals(0)}>
-            <Text style={styles.retryBtnText}>Retry</Text>
+    <>
+      <View style={[styles.container]}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Withdrawals</Text>
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={() => fetchWithdrawals(0)}
+            disabled={loading}
+          >
+            <MaterialIcons name="refresh" size={22} color="#1e40af" />
           </TouchableOpacity>
         </View>
-      ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+
+        {loading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color="#1e40af" />
+            <Text style={styles.loadingText}>Loading proposals…</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.centered}>
+            <MaterialIcons name="error-outline" size={52} color="#dc2626" />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => fetchWithdrawals(0)}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ScrollView showsVerticalScrollIndicator={false}>
           <View style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <MaterialIcons name="account-balance-wallet" size={20} color="white" />
@@ -268,7 +303,82 @@ const WithdrawalScreen = () => {
           <View style={{ height: 32 }} />
         </ScrollView>
       )}
-    </View>
+      </View>
+
+      {/* Refuse Reason Modal */}
+      <Modal
+        visible={showRefuseModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => {
+          setShowRefuseModal(false);
+          setRefuseReason('');
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoid}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Refusal Reason</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowRefuseModal(false);
+                    setRefuseReason('');
+                  }}
+                >
+                  <MaterialIcons name="close" size={24} color="#64748b" />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.modalSubtitle}>
+                Please explain why you are voting against this withdrawal proposal
+              </Text>
+
+              <TextInput
+                style={styles.reasonInput}
+                placeholder="Enter your reason..."
+                placeholderTextColor="#cbd5e1"
+                multiline
+                numberOfLines={4}
+                maxLength={500}
+                value={refuseReason}
+                onChangeText={setRefuseReason}
+                textAlignVertical="top"
+              />
+
+              <Text style={styles.charCount}>
+                {refuseReason.length}/500
+              </Text>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setShowRefuseModal(false);
+                    setRefuseReason('');
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    !refuseReason.trim() && styles.submitButtonDisabled,
+                  ]}
+                  onPress={handleSubmitRefuseReason}
+                  disabled={!refuseReason.trim()}
+                >
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+    </>
   );
 };
 
@@ -396,6 +506,93 @@ const styles = StyleSheet.create({
   loadMoreSub: { fontSize: 11, color: '#94a3b8' },
   emptyBox: { alignItems: 'center', gap: 10, paddingVertical: 40 },
   emptyText: { fontSize: 15, color: '#94a3b8', fontWeight: '500' },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+    marginBottom: 50,
+  },
+  keyboardAvoid: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    paddingTop: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  reasonInput: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#0f172a',
+    marginBottom: 8,
+    fontFamily: 'System',
+    backgroundColor: '#f8fafc',
+  },
+  charCount: {
+    fontSize: 11,
+    color: '#94a3b8',
+    marginBottom: 16,
+    textAlign: 'right',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  submitButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#1e40af',
+    alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#cbd5e1',
+    opacity: 1,
+  },
+  submitButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: 'white',
+  },
 });
 
 export default WithdrawalScreen;

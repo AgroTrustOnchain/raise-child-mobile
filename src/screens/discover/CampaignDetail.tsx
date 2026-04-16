@@ -41,14 +41,23 @@ const CampaignDetail = () => {
   const [loadingChildren, setLoadingChildren] = useState(false);
   const [centerDetail, setCenterDetail] = useState<CenterDetail | null>(null);
   const [loadingCenter, setLoadingCenter] = useState(false);
+  const [region, setRegion] = useState<string | null>(null);
 
   useEffect(() => {
     const params = route.params as { nftId?: string; campaignId?: string; region?: string } | undefined;
     const id = params?.nftId || params?.campaignId || (params ? (params as any).id : undefined);
-    const region = params?.region as string | undefined;
+    const regionParam = params?.region as string | undefined;
+    
+    setRegion(regionParam || null);
+    
+    // If we have a campaignId, load center detail
     if (id) {
       loadCenterDetail(id);
-      loadChildren({ campaignId: id, region });
+    }
+    
+    // Load children either by campaignId or region
+    if (id || regionParam) {
+      loadChildren({ campaignId: id, region: regionParam });
     }
   }, [route.params]);
 
@@ -120,7 +129,7 @@ const CampaignDetail = () => {
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
         <Text style={styles.navTitle} numberOfLines={1}>
-          {centerDetail?.region || "Loading..."}
+          {centerDetail?.region || region || "Loading..."}
         </Text>
         <TouchableOpacity style={styles.navButton}>
           <Ionicons
@@ -189,7 +198,18 @@ const CampaignDetail = () => {
         </View>
       )}
 
-      {/* Beneficiaries Header */}
+      {/* Region Info Card - Show when viewing region without campaign */}
+      {!centerDetail && region && (
+        <View style={styles.regionInfoCard}>
+          <View style={styles.regionCardHeader}>
+            <Ionicons name="location" size={28} color="#2E7D32" />
+            <View style={styles.regionTextWrapper}>
+              <Text style={styles.regionTitle}>{region}</Text>
+              <Text style={styles.regionSubtitle}>Children in this region</Text>
+            </View>
+          </View>
+        </View>
+      )}
       <View style={styles.beneficiariesHeader}>
         <Text style={styles.beneficiariesTitle}>Beneficiaries</Text>
         <TouchableOpacity style={styles.sortButton} onPress={handleSort}>
@@ -465,6 +485,33 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#13ec5b",
     letterSpacing: 0.5,
+  },
+  regionInfoCard: {
+    margin: 16,
+    marginTop: 8,
+    padding: 20,
+    backgroundColor: "#F0F9FF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+  },
+  regionCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  regionTextWrapper: {
+    flex: 1,
+  },
+  regionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1F2937",
+  },
+  regionSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginTop: 4,
   },
   beneficiaryCard: {
     flexDirection: "row",

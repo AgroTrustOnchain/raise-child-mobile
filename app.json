@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -26,7 +25,8 @@
       },
       "package": "com.raisechild.mobile",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "newArchEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,7 +37,8 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.189055599254-5546cfglttl20jv5qg0d57po8b9adl8k"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {
