@@ -13,6 +13,7 @@ import ProofScreen from "../screens/track/ProofScreen";
 import WalletScreen from "../screens/wallet/WalletScreen";
 import WithdrawalScreen from "../screens/wallet/WithdrawalScreen";
 import SponsorshipScreen from "../screens/discover/Sponsorshipscreen";
+import ChildProofScreen from "../screens/discover/ChildProofScreen";
 import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
 import WelfareUpdateScreen from "../screens/volunteer/Welfareupdatescreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
@@ -99,10 +100,15 @@ const DiscoverStack = () => {
         component={ChildDetailScreen} 
         options={{ title: 'Child Details' }} 
       />
-      <Stack.Screen 
-        name="SponsorshipScreen" 
-        component={SponsorshipScreen} 
-        options={{ title: 'Sponsorship' }} 
+      <Stack.Screen
+        name="SponsorshipScreen"
+        component={SponsorshipScreen}
+        options={{ title: 'Sponsorship' }}
+      />
+      <Stack.Screen
+        name="ChildProofScreen"
+        component={ChildProofScreen}
+        options={{ title: 'Impact Proof' }}
       />
     </Stack.Navigator>
   );
