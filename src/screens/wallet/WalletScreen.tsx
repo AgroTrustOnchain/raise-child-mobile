@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F1F5F9',
   },
   badgeImage: {
     width: '100%',
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
     color: '#1E40AF',
   },
   transactionCard: {
-    backgroundColor: 'rgba(219, 234, 254, 0.5)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
@@ -485,7 +485,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   transactionLeft: {
     flexDirection: 'row',
@@ -517,10 +522,10 @@ const styles = StyleSheet.create({
   },
   transactionDate: {
     fontSize: 10,
-    color: '#64748B',
+    color: '#6B7280',
   },
   metaDot: {
-    color: '#CBD5E1',
+    color: '#9CA3AF',
   },
   explorerLink: {
     fontSize: 9,
@@ -530,7 +535,7 @@ const styles = StyleSheet.create({
   bankTransfer: {
     fontSize: 9,
     fontWeight: '500',
-    color: '#64748B',
+    color: '#6B7280',
   },
   transactionAmount: {
     alignItems: 'flex-end',
@@ -542,14 +547,14 @@ const styles = StyleSheet.create({
   },
   amountCrypto: {
     fontSize: 9,
-    color: '#64748B',
+    color: '#6B7280',
     fontFamily: 'monospace',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   infoCard: {
-    backgroundColor: 'rgba(219, 234, 254, 0.3)',
-    borderRadius: 24,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: '#DBEAFE',
@@ -577,7 +582,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 11,
-    color: '#475569',
+    color: '#6B7280',
     lineHeight: 16,
   },
 });

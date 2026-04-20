@@ -143,7 +143,7 @@ const HomeScreen = () => {
         <View style={styles.poolGradient} />
         <View style={styles.poolContent}>
           <View style={styles.verifiedBadge}>
-            <Ionicons name="shield-checkmark" size={16} color="#0ea640" />
+            <Ionicons name="shield-checkmark" size={16} color="#1E40AF" />
             <Text style={styles.verifiedText}>VERIFIED AGGREGATE POOL</Text>
           </View>
 
@@ -172,7 +172,7 @@ const HomeScreen = () => {
           <Text style={styles.sectionTitle}>Sub-Campaign Pools</Text>
           <TouchableOpacity style={styles.viewAllButton}>
             <Text style={styles.viewAllText}>View All</Text>
-            <Ionicons name="arrow-forward" size={16} color="#0ea640" />
+            <Ionicons name="arrow-forward" size={16} color="#1E40AF" />
           </TouchableOpacity>
         </View>
 
@@ -189,7 +189,7 @@ const HomeScreen = () => {
                 <Image source={{ uri: campaign.image }} style={styles.campaignImage} />
                 {campaign.verified && (
                   <View style={styles.campaignVerifiedBadge}>
-                    <Ionicons name="checkmark-circle" size={14} color="#13ec5b" />
+                    <Ionicons name="checkmark-circle" size={14} color="#1E40AF" />
                     <Text style={styles.campaignVerifiedText}>VERIFIED</Text>
                   </View>
                 )}
@@ -218,7 +218,7 @@ const HomeScreen = () => {
             <View style={styles.liveBadgeDot} />
             <Text style={styles.liveBadgeText}>LIVE</Text>
           </View>
-          {loading && <ActivityIndicator size="small" color="#0ea640" style={{ marginLeft: 8 }} />}
+          {loading && <ActivityIndicator size="small" color="#1E40AF" style={{ marginLeft: 8 }} />}
         </View>
 
         {/* Filter Buttons */}
@@ -229,8 +229,8 @@ const HomeScreen = () => {
               style={[styles.filterButton, selectedFilter === f && styles.filterButtonActive]}
               onPress={() => setSelectedFilter(f)}
             >
-              {f === 'inflow' && <Ionicons name="arrow-down" size={13} color="#0ea640" />}
-              {f === 'outflow' && <Ionicons name="arrow-up" size={13} color="#ff6b00" />}
+              {f === 'inflow' && <Ionicons name="arrow-down" size={13} color="#1E40AF" />}
+              {f === 'outflow' && <Ionicons name="arrow-up" size={13} color="#EA580C" />}
               <Text style={[styles.filterText, selectedFilter === f && styles.filterTextActive]}>
                 {f.charAt(0).toUpperCase() + f.slice(1)}
               </Text>
@@ -242,7 +242,7 @@ const HomeScreen = () => {
       {/* Error state */}
       {error && (
         <View style={styles.errorBanner}>
-          <Ionicons name="alert-circle-outline" size={16} color="#dc2626" />
+          <Ionicons name="alert-circle-outline" size={16} color="#DC2626" />
           <Text style={styles.errorBannerText}>{error}</Text>
           <TouchableOpacity onPress={() => fetchTransactions(0)}>
             <Text style={styles.errorRetryText}>Retry</Text>
@@ -253,7 +253,7 @@ const HomeScreen = () => {
       {/* Empty state */}
       {!loading && !error && filteredTransactions.length === 0 && (
         <View style={styles.emptyBox}>
-          <Ionicons name="receipt-outline" size={40} color="#d1d5db" />
+          <Ionicons name="receipt-outline" size={40} color="#D1D5DB" />
           <Text style={styles.emptyText}>No transactions found</Text>
         </View>
       )}
@@ -278,7 +278,7 @@ const HomeScreen = () => {
           <Ionicons
             name={item.type === 'inflow' ? 'arrow-down' : 'arrow-up'}
             size={18}
-            color={item.type === 'inflow' ? '#0ea640' : '#ff6b00'}
+            color={item.type === 'inflow' ? '#1E40AF' : '#EA580C'}
           />
         </View>
 
@@ -292,7 +292,7 @@ const HomeScreen = () => {
             <View style={styles.metaDot} />
             <Text style={[
               styles.transactionCategory,
-              item.type === 'outflow' ? { color: '#ff6b00' } : { color: '#0ea640' },
+              item.type === 'outflow' ? { color: '#EA580C' } : { color: '#1E40AF' },
             ]}>
               {item.coinType}
             </Text>
@@ -328,7 +328,7 @@ const HomeScreen = () => {
         disabled={loadingMore}
       >
         {loadingMore ? (
-          <ActivityIndicator size="small" color="#0ea640" />
+          <ActivityIndicator size="small" color="#1E40AF" />
         ) : (
           <Text style={styles.loadMoreText}>Load More  ·  Page {page + 1}/{totalPages}</Text>
         )}
@@ -350,7 +350,7 @@ const HomeScreen = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#0ea640"
+            tintColor="#1E40AF"
           />
         }
         showsVerticalScrollIndicator={false}
@@ -362,55 +362,55 @@ const HomeScreen = () => {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f6f8f6' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
 
   // Top nav
   topNav: {
     paddingHorizontal: 16,
     paddingBottom: 12,
-    backgroundColor: 'rgba(246,248,246,0.95)',
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
   },
-  navTitle: { fontSize: 18, fontWeight: 'bold', color: '#1F2937', textAlign: 'center' },
+  navTitle: { fontSize: 18, fontWeight: '700', color: '#111827', textAlign: 'center' },
 
   // Pool card
   poolCard: {
     margin: 16,
     marginTop: 12,
     borderRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(19,236,91,0.2)',
+    borderColor: '#DBEAFE',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   poolGradient: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(19,236,91,0.04)',
+    backgroundColor: '#EFF6FF',
   },
   poolContent: { padding: 24, alignItems: 'center' },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  verifiedText: { fontSize: 10, fontWeight: 'bold', color: '#0ea640', letterSpacing: 1 },
-  poolAmount: { fontSize: 36, fontWeight: '800', color: '#1F2937' },
+  verifiedText: { fontSize: 10, fontWeight: '700', color: '#1E40AF', letterSpacing: 1 },
+  poolAmount: { fontSize: 36, fontWeight: '800', color: '#111827' },
   poolCurrency: { fontSize: 16, fontWeight: '500', color: '#6B7280' },
   poolUsd: { fontSize: 13, fontWeight: '500', color: '#6B7280', marginTop: 4 },
   networkBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16,
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
-    backgroundColor: 'rgba(19,236,91,0.1)', borderWidth: 1,
-    borderColor: 'rgba(19,236,91,0.2)',
+    backgroundColor: '#EFF6FF', borderWidth: 1,
+    borderColor: '#DBEAFE',
   },
   liveDotRing: {
     position: 'absolute', width: 10, height: 10, borderRadius: 5,
-    backgroundColor: 'rgba(19,236,91,0.3)',
+    backgroundColor: 'rgba(30, 64, 175, 0.3)',
   },
-  liveDotCore: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#13ec5b' },
-  networkText: { fontSize: 12, fontWeight: 'bold', color: '#0ea640', marginLeft: 10 },
+  liveDotCore: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1E40AF' },
+  networkText: { fontSize: 12, fontWeight: '700', color: '#1E40AF', marginLeft: 10 },
 
   // Campaigns
   campaignsSection: { marginTop: 8 },
@@ -418,13 +418,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', paddingHorizontal: 16, marginBottom: 12,
   },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1F2937' },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   viewAllButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  viewAllText: { fontSize: 13, fontWeight: 'bold', color: '#0ea640' },
+  viewAllText: { fontSize: 13, fontWeight: '700', color: '#1E40AF' },
   campaignsScroll: { paddingHorizontal: 16, gap: 14, paddingBottom: 16 },
   campaignCard: {
-    width: 260, backgroundColor: '#fff', borderRadius: 14,
-    overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB',
+    width: 260, backgroundColor: '#FFFFFF', borderRadius: 16,
+    overflow: 'hidden', borderWidth: 1, borderColor: '#F1F5F9',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
   },
   campaignImageContainer: { width: '100%', height: 128, position: 'relative' },
   campaignImage: { width: '100%', height: '100%' },
@@ -433,38 +435,38 @@ const styles = StyleSheet.create({
     alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.9)',
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12,
   },
-  campaignVerifiedText: { fontSize: 10, fontWeight: 'bold', color: '#1F2937' },
+  campaignVerifiedText: { fontSize: 10, fontWeight: '700', color: '#111827' },
   campaignInfo: { padding: 12 },
-  campaignTitle: { fontSize: 15, fontWeight: 'bold', color: '#1F2937', marginBottom: 4 },
+  campaignTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
   campaignAmount: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 4 },
-  campaignAmountText: { fontSize: 17, fontWeight: 'bold', color: '#0ea640' },
+  campaignAmountText: { fontSize: 17, fontWeight: '700', color: '#1E40AF' },
   campaignCurrency: { fontSize: 11, fontWeight: '500', color: '#6B7280' },
   progressBar: {
-    width: '100%', height: 6, backgroundColor: '#E5E7EB',
+    width: '100%', height: 6, backgroundColor: '#F1F5F9',
     borderRadius: 3, marginTop: 10, overflow: 'hidden',
   },
-  progressFill: { height: '100%', backgroundColor: '#13ec5b', borderRadius: 3 },
+  progressFill: { height: '100%', backgroundColor: '#1E40AF', borderRadius: 3 },
   progressText: { fontSize: 10, color: '#9CA3AF', textAlign: 'right', marginTop: 4 },
 
   // Ledger
   ledgerHeader: {
-    backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20,
+    backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20,
     paddingTop: 20, paddingHorizontal: 20, paddingBottom: 10,
-    marginTop: 12, borderTopWidth: 1, borderColor: '#E5E7EB',
+    marginTop: 12, borderTopWidth: 1, borderColor: '#F1F5F9',
   },
   ledgerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
-  ledgerTitle: { fontSize: 17, fontWeight: 'bold', color: '#1F2937' },
+  ledgerTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   liveBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(19,236,91,0.1)', paddingHorizontal: 8,
+    backgroundColor: '#EFF6FF', paddingHorizontal: 8,
     paddingVertical: 2, borderRadius: 10,
   },
-  liveBadgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#13ec5b' },
-  liveBadgeText: { fontSize: 10, fontWeight: 'bold', color: '#0ea640' },
+  liveBadgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#1E40AF' },
+  liveBadgeText: { fontSize: 10, fontWeight: '700', color: '#1E40AF' },
 
   // Filters
   filterContainer: {
-    flexDirection: 'row', backgroundColor: '#F3F4F6',
+    flexDirection: 'row', backgroundColor: '#F1F5F9',
     borderRadius: 12, padding: 4, gap: 4,
   },
   filterButton: {
@@ -472,62 +474,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center', gap: 4, paddingVertical: 8, borderRadius: 8,
   },
   filterButtonActive: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06, shadowRadius: 2, elevation: 1,
   },
-  filterText: { fontSize: 12, fontWeight: 'bold', color: '#6B7280' },
-  filterTextActive: { color: '#1F2937' },
+  filterText: { fontSize: 12, fontWeight: '700', color: '#6B7280' },
+  filterTextActive: { color: '#111827' },
 
   // Error / empty
   errorBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#fef2f2', paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#fecaca',
+    backgroundColor: '#FEE2E2', paddingHorizontal: 16, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: '#FECACA',
   },
-  errorBannerText: { flex: 1, fontSize: 13, color: '#dc2626' },
-  errorRetryText: { fontSize: 13, fontWeight: '700', color: '#1e40af' },
+  errorBannerText: { flex: 1, fontSize: 13, color: '#DC2626' },
+  errorRetryText: { fontSize: 13, fontWeight: '700', color: '#1E40AF' },
   emptyBox: {
     alignItems: 'center', gap: 8, paddingVertical: 40,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
   },
-  emptyText: { fontSize: 14, color: '#9ca3af' },
+  emptyText: { fontSize: 14, color: '#9CA3AF' },
 
   // Transaction row
   transactionItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 16, paddingVertical: 14,
-    backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
   },
-  transactionOutflow: { backgroundColor: 'rgba(255,107,0,0.02)' },
+  transactionOutflow: { backgroundColor: '#FFF7ED' },
   transactionLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   transactionIcon: {
     width: 40, height: 40, borderRadius: 20,
     justifyContent: 'center', alignItems: 'center',
   },
-  iconInflow: { backgroundColor: 'rgba(14,166,64,0.1)' },
-  iconOutflow: { backgroundColor: '#fff0e6' },
+  iconInflow: { backgroundColor: '#EFF6FF' },
+  iconOutflow: { backgroundColor: '#FFEDD5' },
   transactionDetails: { flex: 1 },
   addressRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  transactionAddress: { fontSize: 14, fontWeight: 'bold', color: '#1F2937' },
+  transactionAddress: { fontSize: 14, fontWeight: '700', color: '#111827' },
   transactionMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   transactionTime: { fontSize: 11, color: '#6B7280' },
   metaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: '#D1D5DB' },
   transactionCategory: { fontSize: 11, fontWeight: '600' },
-  transactionPoolName: { fontSize: 11, color: '#9ca3af', marginTop: 2 },
+  transactionPoolName: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
   transactionRight: { alignItems: 'flex-end', minWidth: 90 },
-  transactionAmount: { fontSize: 14, fontWeight: 'bold' },
-  amountInflow: { color: '#0ea640' },
-  amountOutflow: { color: '#ff6b00' },
+  transactionAmount: { fontSize: 14, fontWeight: '700' },
+  amountInflow: { color: '#1E40AF' },
+  amountOutflow: { color: '#EA580C' },
   transactionDescription: { fontSize: 10, color: '#9CA3AF', marginTop: 2, maxWidth: 100 },
 
   // Load more
   loadMoreBtn: {
     alignItems: 'center', justifyContent: 'center',
-    paddingVertical: 16, backgroundColor: '#fff',
-    borderTopWidth: 1, borderTopColor: '#f3f4f6',
+    paddingVertical: 16, backgroundColor: '#FFFFFF',
+    borderTopWidth: 1, borderTopColor: '#F1F5F9',
   },
-  loadMoreText: { fontSize: 13, fontWeight: '600', color: '#0ea640' },
+  loadMoreText: { fontSize: 13, fontWeight: '600', color: '#1E40AF' },
 });
 
 export default HomeScreen;

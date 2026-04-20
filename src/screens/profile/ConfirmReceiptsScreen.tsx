@@ -48,7 +48,7 @@ const ConfirmReceiptsScreen = () => {
 
           {/* Upload */}
           <View style={styles.uploadBox}>
-            <Ionicons name="camera-outline" size={32} color="#64748b" />
+            <Ionicons name="camera-outline" size={32} color="#6B7280" />
             <Text style={styles.uploadText}>Upload delivery photo</Text>
           </View>
 
@@ -70,7 +70,7 @@ const ConfirmReceiptsScreen = () => {
                 <Text style={styles.asset}>Livestock Supplement</Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
           </View>
         </View>
 
@@ -86,7 +86,7 @@ const ConfirmReceiptsScreen = () => {
                 <Text style={styles.asset}>Irrigation Toolset</Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
           </View>
         </View>
 
@@ -107,7 +107,7 @@ const ConfirmReceiptsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F8FAFC',
   },
   scroll: {
     padding: 16,
@@ -119,10 +119,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1e40af',
+    color: '#1E40AF',
   },
   subtitle: {
-    color: '#64748b',
+    color: '#6B7280',
     marginTop: 4,
   },
 
@@ -138,16 +138,30 @@ const styles = StyleSheet.create({
   },
 
   cardActive: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     padding: 16,
     borderRadius: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#fb923c',
+    borderLeftColor: '#EA580C',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   card: {
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#FFFFFF',
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
 
   avatar: {
@@ -164,93 +178,103 @@ const styles = StyleSheet.create({
   name: {
     fontWeight: '700',
     fontSize: 16,
+    color: '#111827',
   },
   nameMuted: {
     fontWeight: '600',
-    color: '#64748b',
+    color: '#6B7280',
   },
   asset: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#9CA3AF',
   },
 
   badge: {
-    backgroundColor: '#fb923c',
+    backgroundColor: '#EA580C',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   badgeText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '700',
   },
 
   giftBox: {
     marginTop: 12,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#EFF6FF',
     padding: 12,
     borderRadius: 12,
   },
   giftTitle: {
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#111827',
   },
   giftSub: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#6B7280',
   },
 
   uploadBox: {
     marginTop: 16,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: '#cbd5f5',
+    borderColor: '#DBEAFE',
+    backgroundColor: '#F8FAFF',
     padding: 20,
     borderRadius: 12,
     alignItems: 'center',
   },
   uploadText: {
     marginTop: 6,
-    color: '#64748b',
+    color: '#6B7280',
   },
 
   confirmBtn: {
     marginTop: 16,
-    backgroundColor: '#1e40af',
-    padding: 14,
-    borderRadius: 14,
+    backgroundColor: '#1E40AF',
+    height: 60,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   confirmText: {
-    color: '#fff',
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
   },
 
   statsCard: {
     marginTop: 20,
-    backgroundColor: '#1e40af',
+    backgroundColor: '#1E40AF',
     padding: 20,
     borderRadius: 16,
   },
   statsLabel: {
-    color: '#c7d2fe',
+    color: '#DBEAFE',
     fontSize: 12,
   },
   statsValue: {
     fontSize: 40,
     fontWeight: '800',
-    color: '#fff',
+    color: '#FFFFFF',
   },
   progressBar: {
     height: 6,
-    backgroundColor: '#1e3a8a',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 6,
     marginTop: 10,
   },
   progressFill: {
     width: '98%',
     height: '100%',
-    backgroundColor: '#fb923c',
+    backgroundColor: '#F97316',
     borderRadius: 6,
   },
 });

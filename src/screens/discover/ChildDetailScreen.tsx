@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
   },
   regionInfo: { flex: 1 },
   regionLabel: { fontSize: 10, fontWeight: '700', color: '#1E40AF', letterSpacing: 2, textTransform: 'uppercase' },
-  regionTitle: { fontSize: 14, fontWeight: 'bold', color: '#1F2937', marginTop: 2 },
+  regionTitle: { fontSize: 14, fontWeight: 'bold', color: '#111827', marginTop: 2 },
   storySection: { marginTop: 12 },
   storyLabel: {
     fontSize: 12, fontWeight: '600', color: '#6B7280',
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   },
   infoContent: { flex: 1 },
   infoLabel: { fontSize: 11, fontWeight: '600', color: '#6B7280', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
-  infoValue: { fontSize: 13, fontWeight: '500', color: '#1F2937', lineHeight: 20 },
+  infoValue: { fontSize: 13, fontWeight: '500', color: '#111827', lineHeight: 20 },
   guardianCard: {
     backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1,
     borderColor: '#F1F5F9', padding: 14, marginBottom: 12,
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
     fontSize: 11, fontWeight: '600', color: '#1E40AF',
     textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2,
   },
-  guardianName: { fontSize: 14, fontWeight: 'bold', color: '#1F2937' },
+  guardianName: { fontSize: 14, fontWeight: 'bold', color: '#111827' },
   guardianDetails: { paddingLeft: 52, gap: 8 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   detailIcon: { marginTop: 2 },

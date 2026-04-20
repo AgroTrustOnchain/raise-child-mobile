@@ -72,7 +72,7 @@ const PaymentCallbackScreen = () => {
   if (status === "signing") {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#13ec5b" style={styles.spinner} />
+        <ActivityIndicator size="large" color="#1E40AF" style={styles.spinner} />
         <Text style={styles.title}>Signing Transaction</Text>
         <Text style={styles.subtitle}>
           Verifying your payment and submitting to the SUI network…
@@ -94,7 +94,7 @@ const PaymentCallbackScreen = () => {
           onPress={signAndExecute}
           activeOpacity={0.85}
         >
-          <Ionicons name="refresh" size={18} color="#fff" />
+          <Ionicons name="refresh" size={18} color="#FFFFFF" />
           <Text style={styles.buttonText}>Retry</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -111,7 +111,7 @@ const PaymentCallbackScreen = () => {
   return (
     <View style={styles.container}>
       <View style={[styles.iconWrap, styles.iconSuccess]}>
-        <Ionicons name="checkmark-circle" size={64} color="#13ec5b" />
+        <Ionicons name="checkmark-circle" size={64} color="#1E40AF" />
       </View>
       <Text style={styles.title}>Donation Successful!</Text>
       <Text style={styles.subtitle}>
@@ -131,7 +131,7 @@ const PaymentCallbackScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f6f8f6",
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
     padding: 32,
@@ -145,12 +145,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
   },
-  iconSuccess: { backgroundColor: "rgba(19,236,91,0.1)" },
-  iconError: { backgroundColor: "rgba(220,38,38,0.08)" },
+  iconSuccess: { backgroundColor: "#EFF6FF" },
+  iconError: { backgroundColor: "#FEE2E2" },
   title: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#1F2937",
+    color: "#111827",
     marginBottom: 12,
     textAlign: "center",
   },
@@ -166,12 +166,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#13ec5b",
-    borderRadius: 14,
-    paddingVertical: 16,
+    backgroundColor: "#1E40AF",
+    height: 60,
+    borderRadius: 16,
     paddingHorizontal: 32,
     width: "100%",
-    shadowColor: "#13ec5b",
+    shadowColor: "#1E40AF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   buttonRetry: { backgroundColor: "#DC2626", shadowColor: "#DC2626" },
-  buttonText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  buttonText: { fontSize: 17, fontWeight: "800", color: "#FFFFFF" },
   buttonSecondary: {
     paddingVertical: 12,
     paddingHorizontal: 24,

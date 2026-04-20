@@ -116,14 +116,14 @@ const VolunteerSettingsScreen = () => {
     >
       <View style={styles.settingItemLeft}>
         <View style={styles.iconContainer}>
-          <Ionicons name={icon as any} size={20} color="#00288e" />
+          <Ionicons name={icon as any} size={20} color="#1E40AF" />
         </View>
         <View style={styles.settingItemText}>
           <Text style={styles.settingLabel}>{label}</Text>
           {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
         </View>
       </View>
-      {rightElement || (onPress ? <MaterialIcons name="chevron-right" size={24} color="#cbd5e1" /> : null)}
+      {rightElement || (onPress ? <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" /> : null)}
     </TouchableOpacity>
   );
 
@@ -175,8 +175,8 @@ const VolunteerSettingsScreen = () => {
               <Switch
                 value={notifications}
                 onValueChange={setNotifications}
-                trackColor={{ false: '#cbd5e1', true: '#6366f1' }}
-                thumbColor="#00288e"
+                trackColor={{ false: '#E5E7EB', true: '#1E40AF' }}
+                thumbColor="#FFFFFF"
               />
             }
           />
@@ -189,8 +189,8 @@ const VolunteerSettingsScreen = () => {
               <Switch
                 value={emailUpdates}
                 onValueChange={setEmailUpdates}
-                trackColor={{ false: '#cbd5e1', true: '#6366f1' }}
-                thumbColor="#00288e"
+                trackColor={{ false: '#E5E7EB', true: '#1E40AF' }}
+                thumbColor="#FFFFFF"
               />
             }
           />
@@ -206,8 +206,8 @@ const VolunteerSettingsScreen = () => {
               <Switch
                 value={privateProfile}
                 onValueChange={setPrivateProfile}
-                trackColor={{ false: '#cbd5e1', true: '#6366f1' }}
-                thumbColor="#00288e"
+                trackColor={{ false: '#E5E7EB', true: '#1E40AF' }}
+                thumbColor="#FFFFFF"
               />
             }
           />
@@ -284,10 +284,10 @@ const VolunteerSettingsScreen = () => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#dc2626" size="small" />
+              <ActivityIndicator color="#DC2626" size="small" />
             ) : (
               <>
-                <MaterialIcons name="logout" size={18} color="#dc2626" />
+                <MaterialIcons name="logout" size={18} color="#DC2626" />
                 <Text style={styles.logoutButtonText}>Log Out</Text>
               </>
             )}
@@ -301,7 +301,7 @@ const VolunteerSettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9ff',
+    backgroundColor: '#F8FAFC',
   },
   scrollContent: {
     padding: 16,
@@ -311,14 +311,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: '900',
-    color: '#00288e',
+    fontWeight: '800',
+    color: '#111827',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6b7280',
+    color: '#6B7280',
   },
   section: {
     marginBottom: 24,
@@ -326,22 +326,22 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1f2937',
+    color: '#9CA3AF',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   sectionContent: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   settingItem: {
     flexDirection: 'row',
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -370,17 +370,17 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#111827',
   },
   settingSubtitle: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#9ca3af',
+    color: '#9CA3AF',
     marginTop: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#F1F5F9',
     marginHorizontal: 16,
   },
   roleSwitchContainer: {
@@ -389,10 +389,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#f0f4ff',
+    backgroundColor: '#EFF6FF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#dbeafe',
+    borderColor: '#DBEAFE',
     marginBottom: 12,
   },
   roleInfo: {
@@ -401,23 +401,28 @@ const styles = StyleSheet.create({
   roleLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6b7280',
+    color: '#6B7280',
     marginBottom: 4,
   },
   roleBadge: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#00288e',
+    color: '#1E40AF',
   },
   switchRoleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#1E40AF',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: 12,
     marginLeft: 12,
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   switchRoleButtonDisabled: {
     opacity: 0.6,
@@ -425,11 +430,11 @@ const styles = StyleSheet.create({
   switchRoleButtonText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#fff',
+    color: '#FFFFFF',
   },
   roleSwitchInfo: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#6B7280',
     fontWeight: '400',
     paddingHorizontal: 16,
     lineHeight: 18,
@@ -443,9 +448,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#fef2f2',
+    backgroundColor: '#FEE2E2',
     borderWidth: 1.5,
-    borderColor: '#fecaca',
+    borderColor: '#FECACA',
     paddingVertical: 14,
     borderRadius: 12,
   },
@@ -455,7 +460,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#dc2626',
+    color: '#DC2626',
   },
 });
 

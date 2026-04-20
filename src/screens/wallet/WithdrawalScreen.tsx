@@ -24,10 +24,10 @@ import {
 } from '../../services/withdrawal.service';
 
 const STATUS_COLORS: Record<MappedWithdrawal['status'], string> = {
-  executed: '#10b981',
-  approved: '#3b82f6',
-  rejected: '#ef4444',
-  pending: '#f59e0b',
+  executed: '#1E40AF',
+  approved: '#1E40AF',
+  rejected: '#DC2626',
+  pending: '#EA580C',
 };
 
 const STATUS_LABELS: Record<MappedWithdrawal['status'], string> = {
@@ -142,7 +142,7 @@ const WithdrawalScreen = () => {
         <View style={styles.badgeRow}>
           {item.verified && (
             <View style={styles.localPoolBadge}>
-              <MaterialIcons name="shield" size={12} color="#065f46" />
+              <MaterialIcons name="shield" size={12} color="#1E40AF" />
               <Text style={styles.localPoolText}>Local Pool</Text>
             </View>
           )}
@@ -174,7 +174,7 @@ const WithdrawalScreen = () => {
 
       {item.status === 'rejected' && item.refuseReasons.length > 0 && (
         <View style={styles.rejectReasonBox}>
-          <MaterialIcons name="info-outline" size={14} color="#b91c1c" />
+          <MaterialIcons name="info-outline" size={14} color="#991B1B" />
           <Text style={styles.rejectReasonText} numberOfLines={2}>
             {item.refuseReasons[0]}
           </Text>
@@ -433,13 +433,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#0f172a' },
   realTimeDot: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1E40AF' },
   realTimeText: { fontSize: 12, fontWeight: '600', color: '#64748b' },
   card: {
-    backgroundColor: 'white', borderRadius: 16, padding: 18, marginBottom: 14,
-    borderWidth: 1, borderColor: '#e2e8f0',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
+    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 14,
+    borderWidth: 1, borderColor: '#F1F5F9',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row', justifyContent: 'space-between',
@@ -448,9 +448,9 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', gap: 6, flexShrink: 1 },
   localPoolBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#d1fae5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20,
+    backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20,
   },
-  localPoolText: { fontSize: 10, fontWeight: '700', color: '#065f46', textTransform: 'uppercase' },
+  localPoolText: { fontSize: 10, fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase' },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20 },
   statusText: { fontSize: 10, fontWeight: '700', color: 'white', textTransform: 'uppercase' },
   timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -461,19 +461,19 @@ const styles = StyleSheet.create({
   amountUSD: { fontSize: 13, fontWeight: '500', color: '#64748b' },
   evidenceCard: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#f1f5f9', borderRadius: 12, padding: 12,
-    marginBottom: 14, borderWidth: 1, borderColor: '#e2e8f0',
+    backgroundColor: '#F8FAFF', borderRadius: 12, padding: 12,
+    marginBottom: 14, borderWidth: 1, borderColor: '#DBEAFE',
   },
-  evidenceImage: { width: 44, height: 44, borderRadius: 8, borderWidth: 1, borderColor: '#cbd5e1' },
+  evidenceImage: { width: 44, height: 44, borderRadius: 8, borderWidth: 1, borderColor: '#F1F5F9' },
   evidenceTextBlock: { flex: 1 },
-  evidenceTitle: { fontSize: 13, fontWeight: '700', color: '#0f172a' },
-  evidenceSubtitle: { fontSize: 11, color: '#64748b', marginTop: 2 },
+  evidenceTitle: { fontSize: 13, fontWeight: '700', color: '#111827' },
+  evidenceSubtitle: { fontSize: 11, color: '#6B7280', marginTop: 2 },
   rejectReasonBox: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 8,
-    backgroundColor: '#fef2f2', borderRadius: 10, padding: 10,
-    marginBottom: 14, borderWidth: 1, borderColor: '#fecaca',
+    backgroundColor: '#FEE2E2', borderRadius: 10, padding: 10,
+    marginBottom: 14, borderWidth: 1, borderColor: '#FECACA',
   },
-  rejectReasonText: { flex: 1, fontSize: 12, color: '#b91c1c', lineHeight: 17 },
+  rejectReasonText: { flex: 1, fontSize: 12, color: '#991B1B', lineHeight: 17 },
   voteSection: { gap: 10 },
   voteLabels: { flexDirection: 'row', justifyContent: 'space-between' },
   voteForLabel: { fontSize: 10, fontWeight: '700', color: '#1e40af', textTransform: 'uppercase' },

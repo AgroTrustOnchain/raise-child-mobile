@@ -78,12 +78,12 @@ function UpdateScreen() {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
+          <ActivityIndicator size="large" color="#1E40AF" />
           <Text style={styles.loadingText}>Loading your tasks...</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={64} color="#ef4444" />
+          <Ionicons name="alert-circle" size={64} color="#DC2626" />
           <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
@@ -93,7 +93,7 @@ function UpdateScreen() {
         </View>
       ) : tasks.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="people-outline" size={64} color="#d1d5db" />
+          <Ionicons name="people-outline" size={64} color="#D1D5DB" />
           <Text style={styles.emptyTitle}>No Tasks</Text>
           <Text style={styles.emptyText}>
             You don't have any tasks assigned yet
@@ -116,7 +116,7 @@ function UpdateScreen() {
                   />
                 ) : (
                   <View style={[styles.childImage, styles.placeholderImage]}>
-                    <Ionicons name="person" size={32} color="#9ca3af" />
+                    <Ionicons name="person" size={32} color="#9CA3AF" />
                   </View>
                 )}
                 <View style={styles.childInfo}>
@@ -135,7 +135,7 @@ function UpdateScreen() {
                 </View>
                 <View style={styles.badgeContainer}>
                   <View style={styles.verificationBadge}>
-                    <Ionicons name="checkmark-circle" size={14} color="#13ec5b" />
+                    <Ionicons name="checkmark-circle" size={14} color="#1E40AF" />
                     <Text style={styles.badgeText}>{task.status || 'Active'}</Text>
                   </View>
                 </View>
@@ -159,7 +159,7 @@ function UpdateScreen() {
 
           {/* Info Card */}
           <View style={styles.infoCard}>
-            <Ionicons name="information-circle" size={20} color="#6366f1" />
+            <Ionicons name="information-circle" size={20} color="#1E40AF" />
             <View style={styles.infoContent}>
               <Text style={styles.infoTitle}>Regular Updates Required</Text>
               <Text style={styles.infoText}>
@@ -176,36 +176,36 @@ function UpdateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#1E40AF',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: '#E5E7EB',
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   subtitleSection: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#F1F5F9',
   },
   subtitle: {
     fontSize: 14,
-    color: '#4b5563',
+    color: '#6B7280',
     marginBottom: 6,
     lineHeight: 20,
   },
   childCount: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9CA3AF',
     fontWeight: '500',
   },
   loadingContainer: {
@@ -221,13 +221,13 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
     marginTop: 16,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#6B7280',
     marginTop: 8,
     textAlign: 'center',
   },
@@ -235,12 +235,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   childCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
+    borderColor: '#F1F5F9',
     marginBottom: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   childInfoContainer: {
     flexDirection: 'row',
@@ -258,24 +263,24 @@ const styles = StyleSheet.create({
   },
   childName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 4,
   },
   childMeta: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#6B7280',
     marginBottom: 4,
   },
   childRegion: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#4b5563',
+    color: '#6B7280',
     marginBottom: 6,
   },
   lastUpdated: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#9CA3AF',
     fontStyle: 'italic',
   },
   badgeContainer: {
@@ -285,37 +290,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(19, 236, 91, 0.1)',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#13ec5b',
+    fontWeight: '700',
+    color: '#1E40AF',
   },
   divider: {
     height: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#F1F5F9',
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
-    paddingVertical: 12,
+    backgroundColor: '#1E40AF',
+    paddingVertical: 14,
     paddingHorizontal: 16,
   },
   uploadButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    backgroundColor: '#EFF6FF',
     borderRadius: 12,
     padding: 14,
     gap: 12,
@@ -326,22 +331,22 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 4,
   },
   infoText: {
     fontSize: 12,
-    color: '#4b5563',
+    color: '#6B7280',
     lineHeight: 18,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6b7280',
+    color: '#6B7280',
   },
   placeholderImage: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -353,13 +358,13 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
     marginTop: 16,
   },
   errorText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#6B7280',
     marginTop: 8,
     textAlign: 'center',
   },
@@ -367,15 +372,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#1E40AF',
     paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 16,
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   retryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
     fontSize: 14,
   },
 });

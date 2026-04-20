@@ -138,7 +138,7 @@ const SettingsScreen = () => {
 
           {user?.role === 'volunteer' && (
             <View style={styles.successMessage}>
-              <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+              <Ionicons name="checkmark-circle" size={20} color="#1E40AF" />
               <Text style={styles.successText}>
                 You are currently in Volunteer mode
               </Text>
@@ -155,7 +155,7 @@ const SettingsScreen = () => {
             activeOpacity={0.7}
           >
             <View style={styles.registrationLeft}>
-              <Ionicons name="document-text" size={20} color="#13ec5b" />
+              <Ionicons name="document-text" size={20} color="#1E40AF" />
               <View>
                 <Text style={styles.registrationTitle}>Registration Form</Text>
                 <Text style={styles.registrationSubtitle}>
@@ -163,7 +163,7 @@ const SettingsScreen = () => {
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
@@ -172,24 +172,24 @@ const SettingsScreen = () => {
           <Text style={styles.sectionTitle}>Preferences</Text>
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Ionicons name="notifications" size={20} color="#6366f1" />
+              <Ionicons name="notifications" size={20} color="#1E40AF" />
               <Text style={styles.settingText}>Notifications</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Ionicons name="lock-closed" size={20} color="#6366f1" />
+              <Ionicons name="lock-closed" size={20} color="#1E40AF" />
               <Text style={styles.settingText}>Privacy & Security</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Ionicons name="help-circle" size={20} color="#6366f1" />
+              <Ionicons name="help-circle" size={20} color="#1E40AF" />
               <Text style={styles.settingText}>Help & Support</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999" />
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -200,7 +200,7 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
   scrollContent: {
     padding: 16,
@@ -210,27 +210,29 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontWeight: '800',
+    color: '#111827',
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
+    fontWeight: '700',
+    color: '#9CA3AF',
     marginBottom: 12,
     textTransform: 'uppercase',
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
   },
   infoRow: {
@@ -242,57 +244,64 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6b7280',
+    color: '#6B7280',
   },
   infoValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
   },
   roleBadge: {
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   roleText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#6366f1',
+    fontWeight: '700',
+    color: '#1E40AF',
   },
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#F1F5F9',
     marginVertical: 8,
   },
   roleButton: {
-    backgroundColor: '#6366f1',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#1E40AF',
+    height: 60,
+    borderRadius: 16,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
     marginBottom: 12,
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   roleButtonActive: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: '#F1F5F9',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   roleButtonDisabled: {
     opacity: 0.6,
   },
   roleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   roleButtonTextDisabled: {
-    color: '#666',
+    color: '#6B7280',
   },
   successMessage: {
-    backgroundColor: '#e6f9f0',
-    borderRadius: 8,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -301,22 +310,24 @@ const styles = StyleSheet.create({
   },
   successText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#10b981',
+    fontWeight: '600',
+    color: '#1E40AF',
   },
   settingItem: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
   },
   settingLeft: {
@@ -327,24 +338,26 @@ const styles = StyleSheet.create({
   settingText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#1f2937',
+    color: '#111827',
   },
   registrationButton: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
     marginBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
     borderLeftWidth: 4,
-    borderLeftColor: '#13ec5b',
+    borderLeftColor: '#1E40AF',
   },
   registrationLeft: {
     flexDirection: 'row',
@@ -354,13 +367,13 @@ const styles = StyleSheet.create({
   },
   registrationTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 2,
   },
   registrationSubtitle: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9CA3AF',
   },
 });
 

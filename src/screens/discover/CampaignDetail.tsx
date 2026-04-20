@@ -109,7 +109,7 @@ const CampaignDetail = () => {
           <Ionicons
             name={item.gender === "female" ? "person" : "person-outline"}
             size={28}
-            color="#13ec5b"
+            color="#1E40AF"
           />
         </View>
         <View style={styles.childInfo}>
@@ -133,11 +133,11 @@ const CampaignDetail = () => {
     <View>
       <View style={styles.detailsSection}>
         <View style={styles.detailRow}>
-          <Ionicons name="location" size={18} color="#13ec5b" />
+          <Ionicons name="location" size={18} color="#1E40AF" />
           <Text style={styles.detailText}>{regionInfo?.center_address || "—"}</Text>
         </View>
         <View style={styles.detailRow}>
-          <Ionicons name="call" size={18} color="#13ec5b" />
+          <Ionicons name="call" size={18} color="#1E40AF" />
           <Text style={styles.detailText}>{regionInfo?.center_phone_number || "—"}</Text>
         </View>
       </View>
@@ -153,7 +153,7 @@ const CampaignDetail = () => {
       {/* Top Nav */}
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.navTitle} numberOfLines={1}>
           {region}
@@ -163,7 +163,7 @@ const CampaignDetail = () => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#13ec5b" />
+          <ActivityIndicator size="large" color="#1E40AF" />
         </View>
       ) : (
         <>
@@ -173,7 +173,7 @@ const CampaignDetail = () => {
                 <Image source={{ uri: imageUri }} style={styles.centerImage} />
               ) : (
                 <View style={styles.centerImagePlaceholder}>
-                  <Ionicons name="business" size={48} color="#2E7D32" />
+                  <Ionicons name="business" size={48} color="#1E40AF" />
                 </View>
               )}
 
@@ -214,7 +214,7 @@ const CampaignDetail = () => {
             ListFooterComponent={
               loadingMore ? (
                 <View style={styles.footerLoader}>
-                  <ActivityIndicator size="small" color="#13ec5b" />
+                  <ActivityIndicator size="small" color="#1E40AF" />
                 </View>
               ) : null
             }
@@ -232,7 +232,7 @@ const CampaignDetail = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f6f8f6" },
+  container: { flex: 1, backgroundColor: "#F8FAFC" },
   listContent: { paddingBottom: 40 },
 
   topNav: {
@@ -240,27 +240,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "rgba(246, 248, 246, 0.9)",
+    paddingVertical: 16,
+    backgroundColor: "rgba(248, 250, 252, 0.85)",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(226, 232, 240, 0.5)",
   },
   navButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   navTitle: {
     flex: 1,
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
+    fontWeight: "700",
+    color: "#111827",
     textAlign: "center",
     paddingHorizontal: 8,
   },
@@ -271,16 +267,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 8,
     marginBottom: 4,
-    padding: 20,
-    backgroundColor: "#fff",
-    borderRadius: 24,
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#F3F4F6",
+    borderColor: "#F1F5F9",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.04,
-    shadowRadius: 24,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   centerImage: {
     width: "100%",
@@ -292,7 +288,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 120,
     borderRadius: 16,
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -300,34 +296,34 @@ const styles = StyleSheet.create({
 
   detailsSection: { gap: 10, marginBottom: 16, paddingHorizontal: 16, paddingTop: 12 },
   detailRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  detailText: { flex: 1, fontSize: 14, color: "#4B5563", fontWeight: "500" },
+  detailText: { flex: 1, fontSize: 14, color: "#6B7280", fontWeight: "500" },
 
   donatedCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(19, 236, 91, 0.07)",
+    backgroundColor: "#EFF6FF",
     borderRadius: 14,
     padding: 14,
     gap: 12,
   },
   donatedTextWrap: { flex: 1 },
   donatedLabel: { fontSize: 12, color: "#6B7280", fontWeight: "500" },
-  donatedAmount: { fontSize: 20, fontWeight: "800", color: "#1F2937", marginTop: 2 },
+  donatedAmount: { fontSize: 20, fontWeight: "800", color: "#111827", marginTop: 2 },
   donateButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#13ec5b",
+    backgroundColor: "#1E40AF",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    shadowColor: "#13ec5b",
+    shadowColor: "#1E40AF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
-  donateButtonText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  donateButtonText: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
 
   sectionHeader: {
     flexDirection: "row",
@@ -336,11 +332,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
   },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#1F2937" },
+  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
   sectionCount: { fontSize: 13, color: "#9CA3AF" },
 
   childCard: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     marginHorizontal: 16,
     marginBottom: 10,
     paddingHorizontal: 14,
@@ -348,23 +344,25 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
   },
   childAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "rgba(19, 236, 91, 0.1)",
+    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
   childInfo: { flex: 1 },
-  childName: { fontSize: 15, fontWeight: "600", color: "#1F2937", marginBottom: 3 },
+  childName: { fontSize: 15, fontWeight: "700", color: "#111827", marginBottom: 3 },
   childMeta: { fontSize: 12, color: "#9CA3AF" },
 
   footerLoader: { paddingVertical: 16, alignItems: "center" },

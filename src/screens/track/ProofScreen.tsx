@@ -145,7 +145,7 @@ const ProofScreen = () => {
                   />
                   {event.verified && (
                     <View style={styles.verifiedBadge}>
-                      <Ionicons name="shield-checkmark" size={14} color="#13ec5b" />
+                      <Ionicons name="shield-checkmark" size={14} color="#1E40AF" />
                       <Text style={styles.verifiedText}>AI VERIFIED</Text>
                     </View>
                   )}
@@ -166,7 +166,7 @@ const ProofScreen = () => {
                   {/* Event Footer */}
                   <View style={styles.eventFooter}>
                     <View style={styles.walletInfo}>
-                      <Ionicons name="wallet" size={16} color="#13ec5b" />
+                      <Ionicons name="wallet" size={16} color="#1E40AF" />
                       <Text style={styles.walletAddress}>{event.walletAddress}</Text>
                     </View>
                     <TouchableOpacity 
@@ -174,7 +174,7 @@ const ProofScreen = () => {
                       onPress={() => handleViewProof(event)}
                     >
                       <Text style={styles.viewProofText}>VIEW PROOF</Text>
-                      <Ionicons name="chevron-forward" size={12} color="#13ec5b" />
+                      <Ionicons name="chevron-forward" size={12} color="#1E40AF" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -194,7 +194,7 @@ const ProofScreen = () => {
           onPress={handleViewExplorer}
           activeOpacity={0.95}
         >
-          <Ionicons name="globe-outline" size={24} color="#102216" />
+          <Ionicons name="globe-outline" size={24} color="#FFFFFF" />
           <Text style={styles.explorerButtonText}>View on Blockchain Explorer</Text>
         </TouchableOpacity>
         <Text style={styles.protocolText}>
@@ -208,7 +208,7 @@ const ProofScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f8f6',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
@@ -217,19 +217,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
-    backgroundColor: 'rgba(246, 248, 246, 0.9)',
+    backgroundColor: 'rgba(248,250,252,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226,232,240,0.5)',
   },
   headerButton: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     flex: 1,
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111813',
+    fontWeight: '700',
+    color: '#111827',
     textAlign: 'center',
   },
   scrollView: {
@@ -242,12 +244,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#111813',
+    color: '#111827',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
-    color: '#61896f',
+    color: '#6B7280',
     marginTop: 4,
   },
   timeline: {
@@ -261,7 +263,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: 'rgba(19, 236, 91, 0.2)',
+    backgroundColor: '#DBEAFE',
   },
   timelineItem: {
     position: 'relative',
@@ -278,13 +280,13 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: 'rgba(19, 236, 91, 0.4)',
+    backgroundColor: '#DBEAFE',
     borderWidth: 2,
-    borderColor: '#f6f8f6',
+    borderColor: '#F8FAFC',
   },
   timelineDotActive: {
-    backgroundColor: '#13ec5b',
-    shadowColor: '#13ec5b',
+    backgroundColor: '#1E40AF',
+    shadowColor: '#1E40AF',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
@@ -292,25 +294,25 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#9CA3AF',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
   },
   dateTextActive: {
-    color: '#13ec5b',
+    color: '#1E40AF',
   },
   eventCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   eventImageContainer: {
     width: '100%',
@@ -333,12 +335,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(19, 236, 91, 0.2)',
+    borderColor: '#DBEAFE',
   },
   verifiedText: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: '#111813',
+    fontWeight: '700',
+    color: '#111827',
     letterSpacing: 0.5,
   },
   eventContent: {
@@ -355,21 +357,21 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111813',
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 4,
   },
   eventDescription: {
     fontSize: 12,
-    color: '#61896f',
+    color: '#6B7280',
   },
   eventAmount: {
     marginLeft: 12,
   },
   amountText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#13ec5b',
+    fontWeight: '700',
+    color: '#1E40AF',
   },
   eventFooter: {
     flexDirection: 'row',
@@ -377,7 +379,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F9FAFB',
+    borderTopColor: '#F1F5F9',
   },
   walletInfo: {
     flexDirection: 'row',
@@ -396,8 +398,8 @@ const styles = StyleSheet.create({
   },
   viewProofText: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#13ec5b',
+    fontWeight: '700',
+    color: '#1E40AF',
     letterSpacing: 0.8,
   },
   bottomSpacing: {
@@ -408,7 +410,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(246, 248, 246, 0.95)',
+    backgroundColor: 'rgba(248,250,252,0.95)',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     paddingHorizontal: 16,
@@ -420,19 +422,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    backgroundColor: '#13ec5b',
-    paddingVertical: 16,
-    borderRadius: 28,
-    shadowColor: '#13ec5b',
+    backgroundColor: '#1E40AF',
+    height: 60,
+    borderRadius: 16,
+    shadowColor: '#1E40AF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
     elevation: 4,
   },
   explorerButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#102216',
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   protocolText: {
     textAlign: 'center',

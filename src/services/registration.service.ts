@@ -65,6 +65,38 @@ export const submitRegistration = async (
   }
 };
 
+export interface SupportedRegionSuggestion {
+  id: string;
+  profile_id: string;
+  region: string;
+  content: string;
+  status: string;
+  created_by: string;
+  reviewed_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Fetch regions that need volunteer/local leader support
+ */
+export const getSupportedRegionSuggestions = async (): Promise<SupportedRegionSuggestion[]> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/supported-region-suggestions`,
+      { method: 'GET', headers: { Accept: 'application/json' } }
+    );
+    if (!response.ok) throw new Error('Failed to fetch region suggestions');
+    const data = await response.json();
+    if (Array.isArray(data)) return data;
+    if (data.data && Array.isArray(data.data)) return data.data;
+    return [];
+  } catch (error) {
+    console.error('Failed to fetch region suggestions:', error);
+    throw error;
+  }
+};
+
 /**
  * Fetch all available regions
  */

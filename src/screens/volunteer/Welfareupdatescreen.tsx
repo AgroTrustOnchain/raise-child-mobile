@@ -199,7 +199,7 @@ const WelfareUpdateScreen = () => {
       {/* Header Section */}
       <View style={styles.headerSection}>
         <View style={styles.headerLabel}>
-          <Ionicons name="create" size={18} color="#F97316" />
+          <Ionicons name="create" size={18} color="#EA580C" />
           <Text style={styles.headerLabelText}>Welfare Portal</Text>
         </View>
         <Text style={styles.headerTitle}>Upload Welfare Update</Text>
@@ -217,7 +217,7 @@ const WelfareUpdateScreen = () => {
         <View style={styles.selectorContainer}>
           <TouchableOpacity style={styles.dropdownButton}>
             <Text style={styles.dropdownText}>{selectedChild.name} - Region: {selectedChild.region}</Text>
-            <Ionicons name="chevron-down" size={20} color="#757684" />
+            <Ionicons name="chevron-down" size={20} color="#6B7280" />
           </TouchableOpacity>
         </View>
 
@@ -248,7 +248,7 @@ const WelfareUpdateScreen = () => {
         </View>
 
         <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
-          <Ionicons name="image-outline" size={48} color="#757684" />
+          <Ionicons name="image-outline" size={48} color="#6B7280" />
           <Text style={styles.uploadBoxTitle}>Capture Meal or Check-up</Text>
           <Text style={styles.uploadBoxSubtitle}>PNG or JPG, max 10MB</Text>
         </TouchableOpacity>
@@ -367,7 +367,7 @@ const WelfareUpdateScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FF',
+    backgroundColor: '#F8FAFC',
   },
   headerSection: {
     paddingHorizontal: 24,
@@ -383,34 +383,36 @@ const styles = StyleSheet.create({
   headerLabelText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#9D4300',
+    color: '#EA580C',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: '900',
-    color: '#00288E',
+    fontWeight: '800',
+    color: '#111827',
     marginBottom: 12,
     letterSpacing: -0.5,
   },
   headerDescription: {
     fontSize: 14,
-    color: '#444653',
+    color: '#6B7280',
     lineHeight: 20,
     fontWeight: '400',
   },
   childSelectionCard: {
     marginHorizontal: 24,
     marginBottom: 24,
-    backgroundColor: '#EFF4FF',
-    borderRadius: 20,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 16,
     padding: 24,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
   },
   cardLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#00288E',
+    color: '#1E40AF',
     marginBottom: 16,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
@@ -419,23 +421,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dropdownButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: '#F8FAFF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   dropdownText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#0D1C2E',
+    color: '#111827',
     flex: 1,
   },
   childInfoCard: {
@@ -459,17 +458,17 @@ const styles = StyleSheet.create({
   childName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0D1C2E',
+    color: '#111827',
     marginBottom: 4,
   },
   childMeta: {
     fontSize: 11,
-    color: '#444653',
+    color: '#6B7280',
     fontWeight: '500',
     marginBottom: 8,
   },
   verificationBadge: {
-    backgroundColor: '#00563F',
+    backgroundColor: '#1E40AF',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
@@ -494,29 +493,29 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#00288E',
+    color: '#111827',
   },
   uploadBox: {
-    borderWidth: 2,
+    borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: 'rgba(196, 197, 213, 0.3)',
-    borderRadius: 16,
+    borderColor: '#DBEAFE',
+    borderRadius: 14,
     paddingVertical: 40,
     paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EFF4FF',
+    backgroundColor: '#F8FAFF',
     marginBottom: 16,
   },
   uploadBoxTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#0D1C2E',
+    color: '#111827',
     marginTop: 8,
   },
   uploadBoxSubtitle: {
     fontSize: 12,
-    color: '#757684',
+    color: '#6B7280',
     marginTop: 4,
   },
   imagesGrid: {
@@ -539,7 +538,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(13, 28, 46, 0.5)',
+    backgroundColor: 'rgba(17, 24, 39, 0.6)',
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -549,9 +548,14 @@ const styles = StyleSheet.create({
   biometricsCard: {
     marginHorizontal: 24,
     marginBottom: 24,
-    backgroundColor: '#00288E',
-    borderRadius: 20,
+    backgroundColor: '#1E40AF',
+    borderRadius: 16,
     padding: 28,
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   biometricsHeader: {
     flexDirection: 'row',
@@ -563,7 +567,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FD761A',
+    backgroundColor: '#EA580C',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -584,12 +588,12 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: 'rgba(184, 196, 255, 0.8)',
+    color: '#DBEAFE',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   metricInput: {
-    backgroundColor: '#1E40AF',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -604,8 +608,8 @@ const styles = StyleSheet.create({
   encryptionCard: {
     marginHorizontal: 24,
     marginBottom: 24,
-    backgroundColor: 'rgba(219, 234, 254, 0.3)',
-    borderRadius: 24,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: '#DBEAFE',
@@ -627,37 +631,37 @@ const styles = StyleSheet.create({
   encryptionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0D1C2E',
+    color: '#111827',
     marginBottom: 4,
   },
   encryptionText: {
     fontSize: 11,
-    color: '#475569',
+    color: '#6B7280',
     lineHeight: 16,
   },
   submitButton: {
     marginHorizontal: 24,
     marginBottom: 24,
-    backgroundColor: '#9D4300',
+    backgroundColor: '#1E40AF',
+    height: 60,
     borderRadius: 16,
-    paddingVertical: 16,
     paddingHorizontal: 24,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#FD761A',
-    shadowOffset: { width: 0, height: 8 },
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   submitButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
   submitButtonLoadingText: {

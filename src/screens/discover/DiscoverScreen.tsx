@@ -117,7 +117,7 @@ const DiscoverScreen = () => {
             <Image source={{ uri: imageUri }} style={styles.centerImage} />
           ) : (
             <View style={styles.regionIconContainer}>
-              <Ionicons name="business" size={32} color="#2E7D32" />
+              <Ionicons name="business" size={32} color="#1E40AF" />
             </View>
           )}
           <View style={styles.regionInfo}>
@@ -137,7 +137,7 @@ const DiscoverScreen = () => {
   if (refreshing && centers.length === 0) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#2E7D32" />
+        <ActivityIndicator size="large" color="#1E40AF" />
       </View>
     );
   }
@@ -173,7 +173,7 @@ const DiscoverScreen = () => {
         ListFooterComponent={
           loadingMore ? (
             <View style={styles.footerLoader}>
-              <ActivityIndicator size="small" color="#2E7D32" />
+              <ActivityIndicator size="small" color="#1E40AF" />
             </View>
           ) : null
         }
@@ -191,24 +191,26 @@ const DiscoverScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F8FAFC',
   },
   listContent: {
     paddingBottom: 100,
   },
   header: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
+    paddingTop: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
+    backgroundColor: '#F8FAFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
     paddingHorizontal: 12,
     height: 44,
   },
@@ -221,25 +223,27 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#111827',
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
   regionCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginBottom: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -258,7 +262,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#F0F9FF',
+    backgroundColor: '#EFF6FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -268,13 +272,13 @@ const styles = StyleSheet.create({
   },
   regionName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#111827',
     marginBottom: 4,
   },
   regionSubtitle: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   footerLoader: {
     paddingVertical: 16,

@@ -15,6 +15,7 @@ import WithdrawalScreen from "../screens/wallet/WithdrawalScreen";
 import SponsorshipScreen from "../screens/discover/Sponsorshipscreen";
 import ChildProofScreen from "../screens/discover/ChildProofScreen";
 import DonateRegionScreen from "../screens/discover/DonateRegionScreen";
+import SupportedRegionsScreen from "../screens/discover/SupportedRegionsScreen";
 import PaymentCallbackScreen from "../screens/discover/PaymentCallbackScreen";
 import PaymentQrScreen from "../screens/discover/PaymentQrScreen";
 import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
@@ -29,7 +30,8 @@ export type GlobalModalParamList = {
   WelfareUpdateDetail: { child: any };
   Profile: undefined;
   Volunteer: undefined;
-  RegistrationForm: undefined;
+  RegistrationForm: { region?: string } | undefined;
+  SupportedRegions: undefined;
   // CreateNFT: undefined;
   // Add more modal screens here as needed
   // ChildHealthReport: { childId: string };
@@ -298,11 +300,12 @@ export const RootNavigator = () => {
         <RootStack.Screen
           name="RegistrationForm"
           component={RegistrationFormScreen}
-          options={{
-            title: 'Registration Form',
-            headerShown: false,
-            // animationEnabled: true,
-          }}
+          options={{ title: 'Registration Form', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="SupportedRegions"
+          component={SupportedRegionsScreen}
+          options={{ title: 'Regions Needing Support', headerShown: false }}
         />
         {/* Add more global modal screens here as needed */}
         {/* <RootStack.Screen

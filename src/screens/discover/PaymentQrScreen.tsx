@@ -70,7 +70,7 @@ const PaymentQrScreen = () => {
     <View style={styles.container}>
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.navTitle}>{title}</Text>
         <View style={styles.navButton} />
@@ -85,7 +85,7 @@ const PaymentQrScreen = () => {
         <View style={styles.qrCard}>
           {fetchingQr ? (
             <View style={styles.qrLoading}>
-              <ActivityIndicator size="large" color="#13ec5b" />
+              <ActivityIndicator size="large" color="#1E40AF" />
               <Text style={styles.qrLoadingText}>Loading QR code…</Text>
             </View>
           ) : bankingQrUrl ? (
@@ -111,7 +111,7 @@ const PaymentQrScreen = () => {
           onPress={handleOpenPayment}
           activeOpacity={0.85}
         >
-          <Ionicons name="open-outline" size={20} color="#fff" />
+          <Ionicons name="open-outline" size={20} color="#FFFFFF" />
           <Text style={styles.openButtonText}>Open PayOS Page</Text>
         </TouchableOpacity>
 
@@ -133,34 +133,30 @@ const PaymentQrScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f6f8f6" },
+  container: { flex: 1, backgroundColor: "#F8FAFC" },
 
   topNav: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "rgba(246,248,246,0.9)",
+    paddingVertical: 16,
+    backgroundColor: "rgba(248, 250, 252, 0.85)",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(226, 232, 240, 0.5)",
   },
   navButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   navTitle: {
     flex: 1,
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
+    fontWeight: "700",
+    color: "#111827",
     textAlign: "center",
     paddingHorizontal: 8,
   },
@@ -169,7 +165,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#1F2937",
+    color: "#111827",
     marginBottom: 8,
     textAlign: "center",
   },
@@ -183,15 +179,20 @@ const styles = StyleSheet.create({
 
   qrCard: {
     width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#F1F5F9",
     padding: 20,
     alignItems: "center",
     marginBottom: 16,
     minHeight: 240,
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   qrImage: { width: 240, height: 240 },
   qrLoading: { alignItems: "center", gap: 12, paddingVertical: 24 },
@@ -209,18 +210,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#13ec5b",
-    borderRadius: 14,
-    paddingVertical: 14,
+    backgroundColor: "#1E40AF",
+    height: 60,
+    borderRadius: 16,
     width: "100%",
-    shadowColor: "#13ec5b",
+    shadowColor: "#1E40AF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
     marginBottom: 16,
   },
-  openButtonText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  openButtonText: { fontSize: 17, fontWeight: "800", color: "#FFFFFF" },
   hint: {
     fontSize: 12,
     color: "#9CA3AF",
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#FFFFFF",
   },
   testButtonText: { fontSize: 13, color: "#6B7280", fontWeight: "600" },
 });

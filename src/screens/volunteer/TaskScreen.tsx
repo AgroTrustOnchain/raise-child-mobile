@@ -165,7 +165,7 @@ export default function TaskScreen() {
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.regionPill}>
-            <Ionicons name="location-outline" size={12} color="#00288e" />
+            <Ionicons name="location-outline" size={12} color="#1E40AF" />
             <Text style={styles.regionPillText}>{item.region || 'Unknown'}</Text>
           </View>
           <View
@@ -268,7 +268,7 @@ export default function TaskScreen() {
         ListFooterComponent={
           loadingMore ? (
             <View style={styles.footerLoader}>
-              <ActivityIndicator size="small" color="#00288e" />
+              <ActivityIndicator size="small" color="#1E40AF" />
             </View>
           ) : null
         }
@@ -276,7 +276,7 @@ export default function TaskScreen() {
 
       {loading && tasks.length === 0 && (
         <View style={styles.centerLoader} pointerEvents="none">
-          <ActivityIndicator size="large" color="#00288e" />
+          <ActivityIndicator size="large" color="#1E40AF" />
         </View>
       )}
     </View>
@@ -286,7 +286,7 @@ export default function TaskScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9ff',
+    backgroundColor: '#F8FAFC',
   },
   headerSection: {
     paddingHorizontal: 16,
@@ -295,22 +295,22 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '900',
-    color: '#00288e',
+    fontWeight: '800',
+    color: '#111827',
   },
   subtitle: {
-    color: '#666',
+    color: '#6B7280',
     marginBottom: 12,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#F8FAFF',
+    borderRadius: 14,
     paddingHorizontal: 12,
     height: 44,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#DBEAFE',
   },
   searchInput: {
     flex: 1,
@@ -324,13 +324,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -343,7 +345,7 @@ const styles = StyleSheet.create({
   regionPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e6eeff',
+    backgroundColor: '#EFF6FF',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -351,24 +353,24 @@ const styles = StyleSheet.create({
   },
   regionPillText: {
     fontSize: 12,
-    color: '#00288e',
-    fontWeight: '600',
+    color: '#1E40AF',
+    fontWeight: '700',
   },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
-    backgroundColor: '#6b7280',
+    backgroundColor: '#6B7280',
   },
   badgeText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
-  badgeOverdue: { backgroundColor: '#fd761a' },
-  badgeToday: { backgroundColor: '#00288e' },
-  badgeUpcoming: { backgroundColor: '#10b981' },
-  badgeAssigned: { backgroundColor: '#6366f1' },
+  badgeOverdue: { backgroundColor: '#EA580C' },
+  badgeToday: { backgroundColor: '#1E40AF' },
+  badgeUpcoming: { backgroundColor: '#1E40AF' },
+  badgeAssigned: { backgroundColor: '#9CA3AF' },
   description: {
     fontSize: 14,
     color: '#111827',
@@ -386,24 +388,31 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#6B7280',
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#00288e',
-    paddingVertical: 10,
-    borderRadius: 10,
+    backgroundColor: '#1E40AF',
+    height: 60,
+    borderRadius: 16,
     gap: 6,
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonDisabled: {
-    backgroundColor: '#9ca3af',
+    backgroundColor: '#9CA3AF',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 17,
   },
   emptyContainer: {
     flex: 1,

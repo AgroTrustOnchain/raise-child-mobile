@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/MainNavigator';
@@ -38,6 +38,8 @@ const ROLES = ['Local Leader', 'Volunteer'];
 const RegistrationFormScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<any>();
+  const prefilledRegion: string = route.params?.region ?? '';
   const { user } = useAppSelector((state) => state.auth);
   const [regions, setRegions] = useState<any[]>([]);
   const [isLoadingRegions, setIsLoadingRegions] = useState(false);
@@ -51,7 +53,7 @@ const RegistrationFormScreen = () => {
     avatarPreview: undefined,
     identityCardBlobId: undefined,
     identityCardPreview: undefined,
-    region: '',
+    region: prefilledRegion,
     registerRole: '',
   });
 
@@ -207,7 +209,7 @@ const RegistrationFormScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={28} color="#1f2937" />
+          <Ionicons name="chevron-back" size={28} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Registration Form</Text>
         <View style={{ width: 28 }} />
@@ -228,7 +230,7 @@ const RegistrationFormScreen = () => {
           >
             {isUploadingImage ? (
               <View style={styles.uploadPlaceholder}>
-                <ActivityIndicator size="large" color="#6366f1" />
+                <ActivityIndicator size="large" color="#1E40AF" />
                 <Text style={styles.uploadText}>Uploading to Walrus...</Text>
               </View>
             ) : formData.avatarPreview ? (
@@ -257,7 +259,7 @@ const RegistrationFormScreen = () => {
           >
             {isUploadingImage ? (
               <View style={styles.uploadPlaceholder}>
-                <ActivityIndicator size="large" color="#6366f1" />
+                <ActivityIndicator size="large" color="#1E40AF" />
                 <Text style={styles.uploadText}>Uploading to Walrus...</Text>
               </View>
             ) : formData.identityCardPreview ? (
@@ -311,13 +313,13 @@ const RegistrationFormScreen = () => {
                     onPress={() => setShowRegionModal(false)}
                     style={styles.modalCloseButton}
                   >
-                    <Ionicons name="close" size={24} color="#1f2937" />
+                    <Ionicons name="close" size={24} color="#111827" />
                   </TouchableOpacity>
                 </View>
 
                 {isLoadingRegions ? (
                   <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#6366f1" />
+                    <ActivityIndicator size="large" color="#1E40AF" />
                   </View>
                 ) : regions.length === 0 ? (
                   <View style={styles.emptyContainer}>
@@ -356,7 +358,7 @@ const RegistrationFormScreen = () => {
                           <Ionicons
                             name="checkmark-circle"
                             size={24}
-                            color="#13ec5b"
+                            color="#1E40AF"
                           />
                         )}
                       </TouchableOpacity>
@@ -402,7 +404,7 @@ const RegistrationFormScreen = () => {
                     onPress={() => setShowRoleModal(false)}
                     style={styles.modalCloseButton}
                   >
-                    <Ionicons name="close" size={24} color="#1f2937" />
+                    <Ionicons name="close" size={24} color="#111827" />
                   </TouchableOpacity>
                 </View>
 
@@ -435,7 +437,7 @@ const RegistrationFormScreen = () => {
                       <Ionicons
                         name="checkmark-circle"
                         size={24}
-                        color="#13ec5b"
+                        color="#1E40AF"
                       />
                     )}
                   </TouchableOpacity>
@@ -454,7 +456,7 @@ const RegistrationFormScreen = () => {
                 <Ionicons
                   name={formData.avatarBlobId ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={formData.avatarBlobId ? '#13ec5b' : '#d1d5db'}
+                  color={formData.avatarBlobId ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
               <Text style={styles.summaryText}>Avatar uploaded</Text>
@@ -464,7 +466,7 @@ const RegistrationFormScreen = () => {
                 <Ionicons
                   name={formData.identityCardBlobId ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={formData.identityCardBlobId ? '#13ec5b' : '#d1d5db'}
+                  color={formData.identityCardBlobId ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
               <Text style={styles.summaryText}>ID card uploaded</Text>
@@ -474,7 +476,7 @@ const RegistrationFormScreen = () => {
                 <Ionicons
                   name={formData.region ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={formData.region ? '#13ec5b' : '#d1d5db'}
+                  color={formData.region ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
               <Text style={styles.summaryText}>Region selected: {formData.region}</Text>
@@ -484,7 +486,7 @@ const RegistrationFormScreen = () => {
                 <Ionicons
                   name={formData.registerRole ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={formData.registerRole ? '#13ec5b' : '#d1d5db'}
+                  color={formData.registerRole ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
               <Text style={styles.summaryText}>Role selected: {formData.registerRole}</Text>
@@ -521,7 +523,7 @@ const RegistrationFormScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
@@ -530,19 +532,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    backgroundColor: '#fff',
+    borderBottomColor: 'rgba(226,232,240,0.5)',
+    backgroundColor: 'rgba(248,250,252,0.85)',
   },
   backButton: {
-    width: 28,
-    height: 28,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
   },
   scrollContent: {
     padding: 16,
@@ -552,20 +554,20 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
+    fontWeight: '700',
+    color: '#9CA3AF',
     marginBottom: 12,
     textTransform: 'uppercase',
   },
   imageUploadBox: {
     width: '100%',
     aspectRatio: 1,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
     borderStyle: 'dashed',
     overflow: 'hidden',
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#F8FAFF',
   },
   uploadPlaceholder: {
     flex: 1,
@@ -575,12 +577,12 @@ const styles = StyleSheet.create({
   },
   uploadText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
+    fontWeight: '700',
+    color: '#6B7280',
   },
   uploadSubtext: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9CA3AF',
   },
   uploadedImage: {
     width: '100%',
@@ -592,10 +594,10 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   roleDropdown: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    backgroundColor: '#F8FAFF',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#DBEAFE',
     paddingHorizontal: 16,
     paddingVertical: 14,
     flexDirection: 'row',
@@ -605,10 +607,10 @@ const styles = StyleSheet.create({
   roleDropdownText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1f2937',
+    color: '#111827',
   },
   roleDropdownPlaceholder: {
-    color: '#9ca3af',
+    color: '#9CA3AF',
   },
   modalOverlay: {
     flex: 1,
@@ -629,10 +631,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: '#F1F5F9',
   },
   modalContent: {
-  backgroundColor: '#fff',
+  backgroundColor: '#FFFFFF',
   borderTopLeftRadius: 20,
   borderTopRightRadius: 20,
   paddingBottom: 30,
@@ -647,8 +649,8 @@ modalScroll: {
 },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
   },
   modalCloseButton: {
     width: 32,
@@ -663,10 +665,10 @@ modalScroll: {
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#F1F5F9',
   },
   roleOptionActive: {
-    backgroundColor: 'rgba(19, 236, 91, 0.08)',
+    backgroundColor: '#EFF6FF',
   },
   roleOptionContent: {
     flex: 1,
@@ -674,15 +676,15 @@ modalScroll: {
   roleOptionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#111827',
     marginBottom: 4,
   },
   roleOptionTextActive: {
-    color: '#13ec5b',
+    color: '#1E40AF',
   },
   roleOptionDescription: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9CA3AF',
   },
   emptyContainer: {
     justifyContent: 'center',
@@ -691,20 +693,25 @@ modalScroll: {
   },
   emptyText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#9CA3AF',
     fontWeight: '500',
   },
   summaryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   summaryTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 14,
   },
   summaryRow: {
@@ -718,32 +725,37 @@ modalScroll: {
   },
   summaryText: {
     fontSize: 13,
-    color: '#4b5563',
+    color: '#6B7280',
     flex: 1,
   },
   footerContainer: {
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    backgroundColor: '#fff',
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
   },
   submitButton: {
-    backgroundColor: '#13ec5b',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#1E40AF',
+    height: 60,
+    borderRadius: 16,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButtonDisabled: {
     opacity: 0.6,
   },
   submitButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });
 

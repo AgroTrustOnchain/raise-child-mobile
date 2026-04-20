@@ -121,7 +121,7 @@ const PersonalInformationScreen = () => {
             <Text style={styles.label}>Unique Identifier</Text>
             <View style={styles.readonlyWrapper}>
               <Text style={styles.readonlyText}>{uniqueId}</Text>
-              <Ionicons name="lock-closed" size={18} color="#94a3b8" />
+              <Ionicons name="lock-closed" size={18} color="#9CA3AF" />
             </View>
             <Text style={styles.verifiedCaption}>Blockchain Verified ID</Text>
           </View>
@@ -133,7 +133,7 @@ const PersonalInformationScreen = () => {
               <TextInput
                 style={styles.input}
                 placeholder="John"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#9CA3AF"
                 value={firstName}
                 onChangeText={setFirstName}
                 autoCapitalize="words"
@@ -144,7 +144,7 @@ const PersonalInformationScreen = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Doe"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#9CA3AF"
                 value={lastName}
                 onChangeText={setLastName}
                 autoCapitalize="words"
@@ -166,7 +166,7 @@ const PersonalInformationScreen = () => {
               <Ionicons
                 name={showGenderPicker ? 'chevron-up' : 'chevron-down'}
                 size={18}
-                color="#94a3b8"
+                color="#9CA3AF"
               />
             </TouchableOpacity>
             {showGenderPicker && (
@@ -192,7 +192,7 @@ const PersonalInformationScreen = () => {
                       {option}
                     </Text>
                     {gender === option && (
-                      <Ionicons name="checkmark" size={16} color="#1e40af" />
+                      <Ionicons name="checkmark" size={16} color="#1E40AF" />
                     )}
                   </TouchableOpacity>
                 ))}
@@ -207,12 +207,12 @@ const PersonalInformationScreen = () => {
               <TextInput
                 style={[styles.input, { paddingRight: 48 }]}
                 placeholder="YYYY-MM-DD"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#9CA3AF"
                 value={dateOfBirth}
                 onChangeText={setDateOfBirth}
                 keyboardType="numbers-and-punctuation"
               />
-              <Ionicons name="calendar-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+              <Ionicons name="calendar-outline" size={18} color="#9CA3AF" style={styles.inputIcon} />
             </View>
           </View>
 
@@ -227,12 +227,12 @@ const PersonalInformationScreen = () => {
             <View style={styles.phoneRow}>
               <View style={styles.countryCodeBox}>
                 <Text style={styles.countryCodeText}>+1</Text>
-                <Ionicons name="chevron-down" size={14} color="#94a3b8" />
+                <Ionicons name="chevron-down" size={14} color="#9CA3AF" />
               </View>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="(555) 000-0000"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#9CA3AF"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
                 keyboardType="phone-pad"
@@ -247,13 +247,13 @@ const PersonalInformationScreen = () => {
               <TextInput
                 style={[styles.input, { paddingRight: 48 }]}
                 placeholder="john.doe@example.com"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
-              <Ionicons name="checkmark-circle" size={20} color="#10b981" style={styles.inputIcon} />
+              <Ionicons name="checkmark-circle" size={20} color="#1E40AF" style={styles.inputIcon} />
             </View>
           </View>
 
@@ -263,7 +263,7 @@ const PersonalInformationScreen = () => {
             <TextInput
               style={styles.input}
               placeholder="Enter your identity code"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#9CA3AF"
               value={identityCode}
               onChangeText={setIdentityCode}
               autoCapitalize="none"
@@ -298,7 +298,7 @@ const PersonalInformationScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#F8FAFC',
   },
 
   // Header
@@ -307,10 +307,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: 'rgba(248,250,252,0.9)',
+    paddingVertical: 16,
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
   },
   headerButton: {
     width: 40,
@@ -320,9 +320,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#1e40af',
+    color: '#111827',
   },
   headerPlaceholder: {
     width: 40,
@@ -361,12 +361,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#1e40af',
+    backgroundColor: '#1E40AF',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#f8fafc',
-    shadowColor: '#1e40af',
+    borderColor: '#F8FAFC',
+    shadowColor: '#1E40AF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   },
   avatarSubtitle: {
     fontSize: 13,
-    color: '#64748b',
+    color: '#6B7280',
     marginTop: 4,
   },
 
@@ -393,9 +393,9 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   label: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#1e293b',
+    color: '#111827',
     marginBottom: 8,
     paddingHorizontal: 2,
   },
@@ -411,19 +411,19 @@ const styles = StyleSheet.create({
     height: 52,
     paddingHorizontal: 16,
     borderRadius: 14,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#F1F5F9',
     justifyContent: 'space-between',
   },
   readonlyText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#64748b',
+    color: '#6B7280',
   },
   verifiedCaption: {
     marginTop: 6,
     fontSize: 10,
     fontWeight: '700',
-    color: '#10b981',
+    color: '#1E40AF',
     textTransform: 'uppercase',
     letterSpacing: 1,
     paddingHorizontal: 2,
@@ -434,9 +434,9 @@ const styles = StyleSheet.create({
     height: 52,
     paddingHorizontal: 16,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFF',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#DBEAFE',
     fontSize: 15,
     color: '#111827',
   },
@@ -457,9 +457,9 @@ const styles = StyleSheet.create({
     height: 52,
     paddingHorizontal: 16,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFF',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#DBEAFE',
   },
   pickerText: {
     fontSize: 15,
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   pickerPlaceholder: {
-    color: '#94a3b8',
+    color: '#9CA3AF',
     fontWeight: '400',
   },
   dropdownMenu: {
@@ -475,13 +475,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#F1F5F9',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 2,
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -490,10 +490,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    borderBottomColor: '#F1F5F9',
   },
   dropdownItemSelected: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#EFF6FF',
   },
   dropdownItemText: {
     fontSize: 14,
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   dropdownItemTextSelected: {
-    color: '#1e40af',
+    color: '#1E40AF',
     fontWeight: '700',
   },
 
@@ -518,9 +518,9 @@ const styles = StyleSheet.create({
     height: 52,
     paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFF',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#DBEAFE',
   },
   countryCodeText: {
     fontSize: 15,
@@ -531,14 +531,14 @@ const styles = StyleSheet.create({
   // Section divider
   sectionDivider: {
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#E5E7EB',
     paddingTop: 20,
     marginBottom: 4,
   },
   sectionLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: '#9CA3AF',
     textTransform: 'uppercase',
     letterSpacing: 2,
   },
@@ -549,21 +549,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(248,250,252,0.97)',
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.97)',
+    paddingHorizontal: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#E5E7EB',
   },
   saveButton: {
-    backgroundColor: '#1e40af',
-    height: 56,
+    backgroundColor: '#1E40AF',
+    height: 60,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1e40af',
+    shadowColor: '#1E40AF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -572,8 +572,8 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
   },
 });
 
