@@ -1,6 +1,6 @@
-import { API_BASE_URL, apiService } from './api.service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { STORAGE_KEYS } from '../utils/constants';
+import { API_BASE_URL, apiService } from "./api.service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { STORAGE_KEYS } from "../utils/constants";
 
 export interface RegistrationPayload {
   avatar_blob_id: string;
@@ -23,7 +23,7 @@ export const getStoredToken = async (): Promise<string | null> => {
     const token = await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     return token;
   } catch (error) {
-    console.error('Failed to retrieve token:', error);
+    console.error("Failed to retrieve token:", error);
     return null;
   }
 };
@@ -34,7 +34,7 @@ export const getStoredToken = async (): Promise<string | null> => {
  */
 export const submitRegistration = async (
   payload: RegistrationPayload,
-  token?: string
+  token?: string,
 ): Promise<RegistrationResponse> => {
   try {
     // Get token from storage if not provided
@@ -46,10 +46,10 @@ export const submitRegistration = async (
     //   }
     // }
 
-    const response = await apiService.post('/registrations', payload, {
+    const response = await apiService.post("/registrations", payload, {
       headers: {
         // Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -60,7 +60,7 @@ export const submitRegistration = async (
       data,
     };
   } catch (error) {
-    console.error('Registration submission error:', error);
+    console.error("Registration submission error:", error);
     throw error;
   }
 };
@@ -80,19 +80,61 @@ export interface SupportedRegionSuggestion {
 /**
  * Fetch regions that need volunteer/local leader support
  */
-export const getSupportedRegionSuggestions = async (): Promise<SupportedRegionSuggestion[]> => {
+export const getSupportedRegionSuggestions = async (): Promise<
+  SupportedRegionSuggestion[]
+> => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/supported-region-suggestions`,
-      { method: 'GET', headers: { Accept: 'application/json' } }
+      `${API_BASE_URL}/regions/supported-suggestions`,
+      { method: "GET", headers: { Accept: "application/json" } },
     );
-    if (!response.ok) throw new Error('Failed to fetch region suggestions');
+    if (!response.ok) throw new Error("Failed to fetch region suggestions");
     const data = await response.json();
     if (Array.isArray(data)) return data;
     if (data.data && Array.isArray(data.data)) return data.data;
     return [];
   } catch (error) {
-    console.error('Failed to fetch region suggestions:', error);
+    console.error("Failed to fetch region suggestions:", error);
+    throw error;
+  }
+};
+
+export interface UserRegistration {
+  id: string;
+  profile_id: string;
+  region: string;
+  register_role: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Fetch registrations submitted by the current user (identified by wallet address)
+ */
+export const getUserRegistrations = async (
+  address: string,
+): Promise<UserRegistration[]> => {
+  const response = await apiService.get(`/registrations/user/${address}`);
+  const data = response.data;
+  if (Array.isArray(data)) return data;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  return [];
+};
+
+/**
+ * Confirm a registration by id
+ */
+export const confirmRegistration = async (
+  registrationId: string,
+): Promise<any> => {
+  try {
+    const res = await apiService.post(
+      `/registrations/${registrationId}/confirm`,
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Failed to confirm registration:", error);
     throw error;
   }
 };
@@ -103,17 +145,17 @@ export const getSupportedRegionSuggestions = async (): Promise<SupportedRegionSu
 export const getRegions = async (): Promise<string[]> => {
   try {
     const response = await fetch(
-      'https://agrotrust-server-production.onrender.com/regions',
+      "https://agrotrust-server-production.onrender.com/regions",
       {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Accept': 'application/json',
+          Accept: "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
-      throw new Error('Failed to fetch regions');
+      throw new Error("Failed to fetch regions");
     }
 
     const data = await response.json();
@@ -130,7 +172,7 @@ export const getRegions = async (): Promise<string[]> => {
 
     return regions;
   } catch (error) {
-    console.error('Failed to fetch regions:', error);
+    console.error("Failed to fetch regions:", error);
     throw error;
   }
 };

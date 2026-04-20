@@ -158,9 +158,9 @@ const RegistrationFormScreen = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    // if (!validateForm()) {
+    //   return;
+    // }
 
     try {
       setIsSubmitting(true);

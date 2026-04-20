@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +18,6 @@ type NavigationProp = NativeStackNavigationProp<any>;
 const VolunteerSettingsScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
-  const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [privateProfile, setPrivateProfile] = useState(false);
@@ -32,26 +30,7 @@ const VolunteerSettingsScreen = () => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Switch',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              // API call to switch role would go here
-              // await switchUserRole('donor');
-              setTimeout(() => {
-                setLoading(false);
-                Alert.alert('Success', 'Your role has been switched to Donor. Restarting app...');
-                // Navigate to donor screens
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'MainNavigator' }],
-                });
-              }, 1500);
-            } catch (error) {
-              setLoading(false);
-              Alert.alert('Error', 'Failed to switch role. Please try again.');
-            }
-          },
+          onPress: () => navigation.navigate('Main'),
         },
       ]
     );
@@ -66,22 +45,11 @@ const VolunteerSettingsScreen = () => {
         {
           text: 'Log Out',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              // API call to logout would go here
-              // await logout();
-              setTimeout(() => {
-                setLoading(false);
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'AuthNavigator' }],
-                });
-              }, 1000);
-            } catch (error) {
-              setLoading(false);
-              Alert.alert('Error', 'Failed to log out. Please try again.');
-            }
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'AuthNavigator' }],
+            });
           },
         },
       ]
@@ -230,18 +198,11 @@ const VolunteerSettingsScreen = () => {
               <Text style={styles.roleBadge}>Volunteer</Text>
             </View>
             <TouchableOpacity
-              style={[styles.switchRoleButton, loading && styles.switchRoleButtonDisabled]}
+              style={styles.switchRoleButton}
               onPress={handleSwitchRole}
-              disabled={loading}
             >
-              {loading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <MaterialIcons name="swap-horiz" size={18} color="#fff" />
-                  <Text style={styles.switchRoleButtonText}>Switch to Donor</Text>
-                </>
-              )}
+              <MaterialIcons name="swap-horiz" size={18} color="#fff" />
+              <Text style={styles.switchRoleButtonText}>Switch to Donor</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.roleSwitchInfo}>
@@ -279,18 +240,11 @@ const VolunteerSettingsScreen = () => {
         {/* Logout Button */}
         <View style={styles.logoutContainer}>
           <TouchableOpacity
-            style={[styles.logoutButton, loading && styles.logoutButtonDisabled]}
+            style={styles.logoutButton}
             onPress={handleLogout}
-            disabled={loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#DC2626" size="small" />
-            ) : (
-              <>
-                <MaterialIcons name="logout" size={18} color="#DC2626" />
-                <Text style={styles.logoutButtonText}>Log Out</Text>
-              </>
-            )}
+            <MaterialIcons name="logout" size={18} color="#DC2626" />
+            <Text style={styles.logoutButtonText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

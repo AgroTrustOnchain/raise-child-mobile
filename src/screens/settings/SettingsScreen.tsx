@@ -93,7 +93,7 @@ const SettingsScreen = () => {
               <Text style={styles.infoLabel}>Current Role:</Text>
               <View style={styles.roleBadge}>
                 <Text style={styles.roleText}>
-                  {user?.role?.toUpperCase() || 'N/A'}
+                  {user?.role?.[0]?.toUpperCase() || 'N/A'}
                 </Text>
               </View>
             </View>
@@ -146,10 +146,26 @@ const SettingsScreen = () => {
           )}
         </View>
 
+        {/* Wallet */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Finance</Text>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => navigation.navigate("Wallet" as any)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons name="wallet" size={20} color="#1E40AF" />
+              <Text style={styles.settingText}>Wallet</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+        </View>
+
         {/* Registration Form */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile Setup</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.registrationButton}
             onPress={() => navigation.navigate("RegistrationForm" as any)}
             activeOpacity={0.7}

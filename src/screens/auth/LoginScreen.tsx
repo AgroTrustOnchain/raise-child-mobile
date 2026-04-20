@@ -22,18 +22,34 @@ import { loginUser, saltUser } from "../../store/authSlice";
 import { AppDispatch } from "../../store";
 import { getSubFromJWT } from "../../utils/jwt";
 import { jwtToAddress } from "../../utils/zklogin";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { generateNonce, generateRandomness } from "@mysten/sui/zklogin";
+import { useWallet } from "../../context/WalletContext";
+
+const SUI_RPC = "https://fullnode.testnet.sui.io";
+
+const getCurrentEpoch = async (): Promise<number> => {
+  const res = await fetch(SUI_RPC, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "suix_getLatestSuiSystemState", params: [] }),
+  });
+  const json = await res.json();
+  return Number(json.result.epoch);
+};
 
 const LoginScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
   const [isInProgress, setIsInProgress] = useState(false);
   const { error } = useAuth();
+  const { setWallet } = useWallet();
 
   const handleLoginWithGoogle = async () => {
     try {
       setIsInProgress(true);
       await GoogleSignin.hasPlayServices();
-      const isSignedIn = await GoogleSignin.getCurrentUser();
+      const isSignedIn = GoogleSignin.getCurrentUser();
       if (isSignedIn) {
         await GoogleSignin.signOut();
       }
@@ -49,14 +65,29 @@ const LoginScreen = () => {
           const userAddress = jwtToAddress(idToken, saltResult.salt, false);
           console.log("User Address:", userAddress);
 
+          const ephemeralKeyPair = Ed25519Keypair.generate();
+          const randomness = generateRandomness();
+          const currentEpoch = await getCurrentEpoch();
+          const maxEpoch = currentEpoch + 2;
+          const nonce = generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness);
+          console.log("Nonce:", nonce);
+
           const loginResponse = await dispatch(
             loginUser({ address: userAddress, sub }),
           );
 
           if (loginResponse.payload) {
+            setWallet({
+              address: userAddress,
+              sub,
+              ephemeralKeyPair,
+              jwt: idToken,
+              randomness: randomness.toString(),
+              maxEpoch,
+              salt: saltResult.salt,
+            });
             Alert.alert("Login Successful", "Welcome back!");
             setIsInProgress(false);
-            navigation.navigate("Home" as never);
           } else {
             Alert.alert("Login Failed", "Unable to authenticate with Google");
             setIsInProgress(false);
@@ -90,7 +121,6 @@ const LoginScreen = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.card}>
-          {/* Branding */}
           <View style={styles.header}>
             <View style={styles.headerContent}>
               <View style={styles.iconContainer}>
@@ -103,7 +133,6 @@ const LoginScreen = () => {
             </View>
           </View>
 
-          {/* Content */}
           <View style={styles.formContainer}>
             {error && (
               <View style={styles.errorContainer}>
@@ -135,15 +164,8 @@ const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 16,
-  },
+  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  scrollContent: { flexGrow: 1, justifyContent: "center", padding: 16 },
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -156,15 +178,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#F1F5F9",
   },
-  header: {
-    paddingTop: 40,
-    paddingBottom: 24,
-    paddingHorizontal: 24,
-    alignItems: "center",
-  },
-  headerContent: {
-    alignItems: "center",
-  },
+  header: { paddingTop: 40, paddingBottom: 24, paddingHorizontal: 24, alignItems: "center" },
+  headerContent: { alignItems: "center" },
   iconContainer: {
     width: 64,
     height: 64,
@@ -174,23 +189,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#111827",
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-    paddingHorizontal: 16,
-  },
-  formContainer: {
-    paddingHorizontal: 32,
-    paddingBottom: 40,
-  },
+  title: { fontSize: 24, fontWeight: "800", color: "#111827", marginBottom: 4, textAlign: "center" },
+  subtitle: { fontSize: 14, color: "#6B7280", textAlign: "center", paddingHorizontal: 16 },
+  formContainer: { paddingHorizontal: 32, paddingBottom: 40 },
   errorContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -200,21 +201,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 8,
   },
-  errorText: {
-    flex: 1,
-    color: "#991B1B",
-    fontSize: 14,
-  },
-  googleButtonWrapper: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  securedRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  },
+  errorText: { flex: 1, color: "#991B1B", fontSize: 14 },
+  googleButtonWrapper: { alignItems: "center", marginBottom: 24 },
+  securedRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   securedText: {
     fontSize: 10,
     fontWeight: "700",

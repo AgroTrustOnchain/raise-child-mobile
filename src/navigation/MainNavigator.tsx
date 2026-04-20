@@ -10,14 +10,13 @@ import CampaignDetail from "../screens/discover/CampaignDetail";
 import ChildDetailScreen from "../screens/discover/ChildDetailScreen";
 import MyTrackScreen from "../screens/track/MyTrackScreen";
 import ProofScreen from "../screens/track/ProofScreen";
-import WalletScreen from "../screens/wallet/WalletScreen";
 import WithdrawalScreen from "../screens/wallet/WithdrawalScreen";
-import SponsorshipScreen from "../screens/discover/Sponsorshipscreen";
 import ChildProofScreen from "../screens/discover/ChildProofScreen";
 import DonateRegionScreen from "../screens/discover/DonateRegionScreen";
 import SupportedRegionsScreen from "../screens/discover/SupportedRegionsScreen";
 import PaymentCallbackScreen from "../screens/discover/PaymentCallbackScreen";
 import PaymentQrScreen from "../screens/discover/PaymentQrScreen";
+import WalletScreen from "../screens/wallet/WalletScreen";
 import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
 import WelfareUpdateScreen from "../screens/volunteer/Welfareupdatescreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
@@ -32,6 +31,7 @@ export type GlobalModalParamList = {
   Volunteer: undefined;
   RegistrationForm: { region?: string } | undefined;
   SupportedRegions: undefined;
+  Wallet: undefined;
   // CreateNFT: undefined;
   // Add more modal screens here as needed
   // ChildHealthReport: { childId: string };
@@ -46,8 +46,8 @@ export type NFTStackParamList = {
   ChildDetailScreen: { childId: string };
   MyTrackScreen: undefined;
   ProofScreen: { childId: string };
-  SponsorshipScreen: { childId: string };
   ChildProofScreen: { childId: string; childName: string };
+  SupportedRegionsScreen: undefined;
   DonateRegionScreen: { pool_id: string; region: string };
   PaymentCallbackScreen: {
     tx_bytes?: string;
@@ -62,7 +62,7 @@ export type NFTStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Explore: undefined;
-  Wallet: undefined;
+  Regions: undefined;
   Withdrawal: undefined;
   Track: undefined;
   Settings: undefined;
@@ -116,14 +116,14 @@ const DiscoverStack = () => {
         options={{ title: 'Child Details' }} 
       />
       <Stack.Screen
-        name="SponsorshipScreen"
-        component={SponsorshipScreen}
-        options={{ title: 'Sponsorship' }}
-      />
-      <Stack.Screen
         name="ChildProofScreen"
         component={ChildProofScreen}
         options={{ title: 'Impact Proof' }}
+      />
+      <Stack.Screen
+        name="SupportedRegionsScreen"
+        component={SupportedRegionsScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="DonateRegionScreen"
@@ -178,8 +178,8 @@ const MainNavigator = () => {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Explore") {
             iconName = focused ? "compass" : "compass-outline";
-          } else if (route.name === "Wallet") {
-            iconName = focused ? "wallet" : "wallet-outline";
+          } else if (route.name === "Regions") {
+            iconName = focused ? "map" : "map-outline";
           } else if (route.name === "Withdrawal") {
             iconName = focused ? "card" : "card-outline";
           } else if (route.name === "Track") {
@@ -204,14 +204,14 @@ const MainNavigator = () => {
         component={DiscoverStack} 
         options={{ headerShown: false }}
       />
-      <Tab.Screen 
-        name="Wallet" 
-        component={WalletScreen} 
-        options={{ headerShown: true }}
+      <Tab.Screen
+        name="Regions"
+        component={SupportedRegionsScreen}
+        options={{ headerShown: false }}
       />
-      <Tab.Screen 
-        name="Withdrawal" 
-        component={WithdrawalScreen} 
+      <Tab.Screen
+        name="Withdrawal"
+        component={WithdrawalScreen}
         options={{ headerShown: true }}
       />
       <Tab.Screen 
@@ -301,6 +301,11 @@ export const RootNavigator = () => {
           name="RegistrationForm"
           component={RegistrationFormScreen}
           options={{ title: 'Registration Form', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="Wallet"
+          component={WalletScreen}
+          options={{ title: 'Wallet', headerShown: false }}
         />
         <RootStack.Screen
           name="SupportedRegions"

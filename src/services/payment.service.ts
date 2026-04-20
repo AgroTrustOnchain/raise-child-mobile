@@ -1,4 +1,4 @@
-import { apiService } from './api.service';
+import { apiService } from "./api.service";
 
 export type DonatePayload = {
   amount: number;
@@ -10,8 +10,13 @@ export type DonateResponse = {
   url: string;
 };
 
-export const donateToPool = async (payload: DonatePayload): Promise<DonateResponse> => {
-  const response = await apiService.post<DonateResponse>('/payments/donate', payload);
+export const donateToPool = async (
+  payload: DonatePayload,
+): Promise<DonateResponse> => {
+  const response = await apiService.post<DonateResponse>(
+    "/payments/donate",
+    payload,
+  );
   return response.data;
 };
 
@@ -28,12 +33,23 @@ export type ExecuteTxResponse = {
   [key: string]: any;
 };
 
-export const executeTransaction = async (payload: ExecuteTxPayload): Promise<ExecuteTxResponse> => {
-  const response = await apiService.post<ExecuteTxResponse>('/tx/execute', payload);
-  return response.data;
+export const executeTransaction = async (
+  payload: ExecuteTxPayload,
+): Promise<ExecuteTxResponse> => {
+  try {
+    console.log(payload)
+    const response = await apiService.post<ExecuteTxResponse>(
+      "/tx/execute",
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Transaction execution failed:", error);
+    throw error;
+  }
 };
 
 export const fakePaymentCallback = async (): Promise<any> => {
-  const response = await apiService.get('/payments/fake-callback');
+  const response = await apiService.get("/payments/fake-callback");
   return response.data;
 };

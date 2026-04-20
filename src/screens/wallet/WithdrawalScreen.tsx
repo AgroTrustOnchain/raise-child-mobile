@@ -55,8 +55,7 @@ const WithdrawalScreen = () => {
       setError(null);
 
       const response = await getWithdrawalProposals(pageNum, 10);
-      console.log(response)
-      const mapped = response != null ? response.data.map(mapWithdrawalProposal) : [];
+      const mapped = response?.data?.length > 0 ? response.data.map(mapWithdrawalProposal) : [];
 
       setWithdrawals(prev => (append ? [...prev, ...mapped] : mapped));
       setTotalPages(response?.total_pages || 1);

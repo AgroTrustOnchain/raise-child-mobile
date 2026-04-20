@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { executeTransaction } from "../../services/payment.service";
+import { fromBase64 } from "@mysten/sui/utils";
 import { useWallet } from "../../context/WalletContext";
 
 type Status = "signing" | "done" | "error";
@@ -40,17 +40,13 @@ const PaymentCallbackScreen = () => {
         return;
       }
 
-      const keypair: Ed25519Keypair =
-        wallet?.ephemeralKeyPair ?? Ed25519Keypair.generate();
-
-      // Decode base64 without Buffer (not available in React Native)
-      const binaryStr = atob(tx_bytes);
-      const txBytesArray = new Uint8Array(binaryStr.length);
-      for (let i = 0; i < binaryStr.length; i++) {
-        txBytesArray[i] = binaryStr.charCodeAt(i);
+      if (!wallet) {
+        setErrorMsg("Wallet not connected. Please log in again.");
+        setStatus("error");
+        return;
       }
 
-      const { signature } = await keypair.signTransaction(txBytesArray);
+      const { signature } = await wallet.ephemeralKeyPair.signTransaction(fromBase64(tx_bytes));
 
       await executeTransaction({
         tx_bytes,

@@ -5,9 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import ChildrenScreen from '../screens/volunteer/TaskScreen';
 import UpdateScreen from '../screens/volunteer/UpdateScreen';
 import VolunteerSettingsScreen from '../screens/volunteer/VolunteerSettingsScreen';
+import CenterReqScreen from '../screens/volunteer/CenterReqScreen';
 
 export type VolunteerTabParamList = {
   Children: undefined;
+  CenterReqs: undefined;
   Update: undefined;
   VolunteerSettings: undefined;
 };
@@ -23,6 +25,8 @@ export const VolunteerNavigator = () => {
 
           if (route.name === 'Children') {
             iconName = focused ? 'people' : 'people-outline';
+          } else if (route.name === 'CenterReqs') {
+            iconName = focused ? 'business' : 'business-outline';
           } else if (route.name === 'Update') {
             iconName = focused ? 'cloud-upload' : 'cloud-upload-outline';
           } else if (route.name === 'VolunteerSettings') {
@@ -42,6 +46,11 @@ export const VolunteerNavigator = () => {
         options={{
           title: 'Children',
         }}
+      />
+      <Tab.Screen
+        name="CenterReqs"
+        component={CenterReqScreen}
+        options={{ title: 'Center Reqs' }}
       />
       <Tab.Screen
         name="Update"

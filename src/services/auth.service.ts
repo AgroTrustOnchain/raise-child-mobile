@@ -53,7 +53,7 @@ class AuthService {
         id: decoded.sub,
         email: '',
         name: '',
-        role: decoded.roles.length > 0 ? decoded.roles[0] : null,
+        role: decoded.roles.length > 0 ? decoded.roles : null,
         walletAddress: decoded.address,
       },
       accessToken: token,

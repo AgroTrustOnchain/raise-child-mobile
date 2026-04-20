@@ -86,7 +86,8 @@ const HomeScreen = () => {
       setError(null);
 
       const response = await getTxRecords(pageNum, 10);
-      const mapped = response.data.map(mapTxRecord);
+      // console.log(response)
+      const mapped = response?.data?.length > 0 ? response.data.map(mapTxRecord) : [];
 
       setTransactions(prev => (append ? [...prev, ...mapped] : mapped));
       setTotalPages(response.total_pages);
