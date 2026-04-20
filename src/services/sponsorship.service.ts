@@ -105,58 +105,30 @@ export const getHealthInsuranceNeedDetails = async (childId: string): Promise<{ 
  * POST /children/books-need/{id}/support
  * Supports the books need for a child.
  */
-export const supportBooksNeed = async (childId: string): Promise<void> => {
-  try {
-    const res = await apiService.post(`/children/books-need/${childId}/support`, {});
-    return res.data
-  } catch (error) {
-    console.error(`Failed to support books need for child ${childId}:`, error);
-    throw error;
-  }
+export type SponsorResponse = { url: string };
+
+export const supportBooksNeed = async (childId: string): Promise<SponsorResponse> => {
+  const res = await apiService.post(`/children/books-need/${childId}/support`, {});
+  return res.data;
 };
 
-/**
- * POST /children/meal-need/{id}/support
- * Supports the meal need for a child with a number of months.
- */
 export const supportMealNeed = async (
   childId: string,
   months: number
-): Promise<void> => {
-  try {
-    await apiService.post(`/children/meal-need/${childId}/support`, { months });
-  } catch (error) {
-    console.error(`Failed to support meal need for child ${childId}:`, error);
-    throw error;
-  }
+): Promise<SponsorResponse> => {
+  const res = await apiService.post(`/children/meal-need/${childId}/support`, { months });
+  return res.data;
 };
 
-/**
- * POST /children/health-insurance-need/{id}/support
- * Supports the health insurance need for a child.
- */
-export const supportHealthInsuranceNeed = async (childId: string): Promise<void> => {
-  try {
-    await apiService.post(
-      `/children/health-insurance-need/${childId}/support`,
-      {}
-    );
-  } catch (error) {
-    console.error(
-      `Failed to support health insurance need for child ${childId}:`,
-      error
-    );
-    throw error;
-  }
+export const supportHealthInsuranceNeed = async (childId: string): Promise<SponsorResponse> => {
+  const res = await apiService.post(
+    `/children/health-insurance-need/${childId}/support`,
+    {}
+  );
+  return res.data;
 };
 
-/**
- * Dispatches the correct API call based on the support type selected.
- * - 'books'  → POST /children/books-need/{id}/support
- * - 'meals'  → POST /children/meal-need/{id}/support  (requires months)
- * - 'health' → POST /children/health-insurance-need/{id}/support
- */
-export const submitSponsorship = async (payload: SponsorPayload): Promise<void> => {
+export const submitSponsorship = async (payload: SponsorPayload): Promise<SponsorResponse> => {
   switch (payload.type) {
     case 'books':
       return supportBooksNeed(payload.childId);

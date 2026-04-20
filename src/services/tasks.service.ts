@@ -2,18 +2,31 @@ import { apiService } from './api.service';
 
 export interface TaskItem {
   id: string;
-  title?: string;
-  description?: string;
+  is_child_task?: boolean;
+  child_task_detail_id?: string | null;
+  created_by?: string;
+  assigned_profile_id?: string | null;
+  assgined_staff?: string | null;
+  review_profile_status?: string;
+  reviewed_by?: string | null;
   region?: string;
+  description?: string;
+  start_period?: string;
+  end_period?: string;
+  created_at?: string;
+  updated_at?: string;
+  // legacy/compat fields
+  title?: string;
   keyword?: string;
   status?: string;
   [key: string]: any;
 }
 
 export interface TasksListResponse {
-  data?: TaskItem[];
+  data?: TaskItem[] | null;
   items?: TaskItem[];
   tasks?: TaskItem[];
+  amount?: number;
   page?: number;
   page_size?: number;
   total?: number;
@@ -107,4 +120,18 @@ export const getTasksByRegion = async (
  */
 export const extractTasksFromResponse = (response: TasksListResponse): TaskItem[] => {
   return response.data || response.items || response.tasks || [];
+};
+
+/**
+ * Assign a task to the current volunteer profile
+ * POST /tasks/{taskId}/assign
+ */
+export const assignTask = async (taskId: string): Promise<any> => {
+  try {
+    const response = await apiService.post(`/tasks/${taskId}/claim`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to claim task ${taskId}:`, error);
+    throw error;
+  }
 };

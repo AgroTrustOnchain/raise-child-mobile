@@ -56,12 +56,13 @@ const WithdrawalScreen = () => {
 
       const response = await getWithdrawalProposals(pageNum, 10);
       console.log(response)
-      const mapped = response.data.map(mapWithdrawalProposal);
+      const mapped = response != null ? response.data.map(mapWithdrawalProposal) : [];
 
       setWithdrawals(prev => (append ? [...prev, ...mapped] : mapped));
-      setTotalPages(response.total_pages);
+      setTotalPages(response?.total_pages || 1);
       setPage(pageNum);
     } catch (err: any) {
+      console.log(err)
       setError(err.message || 'Failed to fetch withdrawal proposals');
     } finally {
       setLoading(false);

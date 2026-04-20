@@ -16,12 +16,16 @@ import { API_BASE_URL } from '../../services/api.service';
 import { useNavigation } from '@react-navigation/native';
 import { Image } from 'react-native';
 
+const PAGE_SIZE = 10;
+
 const DiscoverScreen = () => {
   const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [centers, setCenters] = useState<CampaignItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const onRefresh = async () => {
     await loadCenters();
@@ -30,13 +34,50 @@ const DiscoverScreen = () => {
   const loadCenters = async () => {
     try {
       setRefreshing(true);
-      const res = await getCampaigns(1, 50);
-      const list = Array.isArray(res) ? res : res?.data ?? [];
+      const res = await getCampaigns(1, PAGE_SIZE);
+      const list: CampaignItem[] = Array.isArray(res) ? res : res?.data ?? [];
+      const totalPages = !Array.isArray(res) ? res?.total_pages : undefined;
       setCenters(list);
+      setPage(1);
+      setHasMore(
+        typeof totalPages === 'number' ? 1 < totalPages : list.length >= PAGE_SIZE
+      );
     } catch (e) {
       console.warn('Failed to load centers', e);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const loadMoreCenters = async () => {
+    if (loadingMore || refreshing || !hasMore) return;
+    try {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      const res = await getCampaigns(nextPage, PAGE_SIZE);
+      const list: CampaignItem[] = Array.isArray(res) ? res : res?.data ?? [];
+      const totalPages = !Array.isArray(res) ? res?.total_pages : undefined;
+      setCenters((prev) => {
+        const seen = new Set(prev.map((c) => c.id));
+        const merged = [...prev];
+        for (const c of list) {
+          if (!seen.has(c.id)) {
+            merged.push(c);
+            seen.add(c.id);
+          }
+        }
+        return merged;
+      });
+      setPage(nextPage);
+      setHasMore(
+        typeof totalPages === 'number'
+          ? nextPage < totalPages
+          : list.length >= PAGE_SIZE
+      );
+    } catch (e) {
+      console.warn('Failed to load more centers', e);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -93,7 +134,7 @@ const DiscoverScreen = () => {
     loadCenters();
   }, []);
 
-  if (loading && centers.length === 0) {
+  if (refreshing && centers.length === 0) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#2E7D32" />
@@ -127,6 +168,15 @@ const DiscoverScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
+        onEndReached={loadMoreCenters}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.footerLoader}>
+              <ActivityIndicator size="small" color="#2E7D32" />
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="business-outline" size={48} color="#D1D5DB" />
@@ -225,6 +275,10 @@ const styles = StyleSheet.create({
   regionSubtitle: {
     fontSize: 12,
     color: '#9CA3AF',
+  },
+  footerLoader: {
+    paddingVertical: 16,
+    alignItems: 'center',
   },
   emptyContainer: {
     flex: 1,

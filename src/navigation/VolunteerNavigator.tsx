@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
-import ChildrenScreen from '../screens/volunteer/ChildrenScreen';
+import ChildrenScreen from '../screens/volunteer/TaskScreen';
 import UpdateScreen from '../screens/volunteer/UpdateScreen';
 import VolunteerSettingsScreen from '../screens/volunteer/VolunteerSettingsScreen';
 

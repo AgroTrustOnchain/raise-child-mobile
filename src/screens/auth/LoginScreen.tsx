@@ -44,11 +44,11 @@ const LoginScreen = () => {
       return;
     }
 
-    const loginReponse : any = await dispatch(
-            loginUser({ address: formData.email, sub: formData.password }),
-          );
+    const loginReponse: any = await dispatch(
+      loginUser({ address: formData.email, sub: formData.password }),
+    );
 
-          console.log(loginReponse.payload);
+    console.log(loginReponse.payload);
 
     try {
       // await login(formData);
@@ -90,20 +90,6 @@ const LoginScreen = () => {
         const sub: any = getSubFromJWT(idToken);
         console.log("Google User ID (sub):", sub);
 
-        dispatch(
-              setCredentials({
-                user: {
-                  id: sub,
-                  email,
-                  name,
-                  // role: "donor",
-                  walletAddress: "",
-                },
-                accessToken: idToken,
-                refreshToken: "",
-              } as any),
-            );
-
         // Dispatch saltUser to get user salt
         try {
           const saltResult = await dispatch(saltUser(sub)).unwrap();
@@ -119,9 +105,22 @@ const LoginScreen = () => {
 
           console.log(loginReponse.payload);
 
+          // dispatch(
+          //   setCredentials({
+          //     user: {
+          //       id: sub,
+          //       email,
+          //       name,
+          //       // role: "donor",
+          //       walletAddress: "",
+          //     },
+          //     accessToken: idToken,
+          //     refreshToken: "",
+          //   } as any),
+          // );
+
           if (loginReponse.payload) {
             Alert.alert("Login Successful", "Welcome back!");
-            
 
             setIsInProgress(false);
             navigation.navigate("Home" as never);
@@ -129,12 +128,9 @@ const LoginScreen = () => {
             Alert.alert("Login Failed", "Unable to authenticate with Google");
             setIsInProgress(false);
           }
-
-          
         } catch (saltError) {
           console.error("Error getting user salt:", saltError);
         }
-
 
         // Store user credentials
       } else {
@@ -295,7 +291,9 @@ const LoginScreen = () => {
             {/* Secured Badge */}
             <View style={styles.securedRow}>
               <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
-              <Text style={styles.securedText}>Secured by Sui Network Protocol</Text>
+              <Text style={styles.securedText}>
+                Secured by Sui Network Protocol
+              </Text>
             </View>
           </View>
         </View>

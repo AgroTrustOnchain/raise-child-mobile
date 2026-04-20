@@ -57,6 +57,7 @@ const ChildDetailScreen = () => {
     try {
       setLoading(true);
       const c = await getChildById(id);
+      // console.log(c)
       const mapped = {
         id: c.id,
         name: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
@@ -133,18 +134,26 @@ const ChildDetailScreen = () => {
     }
     try {
       setIsSubmitting(true);
+      let res;
       if (selectedSupport === 'books') {
-        await submitSponsorship({ type: 'books', childId: raw.books_needs[0] });
+        res = await submitSponsorship({ type: 'books', childId: raw.books_needs[0] });
       } else if (selectedSupport === 'meals') {
-        await submitSponsorship({ type: 'meals', childId: raw.meal_need, months });
+        res = await submitSponsorship({ type: 'meals', childId: raw.meal_need, months });
       } else if (selectedSupport === 'health') {
-        await submitSponsorship({ type: 'health', childId: raw.health_insurance_need });
+        res = await submitSponsorship({ type: 'health', childId: raw.health_insurance_need });
       }
-      Alert.alert(
-        'Sponsorship Submitted!',
-        `Your support for ${beneficiary.name} has been authorized on Sui Network.`,
-        [{ text: 'OK', onPress: () => navigation.goBack() }],
-      );
+      if (res?.url) {
+        navigation.navigate('PaymentQrScreen', {
+          paymentUrl: res.url,
+          title: `Sponsor ${beneficiary.name}`,
+        });
+      } else {
+        Alert.alert(
+          'Sponsorship Submitted!',
+          `Your support for ${beneficiary.name} has been authorized.`,
+          [{ text: 'OK', onPress: () => navigation.goBack() }],
+        );
+      }
     } catch (err: any) {
       Alert.alert('Authorization Failed', err.message || 'Please try again');
     } finally {

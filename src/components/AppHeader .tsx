@@ -22,8 +22,8 @@ const AppHeader = () => {
     navigation.navigate("Profile");
   }
 
-  const handleLogout = async () => {
-    Alert.alert(
+  const handleLogout = () => {
+    setTimeout(() => Alert.alert(
       "Logout",
       "Are you sure you want to logout?",
       [
@@ -44,7 +44,7 @@ const AppHeader = () => {
           style: "destructive",
         },
       ]
-    );
+    ), 0);
   };
 
   return (

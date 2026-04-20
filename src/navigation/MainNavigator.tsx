@@ -14,6 +14,9 @@ import WalletScreen from "../screens/wallet/WalletScreen";
 import WithdrawalScreen from "../screens/wallet/WithdrawalScreen";
 import SponsorshipScreen from "../screens/discover/Sponsorshipscreen";
 import ChildProofScreen from "../screens/discover/ChildProofScreen";
+import DonateRegionScreen from "../screens/discover/DonateRegionScreen";
+import PaymentCallbackScreen from "../screens/discover/PaymentCallbackScreen";
+import PaymentQrScreen from "../screens/discover/PaymentQrScreen";
 import PersonalInformationScreen from "../screens/profile/PersonalInformationScreen";
 import WelfareUpdateScreen from "../screens/volunteer/Welfareupdatescreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
@@ -42,6 +45,16 @@ export type NFTStackParamList = {
   MyTrackScreen: undefined;
   ProofScreen: { childId: string };
   SponsorshipScreen: { childId: string };
+  ChildProofScreen: { childId: string; childName: string };
+  DonateRegionScreen: { pool_id: string; region: string };
+  PaymentCallbackScreen: {
+    tx_bytes?: string;
+    proposal_id?: string;
+    center_req?: string;
+    registration_req?: string;
+    upload_child_req?: string;
+  };
+  PaymentQrScreen: { paymentUrl: string; title?: string };
 };
 
 export type MainTabParamList = {
@@ -109,6 +122,21 @@ const DiscoverStack = () => {
         name="ChildProofScreen"
         component={ChildProofScreen}
         options={{ title: 'Impact Proof' }}
+      />
+      <Stack.Screen
+        name="DonateRegionScreen"
+        component={DonateRegionScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PaymentCallbackScreen"
+        component={PaymentCallbackScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PaymentQrScreen"
+        component={PaymentQrScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

@@ -62,18 +62,29 @@ export const mapChildToBeneficiary = (c: ChildItem) => ({
 
 type ChildrenQuery = { campaignId?: string; region?: string };
 
-// Get available regions
-export const getRegions = async (): Promise<string[]> => {
+// Get available regions with pagination
+export const getRegions = async (
+  page: number = 1,
+  pageSize: number = 10
+): Promise<{ items: string[]; hasMore: boolean }> => {
   try {
-    const res = await apiService.get('/children/regions');
+    const res = await apiService.get(
+      `/children/regions?page=${page}&page_size=${pageSize}`
+    );
     const regions = Array.isArray(res.data)
       ? res.data
       : res.data?.data || [];
-    return regions as string[];
+    const totalPages = res.data?.total_pages;
+    const hasMore =
+      typeof totalPages === 'number'
+        ? page < totalPages
+        : (regions as string[]).length >= pageSize;
+    return { items: regions as string[], hasMore };
   } catch (e) {
     // Fallback to mock regions if endpoint not available
     console.warn("getRegions failed, using default regions", e);
-    return ['AgroTrust', 'North', 'South', 'Central'];
+    const fallback = ['AgroTrust', 'North', 'South', 'Central'];
+    return { items: page === 1 ? fallback : [], hasMore: false };
   }
 };
 
@@ -134,7 +145,7 @@ export const getChildById = async (childId: string) => {
   try {
     const res = await apiService.get(`/children/${childId}`);
     const item = res.data?.data || res.data || res;
-    return item as any;
+    return res.data as any;
   } catch (e) {
     console.warn('getChildById failed, using mock first child', e);
     return MOCK_CHILDREN[0];
