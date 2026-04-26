@@ -69,9 +69,9 @@ const PaymentCallbackScreen = () => {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#1E40AF" style={styles.spinner} />
-        <Text style={styles.title}>Signing Transaction</Text>
+        <Text style={styles.title}>Đang ký giao dịch</Text>
         <Text style={styles.subtitle}>
-          Verifying your payment and submitting to the SUI network…
+          Đang xác minh thanh toán và gửi lên mạng SUI…
         </Text>
       </View>
     );
@@ -83,7 +83,7 @@ const PaymentCallbackScreen = () => {
         <View style={[styles.iconWrap, styles.iconError]}>
           <Ionicons name="close-circle" size={64} color="#DC2626" />
         </View>
-        <Text style={styles.title}>Transaction Failed</Text>
+        <Text style={styles.title}>Giao dịch thất bại</Text>
         <Text style={styles.subtitle}>{errorMsg}</Text>
         <TouchableOpacity
           style={[styles.button, styles.buttonRetry]}
@@ -91,14 +91,14 @@ const PaymentCallbackScreen = () => {
           activeOpacity={0.85}
         >
           <Ionicons name="refresh" size={18} color="#FFFFFF" />
-          <Text style={styles.buttonText}>Retry</Text>
+          <Text style={styles.buttonText}>Thử lại</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonSecondary}
-          onPress={() => navigation.navigate("Explore")}
+          onPress={() => navigation.navigate("Home")}
           activeOpacity={0.85}
         >
-          <Text style={styles.buttonSecondaryText}>Go Back</Text>
+          <Text style={styles.buttonSecondaryText}>Quay lại</Text>
         </TouchableOpacity>
       </View>
     );
@@ -109,16 +109,16 @@ const PaymentCallbackScreen = () => {
       <View style={[styles.iconWrap, styles.iconSuccess]}>
         <Ionicons name="checkmark-circle" size={64} color="#1E40AF" />
       </View>
-      <Text style={styles.title}>Donation Successful!</Text>
+      <Text style={styles.title}>Quyên góp thành công!</Text>
       <Text style={styles.subtitle}>
-        Your payment has been verified and the transaction was submitted to the SUI network.
+        Thanh toán đã được xác minh và giao dịch đã được gửi lên mạng SUI.
       </Text>
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("Explore")}
         activeOpacity={0.85}
       >
-        <Text style={styles.buttonText}>Back to Explore</Text>
+        <Text style={styles.buttonText}>Về trang Khám phá</Text>
       </TouchableOpacity>
     </View>
   );

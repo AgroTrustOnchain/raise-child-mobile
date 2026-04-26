@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { StackActions } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppSelector } from "../store";
 import HomeScreen from "../screens/nft/HomeScreen";
@@ -197,32 +198,37 @@ const MainNavigator = () => {
       <Tab.Screen
         name="Home"
         component={NFTStack}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, tabBarLabel: "Trang chủ" }}
       />
-      <Tab.Screen 
-        name="Explore" 
-        component={DiscoverStack} 
-        options={{ headerShown: false }}
+      <Tab.Screen
+        name="Explore"
+        component={DiscoverStack}
+        options={{ headerShown: false, tabBarLabel: "Khám phá" }}
+        listeners={({ navigation }) => ({
+          blur: () => {
+            navigation.dispatch(StackActions.popToTop());
+          },
+        })}
       />
       <Tab.Screen
         name="Regions"
         component={SupportedRegionsScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: false, tabBarLabel: "Khu vực" }}
       />
       <Tab.Screen
         name="Withdrawal"
         component={WithdrawalScreen}
-        options={{ headerShown: true }}
+        options={{ headerShown: true, tabBarLabel: "Rút tiền" }}
       />
-      <Tab.Screen 
-        name="Track" 
-        component={TrackStack} 
-        options={{ headerShown: false }}
+      <Tab.Screen
+        name="Track"
+        component={TrackStack}
+        options={{ headerShown: false, tabBarLabel: "Theo dõi" }}
       />
-      <Tab.Screen 
-        name="Settings" 
-        component={SettingsScreen} 
-        options={{ headerShown: false }}
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ headerShown: false, tabBarLabel: "Cài đặt" }}
       />
     </Tab.Navigator>
   );

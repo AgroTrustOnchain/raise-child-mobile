@@ -122,14 +122,14 @@ const ChildDetailScreen = () => {
 
   const handleAuthorize = async () => {
     if (!selectedSupport) {
-      Alert.alert('Error', 'Please select a support type');
+      Alert.alert('Lỗi', 'Vui lòng chọn loại hỗ trợ');
       return;
     }
     if (!beneficiary) return;
     const { raw } = beneficiary;
     const months = parseInt(mealMonths, 10);
     if (selectedSupport === 'meals' && (!months || months < 1)) {
-      Alert.alert('Error', 'Please enter a valid number of months');
+      Alert.alert('Lỗi', 'Vui lòng nhập số tháng hợp lệ');
       return;
     }
     try {
@@ -149,13 +149,13 @@ const ChildDetailScreen = () => {
         });
       } else {
         Alert.alert(
-          'Sponsorship Submitted!',
-          `Your support for ${beneficiary.name} has been authorized.`,
+          'Đã gửi bảo trợ!',
+          `Hỗ trợ của bạn cho ${beneficiary.name} đã được xác nhận.`,
           [{ text: 'OK', onPress: () => navigation.goBack() }],
         );
       }
     } catch (err: any) {
-      Alert.alert('Authorization Failed', err.message || 'Please try again');
+      Alert.alert('Xác nhận thất bại', err.message || 'Vui lòng thử lại');
     } finally {
       setIsSubmitting(false);
     }
@@ -187,7 +187,7 @@ const ChildDetailScreen = () => {
   if (!beneficiary) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text>No child data available</Text>
+        <Text>Không có dữ liệu trẻ em</Text>
       </View>
     );
   }
@@ -232,7 +232,7 @@ const ChildDetailScreen = () => {
                 <Ionicons name="location" size={20} color="#1E40AF" />
               </View>
               <View style={styles.regionInfo}>
-                <Text style={styles.regionLabel}>Region</Text>
+                <Text style={styles.regionLabel}>Vùng</Text>
                 <Text style={styles.regionTitle}>{beneficiary.campaign}</Text>
               </View>
             </View>
@@ -240,18 +240,18 @@ const ChildDetailScreen = () => {
 
           {/* Story & Needs Card */}
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Story & Needs</Text>
+            <Text style={styles.sectionTitle}>Câu chuyện & Nhu cầu</Text>
 
             {beneficiary.story && (
               <View style={styles.storySection}>
-                <Text style={styles.storyLabel}>Story</Text>
+                <Text style={styles.storyLabel}>Câu chuyện</Text>
                 <Text style={styles.storyText}>{beneficiary.story}</Text>
               </View>
             )}
 
             {(beneficiary.firstGuardian || beneficiary.secondGuardian) && (
               <View>
-                <Text style={[styles.sectionTitle, { fontSize: 14, marginBottom: 12, marginTop: 16 }]}>Guardians</Text>
+                <Text style={[styles.sectionTitle, { fontSize: 14, marginBottom: 12, marginTop: 16 }]}>Người giám hộ</Text>
                 {beneficiary.firstGuardian && (
                   <View style={styles.guardianCard}>
                     <View style={styles.guardianHeader}>
@@ -300,7 +300,7 @@ const ChildDetailScreen = () => {
                     <Ionicons name="location" size={18} color="#1E40AF" />
                   </View>
                   <View style={styles.infoContent}>
-                    <Text style={styles.infoLabel}>Address</Text>
+                    <Text style={styles.infoLabel}>Địa chỉ</Text>
                     <Text style={styles.infoValue}>{beneficiary.address}</Text>
                   </View>
                 </View>
@@ -310,7 +310,7 @@ const ChildDetailScreen = () => {
 
           {/* Transparency Card */}
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Transparency</Text>
+            <Text style={styles.sectionTitle}>Minh bạch</Text>
             <View style={styles.blockchainCard}>
               <View style={styles.blockchainIcon}>
                 <Ionicons name="shield-checkmark" size={80} color="rgba(30, 64, 175, 0.1)" />
@@ -318,10 +318,10 @@ const ChildDetailScreen = () => {
               <View style={styles.blockchainContent}>
                 <View style={styles.verifiedBadge}>
                   <Ionicons name="shield-checkmark" size={16} color="#1E40AF" />
-                  <Text style={styles.verifiedText}>BLOCKCHAIN VERIFIED</Text>
+                  <Text style={styles.verifiedText}>ĐÃ XÁC MINH BLOCKCHAIN</Text>
                 </View>
                 <Text style={styles.blockchainDescription}>
-                  Your contribution is secured and tracked on the Sui blockchain for full transparency.
+                  Đóng góp của bạn được bảo mật và theo dõi trên blockchain Sui để đảm bảo minh bạch hoàn toàn.
                 </Text>
               </View>
             </View>
@@ -334,8 +334,8 @@ const ChildDetailScreen = () => {
                 <Ionicons name="receipt-outline" size={22} color="#1E40AF" />
               </View>
               <View>
-                <Text style={styles.proofCardTitle}>Impact Proof</Text>
-                <Text style={styles.proofCardSubtitle}>View verified blockchain timeline</Text>
+                <Text style={styles.proofCardTitle}>Bằng chứng tác động</Text>
+                <Text style={styles.proofCardSubtitle}>Xem dòng thời gian blockchain đã xác minh</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#1E40AF" />
@@ -344,7 +344,7 @@ const ChildDetailScreen = () => {
           {/* ── Support Type Selection ───────────────────────────────────────── */}
           {(hasBooks || hasMeals || hasHealth) && (
             <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Select Support Type</Text>
+              <Text style={styles.sectionTitle}>Chọn loại hỗ trợ</Text>
 
               {hasBooks && (
                 <TouchableOpacity
@@ -356,11 +356,11 @@ const ChildDetailScreen = () => {
                     <View style={[styles.supportIconContainer, selectedSupport === 'books' && styles.supportIconContainerSelected]}>
                       <Ionicons name="book-outline" size={22} color={selectedSupport === 'books' ? '#FFFFFF' : '#1E40AF'} />
                     </View>
-                    <Text style={styles.supportOptionTitle}>School Books Support</Text>
+                    <Text style={styles.supportOptionTitle}>Hỗ trợ sách giáo khoa</Text>
                   </View>
                   <View style={styles.supportOptionRight}>
                     <Text style={styles.supportOptionPrice}>{formatVND(bookValue)}</Text>
-                    <Text style={styles.supportOptionFrequency}>Per Semester</Text>
+                    <Text style={styles.supportOptionFrequency}>Mỗi học kỳ</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -376,7 +376,7 @@ const ChildDetailScreen = () => {
                       <View style={[styles.supportIconContainer, selectedSupport === 'meals' && styles.supportIconContainerSelected]}>
                         <Ionicons name="restaurant-outline" size={22} color={selectedSupport === 'meals' ? '#FFFFFF' : '#1E40AF'} />
                       </View>
-                      <Text style={styles.supportOptionTitle}>Monthly Meals</Text>
+                      <Text style={styles.supportOptionTitle}>Bữa ăn hàng tháng</Text>
                     </View>
                     <View style={styles.supportOptionRight}>
                       <Text style={styles.supportOptionPrice}>{formatVND(mealValue * parseInt(mealMonths || '1'))}</Text>
@@ -386,7 +386,7 @@ const ChildDetailScreen = () => {
                   {selectedSupport === 'meals' && (
                     <View style={styles.monthsInputContainer}>
                       <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-                      <Text style={styles.monthsLabel}>Number of months</Text>
+                      <Text style={styles.monthsLabel}>Số tháng</Text>
                       <TextInput
                         style={styles.monthsInput}
                         value={mealMonths}
@@ -396,7 +396,7 @@ const ChildDetailScreen = () => {
                         placeholder="3"
                         placeholderTextColor="#9CA3AF"
                       />
-                      <Text style={styles.monthsUnit}>months</Text>
+                      <Text style={styles.monthsUnit}>tháng</Text>
                     </View>
                   )}
                 </>
@@ -419,13 +419,13 @@ const ChildDetailScreen = () => {
                     ]}>
                       <Ionicons name="medkit-outline" size={22} color={selectedSupport === 'health' ? '#FFFFFF' : '#EA580C'} />
                     </View>
-                    <Text style={styles.supportOptionTitle}>Health Insurance</Text>
+                    <Text style={styles.supportOptionTitle}>Bảo hiểm y tế</Text>
                   </View>
                   <View style={styles.supportOptionRight}>
                     <Text style={[styles.supportOptionPrice, { color: '#EA580C' }]}>
                       {healthValue > 0 ? formatVND(healthValue) : 'Custom'}
                     </Text>
-                    <Text style={styles.supportOptionFrequency}>{healthValue > 0 ? 'Required' : 'Amount'}</Text>
+                    <Text style={styles.supportOptionFrequency}>{healthValue > 0 ? 'Bắt buộc' : 'Số tiền'}</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -441,8 +441,8 @@ const ChildDetailScreen = () => {
                     <Ionicons name="calendar-outline" size={20} color="#1E40AF" />
                   </View>
                   <View>
-                    <Text style={styles.recurringTitle}>Recurring Support</Text>
-                    <Text style={styles.recurringSubtitle}>Enable monthly sponsorship</Text>
+                    <Text style={styles.recurringTitle}>Hỗ trợ định kỳ</Text>
+                    <Text style={styles.recurringSubtitle}>Bật bảo trợ hàng tháng</Text>
                   </View>
                 </View>
                 <Switch
@@ -470,14 +470,14 @@ const ChildDetailScreen = () => {
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
             <>
-              <Text style={styles.authorizeButtonText}>Authorize on Sui</Text>
+              <Text style={styles.authorizeButtonText}>Xác nhận trên Sui</Text>
               <Ionicons name="flash" size={20} color="#FFFFFF" />
             </>
           )}
         </TouchableOpacity>
         <View style={styles.securedRow}>
           <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
-          <Text style={styles.securedText}>Secured by Sui Network Protocol</Text>
+          <Text style={styles.securedText}>Bảo mật bởi Giao thức Mạng Sui</Text>
         </View>
       </View>
     </KeyboardAvoidingView>

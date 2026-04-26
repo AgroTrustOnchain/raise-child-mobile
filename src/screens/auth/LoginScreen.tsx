@@ -86,10 +86,10 @@ const LoginScreen = () => {
               maxEpoch,
               salt: saltResult.salt,
             });
-            Alert.alert("Login Successful", "Welcome back!");
+            Alert.alert("Đăng nhập thành công", "Chào mừng trở lại!");
             setIsInProgress(false);
           } else {
-            Alert.alert("Login Failed", "Unable to authenticate with Google");
+            Alert.alert("Đăng nhập thất bại", "Không thể xác thực với Google");
             setIsInProgress(false);
           }
         } catch (saltError) {
@@ -98,14 +98,14 @@ const LoginScreen = () => {
         }
       } else {
         setIsInProgress(false);
-        Alert.alert("Google Sign-In Failed", "Unable to sign in with Google");
+        Alert.alert("Đăng nhập Google thất bại", "Không thể đăng nhập bằng Google");
       }
     } catch (err) {
       setIsInProgress(false);
       console.log("Google Sign-In Error:", err);
       Alert.alert(
-        "Google Sign-In Failed",
-        "An error occurred while signing in with Google",
+        "Đăng nhập Google thất bại",
+        "Đã xảy ra lỗi khi đăng nhập bằng Google",
       );
     }
   };
@@ -128,7 +128,7 @@ const LoginScreen = () => {
               </View>
               <Text style={styles.title}>AgroTrust</Text>
               <Text style={styles.subtitle}>
-                Secure login for transparent rural donations.
+                Đăng nhập bảo mật cho các khoản quyên góp nông thôn minh bạch.
               </Text>
             </View>
           </View>
@@ -153,7 +153,7 @@ const LoginScreen = () => {
             <View style={styles.securedRow}>
               <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
               <Text style={styles.securedText}>
-                Secured by Sui Network Protocol
+                Bảo mật bởi Giao thức Mạng Sui
               </Text>
             </View>
           </View>

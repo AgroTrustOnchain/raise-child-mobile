@@ -92,7 +92,7 @@ const DiscoverScreen = () => {
         <Ionicons name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search centers..."
+          placeholder="Tìm kiếm trung tâm..."
           placeholderTextColor="#9CA3AF"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -122,7 +122,7 @@ const DiscoverScreen = () => {
           )}
           <View style={styles.regionInfo}>
             <Text style={styles.regionName}>{item.region || 'Unknown Center'}</Text>
-            <Text style={styles.regionSubtitle}>{item.address || 'View children'}</Text>
+            <Text style={styles.regionSubtitle}>{item.address || 'Xem trẻ em'}</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
@@ -160,7 +160,7 @@ const DiscoverScreen = () => {
         ListHeaderComponent={() => (
           <>
             {renderHeader()}
-            <Text style={styles.title}>Centers</Text>
+            <Text style={styles.title}>Trung tâm</Text>
           </>
         )}
         contentContainerStyle={styles.listContent}
@@ -180,7 +180,7 @@ const DiscoverScreen = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="business-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyText}>No centers found</Text>
+            <Text style={styles.emptyText}>Không tìm thấy trung tâm nào</Text>
           </View>
         }
       />

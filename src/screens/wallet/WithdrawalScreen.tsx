@@ -31,10 +31,10 @@ const STATUS_COLORS: Record<MappedWithdrawal['status'], string> = {
 };
 
 const STATUS_LABELS: Record<MappedWithdrawal['status'], string> = {
-  executed: 'Executed',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  pending: 'Pending',
+  executed: 'Đã thực hiện',
+  approved: 'Đã duyệt',
+  rejected: 'Từ chối',
+  pending: 'Chờ xử lý',
 };
 
 const WithdrawalScreen = () => {
@@ -62,7 +62,7 @@ const WithdrawalScreen = () => {
       setPage(pageNum);
     } catch (err: any) {
       console.log(err)
-      setError(err.message || 'Failed to fetch withdrawal proposals');
+      setError(err.message || 'Không thể tải danh sách đề xuất rút tiền');
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -89,12 +89,12 @@ const WithdrawalScreen = () => {
     }
 
     Alert.alert(
-      'Confirm Vote',
-      `Vote ${voteType === 'for' ? 'FOR' : 'AGAINST'} this withdrawal?`,
+      'Xác nhận bình chọn',
+      `Bình chọn ${voteType === 'for' ? 'ĐỒNG Ý' : 'PHẢN ĐỐI'} đề xuất này?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Hủy', style: 'cancel' },
         {
-          text: 'Confirm',
+          text: 'Xác nhận',
           onPress: async () => {
             try {
               await voteWithdrawalProposal(
@@ -102,12 +102,12 @@ const WithdrawalScreen = () => {
                 voteType === 'for' ? 'approve' : 'refuse',
                 reason
               );
-              Alert.alert('Vote Recorded', 'Your vote has been submitted successfully.');
+              Alert.alert('Đã ghi nhận', 'Bình chọn của bạn đã được gửi thành công.');
               fetchWithdrawals(0);
             } catch (error: any) {
               Alert.alert(
-                'Error',
-                error.message || 'Failed to submit vote. Please try again.'
+                'Lỗi',
+                error.message || 'Không thể gửi bình chọn. Vui lòng thử lại.'
               );
             }
           },
@@ -118,7 +118,7 @@ const WithdrawalScreen = () => {
 
   const handleSubmitRefuseReason = () => {
     if (!refuseReason.trim()) {
-      Alert.alert('Required', 'Please provide a reason for voting against.');
+      Alert.alert('Bắt buộc', 'Vui lòng cung cấp lý do phản đối.');
       return;
     }
     setShowRefuseModal(false);
@@ -142,7 +142,7 @@ const WithdrawalScreen = () => {
           {item.verified && (
             <View style={styles.localPoolBadge}>
               <MaterialIcons name="shield" size={12} color="#1E40AF" />
-              <Text style={styles.localPoolText}>Local Pool</Text>
+              <Text style={styles.localPoolText}>Quỹ địa phương</Text>
             </View>
           )}
           <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] }]}>
@@ -166,7 +166,7 @@ const WithdrawalScreen = () => {
         <Image source={{ uri: 'https://via.placeholder.com/48' }} style={styles.evidenceImage} />
         <View style={styles.evidenceTextBlock}>
           <Text style={styles.evidenceTitle} numberOfLines={1}>{item.description}</Text>
-          <Text style={styles.evidenceSubtitle}>Verified Source</Text>
+          <Text style={styles.evidenceSubtitle}>Nguồn đã xác minh</Text>
         </View>
         <MaterialIcons name="chevron-right" size={22} color="#1e40af" />
       </View>
@@ -183,8 +183,8 @@ const WithdrawalScreen = () => {
       {item.status === 'pending' && (
         <View style={styles.voteSection}>
           <View style={styles.voteLabels}>
-            <Text style={styles.voteForLabel}>{item.voteForPct}% FOR</Text>
-            <Text style={styles.voteAgainstLabel}>{item.voteAgainstPct}% AGAINST</Text>
+            <Text style={styles.voteForLabel}>{item.voteForPct}% ĐỒNG Ý</Text>
+            <Text style={styles.voteAgainstLabel}>{item.voteAgainstPct}% PHẢN ĐỐI</Text>
           </View>
           <View style={styles.voteTrack}>
             <View style={[styles.voteBarFor, { flex: Math.max(item.voteForPct, 5) }]} />
@@ -192,7 +192,7 @@ const WithdrawalScreen = () => {
           </View>
           <View style={styles.quorumRow}>
             <MaterialIcons name="groups" size={12} color="#64748b" />
-            <Text style={styles.quorumText}>Quorum: 50% Required</Text>
+            <Text style={styles.quorumText}>Đại diện tối thiểu: 50%</Text>
           </View>
           <View style={styles.voteButtons}>
             <TouchableOpacity
@@ -201,7 +201,7 @@ const WithdrawalScreen = () => {
               activeOpacity={0.85}
             >
               <MaterialIcons name="thumb-up" size={16} color="white" />
-              <Text style={styles.btnText}>Vote For</Text>
+              <Text style={styles.btnText}>Đồng ý</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.btnAgainst}
@@ -209,7 +209,7 @@ const WithdrawalScreen = () => {
               activeOpacity={0.85}
             >
               <MaterialIcons name="thumb-down" size={16} color="white" />
-              <Text style={styles.btnText}>Against</Text>
+              <Text style={styles.btnText}>Phản đối</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -221,7 +221,7 @@ const WithdrawalScreen = () => {
     <>
       <View style={[styles.container]}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Withdrawals</Text>
+          <Text style={styles.headerTitle}>Rút tiền</Text>
           <TouchableOpacity
             style={styles.refreshButton}
             onPress={() => fetchWithdrawals(0)}
@@ -234,14 +234,14 @@ const WithdrawalScreen = () => {
         {loading ? (
           <View style={styles.centered}>
             <ActivityIndicator size="large" color="#1e40af" />
-            <Text style={styles.loadingText}>Loading proposals…</Text>
+            <Text style={styles.loadingText}>Đang tải đề xuất…</Text>
           </View>
         ) : error ? (
           <View style={styles.centered}>
             <MaterialIcons name="error-outline" size={52} color="#dc2626" />
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryBtn} onPress={() => fetchWithdrawals(0)}>
-              <Text style={styles.retryBtnText}>Retry</Text>
+              <Text style={styles.retryBtnText}>Thử lại</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -249,29 +249,29 @@ const WithdrawalScreen = () => {
           <View style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <MaterialIcons name="account-balance-wallet" size={20} color="white" />
-              <Text style={styles.summaryLabel}>Active Proposals</Text>
+              <Text style={styles.summaryLabel}>Đề xuất đang hoạt động</Text>
             </View>
-            <Text style={styles.summaryBig}>{pendingCount} Open Votes</Text>
-            <Text style={styles.summarySub}>Total in pool: {totalAmountVND} VND</Text>
+            <Text style={styles.summaryBig}>{pendingCount} phiếu đang mở</Text>
+            <Text style={styles.summarySub}>Tổng trong quỹ: {totalAmountVND} VND</Text>
             <View style={styles.verifiedTrustBadge}>
               <MaterialIcons name="verified" size={14} color="white" />
-              <Text style={styles.verifiedTrustText}>Verified Treasury</Text>
+              <Text style={styles.verifiedTrustText}>Kho tiền đã xác minh</Text>
             </View>
           </View>
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Disbursement Requests</Text>
+              <Text style={styles.sectionTitle}>Yêu cầu giải ngân</Text>
               <View style={styles.realTimeDot}>
                 <View style={styles.dot} />
-                <Text style={styles.realTimeText}>Live</Text>
+                <Text style={styles.realTimeText}>Trực tiếp</Text>
               </View>
             </View>
 
             {withdrawals.length === 0 ? (
               <View style={styles.emptyBox}>
                 <MaterialIcons name="inbox" size={48} color="#cbd5e1" />
-                <Text style={styles.emptyText}>No withdrawal proposals found</Text>
+                <Text style={styles.emptyText}>Không tìm thấy đề xuất rút tiền nào</Text>
               </View>
             ) : (
               <FlatList
@@ -292,8 +292,8 @@ const WithdrawalScreen = () => {
                   <ActivityIndicator size="small" color="#1e40af" />
                 ) : (
                   <>
-                    <Text style={styles.loadMoreText}>Load More</Text>
-                    <Text style={styles.loadMoreSub}>Page {page + 1} of {totalPages}</Text>
+                    <Text style={styles.loadMoreText}>Tải thêm</Text>
+                    <Text style={styles.loadMoreSub}>Trang {page + 1} / {totalPages}</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -322,7 +322,7 @@ const WithdrawalScreen = () => {
           >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Refusal Reason</Text>
+                <Text style={styles.modalTitle}>Lý do phản đối</Text>
                 <TouchableOpacity
                   onPress={() => {
                     setShowRefuseModal(false);
@@ -334,12 +334,12 @@ const WithdrawalScreen = () => {
               </View>
 
               <Text style={styles.modalSubtitle}>
-                Please explain why you are voting against this withdrawal proposal
+                Vui lòng giải thích lý do bạn phản đối đề xuất rút tiền này
               </Text>
 
               <TextInput
                 style={styles.reasonInput}
-                placeholder="Enter your reason..."
+                placeholder="Nhập lý do của bạn..."
                 placeholderTextColor="#cbd5e1"
                 multiline
                 numberOfLines={4}
@@ -361,7 +361,7 @@ const WithdrawalScreen = () => {
                     setRefuseReason('');
                   }}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={styles.cancelButtonText}>Hủy</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
@@ -371,7 +371,7 @@ const WithdrawalScreen = () => {
                   onPress={handleSubmitRefuseReason}
                   disabled={!refuseReason.trim()}
                 >
-                  <Text style={styles.submitButtonText}>Submit</Text>
+                  <Text style={styles.submitButtonText}>Gửi</Text>
                 </TouchableOpacity>
               </View>
             </View>

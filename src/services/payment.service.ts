@@ -53,3 +53,25 @@ export const fakePaymentCallback = async (): Promise<any> => {
   const response = await apiService.get("/payments/fake-callback");
   return response.data;
 };
+
+export type PaymentTransaction = {
+  [key: string]: any;
+};
+
+export type PaymentListResponse = {
+  data: PaymentTransaction[];
+  total?: number;
+  page?: number;
+  page_size?: number;
+};
+
+export const getPaymentsByActor = async (
+  actor: string,
+  page = 0,
+  pageSize = 10,
+): Promise<PaymentListResponse> => {
+  const response = await apiService.get<PaymentListResponse>("/payments", {
+    params: { actor, page, page_size: pageSize },
+  });
+  return response.data;
+};

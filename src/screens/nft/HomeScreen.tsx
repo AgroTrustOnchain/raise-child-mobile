@@ -93,7 +93,7 @@ const HomeScreen = () => {
       setTotalPages(response.total_pages);
       setPage(pageNum);
     } catch (err: any) {
-      setError(err.message || 'Failed to load transactions');
+      setError(err.message || 'Không thể tải giao dịch');
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -145,7 +145,7 @@ const HomeScreen = () => {
         <View style={styles.poolContent}>
           <View style={styles.verifiedBadge}>
             <Ionicons name="shield-checkmark" size={16} color="#1E40AF" />
-            <Text style={styles.verifiedText}>VERIFIED AGGREGATE POOL</Text>
+            <Text style={styles.verifiedText}>QUỸ TỔNG HỢP ĐÃ XÁC MINH</Text>
           </View>
 
           <Text style={styles.poolAmount}>
@@ -162,7 +162,7 @@ const HomeScreen = () => {
           <View style={styles.networkBadge}>
             <Animated.View style={[styles.liveDotRing, { transform: [{ scale: pulseAnim }] }]} />
             {/* <View style={styles.liveDotCore} /> */}
-            <Text style={styles.networkText}>Sui Mainnet Connected</Text>
+            <Text style={styles.networkText}>Đã kết nối Sui Mainnet</Text>
           </View>
         </View>
       </View>
@@ -170,9 +170,9 @@ const HomeScreen = () => {
       {/* Sub-Campaign Pools */}
       <View style={styles.campaignsSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Sub-Campaign Pools</Text>
+          <Text style={styles.sectionTitle}>Quỹ phụ chiến dịch</Text>
           <TouchableOpacity style={styles.viewAllButton}>
-            <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.viewAllText}>Xem tất cả</Text>
             <Ionicons name="arrow-forward" size={16} color="#1E40AF" />
           </TouchableOpacity>
         </View>
@@ -191,7 +191,7 @@ const HomeScreen = () => {
                 {campaign.verified && (
                   <View style={styles.campaignVerifiedBadge}>
                     <Ionicons name="checkmark-circle" size={14} color="#1E40AF" />
-                    <Text style={styles.campaignVerifiedText}>VERIFIED</Text>
+                    <Text style={styles.campaignVerifiedText}>ĐÃ XÁC MINH</Text>
                   </View>
                 )}
               </View>
@@ -204,7 +204,7 @@ const HomeScreen = () => {
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${campaign.progress}%` }]} />
                 </View>
-                <Text style={styles.progressText}>{campaign.progress}% Goal Reached</Text>
+                <Text style={styles.progressText}>{campaign.progress}% mục tiêu đạt được</Text>
               </View>
             </View>
           ))}
@@ -214,10 +214,10 @@ const HomeScreen = () => {
       {/* Ledger Header */}
       <View style={styles.ledgerHeader}>
         <View style={styles.ledgerTitleRow}>
-          <Text style={styles.ledgerTitle}>Global Ledger</Text>
+          <Text style={styles.ledgerTitle}>Sổ cái toàn cầu</Text>
           <View style={styles.liveBadge}>
             <View style={styles.liveBadgeDot} />
-            <Text style={styles.liveBadgeText}>LIVE</Text>
+            <Text style={styles.liveBadgeText}>TRỰC TIẾP</Text>
           </View>
           {loading && <ActivityIndicator size="small" color="#1E40AF" style={{ marginLeft: 8 }} />}
         </View>
@@ -233,7 +233,7 @@ const HomeScreen = () => {
               {f === 'inflow' && <Ionicons name="arrow-down" size={13} color="#1E40AF" />}
               {f === 'outflow' && <Ionicons name="arrow-up" size={13} color="#EA580C" />}
               <Text style={[styles.filterText, selectedFilter === f && styles.filterTextActive]}>
-                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'all' ? 'Tất cả' : f === 'inflow' ? 'Vào' : 'Ra'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -246,7 +246,7 @@ const HomeScreen = () => {
           <Ionicons name="alert-circle-outline" size={16} color="#DC2626" />
           <Text style={styles.errorBannerText}>{error}</Text>
           <TouchableOpacity onPress={() => fetchTransactions(0)}>
-            <Text style={styles.errorRetryText}>Retry</Text>
+            <Text style={styles.errorRetryText}>Thử lại</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -255,7 +255,7 @@ const HomeScreen = () => {
       {!loading && !error && filteredTransactions.length === 0 && (
         <View style={styles.emptyBox}>
           <Ionicons name="receipt-outline" size={40} color="#D1D5DB" />
-          <Text style={styles.emptyText}>No transactions found</Text>
+          <Text style={styles.emptyText}>Không có giao dịch nào</Text>
         </View>
       )}
     </View>
@@ -331,7 +331,7 @@ const HomeScreen = () => {
         {loadingMore ? (
           <ActivityIndicator size="small" color="#1E40AF" />
         ) : (
-          <Text style={styles.loadMoreText}>Load More  ·  Page {page + 1}/{totalPages}</Text>
+          <Text style={styles.loadMoreText}>Tải thêm  ·  Trang {page + 1}/{totalPages}</Text>
         )}
       </TouchableOpacity>
     );

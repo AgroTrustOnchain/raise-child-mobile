@@ -73,7 +73,7 @@ const RegionsTab = () => {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#1E40AF" />
-        <Text style={styles.loadingText}>Loading regions…</Text>
+        <Text style={styles.loadingText}>Đang tải vùng…</Text>
       </View>
     );
   }
@@ -84,7 +84,7 @@ const RegionsTab = () => {
         <Ionicons name="alert-circle-outline" size={52} color="#DC2626" />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => fetchData()}>
-          <Text style={styles.retryBtnText}>Try Again</Text>
+          <Text style={styles.retryBtnText}>Thử lại</Text>
         </TouchableOpacity>
       </View>
     );
@@ -107,9 +107,9 @@ const RegionsTab = () => {
           <Ionicons name="people" size={24} color="#1E40AF" />
         </View>
         <View style={styles.bannerTextContainer}>
-          <Text style={styles.bannerTitle}>Join Your Community</Text>
+          <Text style={styles.bannerTitle}>Tham gia cộng đồng của bạn</Text>
           <Text style={styles.bannerSubtitle}>
-            These regions need Volunteers and Local Leaders to support child welfare programs.
+            Các vùng này cần Tình nguyện viên và Lãnh đạo địa phương để hỗ trợ các chương trình phúc lợi trẻ em.
           </Text>
         </View>
       </View>
@@ -117,8 +117,8 @@ const RegionsTab = () => {
       {suggestions.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="map-outline" size={52} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>No regions at the moment</Text>
-          <Text style={styles.emptySubtitle}>Check back later for new opportunities.</Text>
+          <Text style={styles.emptyTitle}>Hiện chưa có vùng nào</Text>
+          <Text style={styles.emptySubtitle}>Hãy quay lại sau để xem cơ hội mới.</Text>
         </View>
       ) : (
         suggestions.map((item) => {
@@ -143,11 +143,11 @@ const RegionsTab = () => {
               <View style={styles.rolesNeededRow}>
                 <View style={styles.roleNeededChip}>
                   <Ionicons name="shield-checkmark-outline" size={12} color="#1E40AF" />
-                  <Text style={styles.roleNeededText}>Local Leader</Text>
+                  <Text style={styles.roleNeededText}>Lãnh đạo địa phương</Text>
                 </View>
                 <View style={styles.roleNeededChip}>
                   <Ionicons name="hand-left-outline" size={12} color="#1E40AF" />
-                  <Text style={styles.roleNeededText}>Volunteer</Text>
+                  <Text style={styles.roleNeededText}>Tình nguyện viên</Text>
                 </View>
               </View>
 
@@ -156,7 +156,7 @@ const RegionsTab = () => {
                 onPress={() => navigation.navigate('RegistrationForm', { region: item.region })}
                 activeOpacity={0.85}
               >
-                <Text style={styles.registerButtonText}>Register for this Region</Text>
+                <Text style={styles.registerButtonText}>Đăng ký vùng này</Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
@@ -202,12 +202,12 @@ const RegistrationsTab = () => {
 
   const handleConfirm = async (reg: UserRegistration) => {
     Alert.alert(
-      'Confirm Registration',
-      `Confirm your registration for ${reg.region} as ${reg.register_role}?`,
+      'Xác nhận đăng ký',
+      `Xác nhận đăng ký của bạn cho ${reg.region} với vai trò ${reg.register_role}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Hủy', style: 'cancel' },
         {
-          text: 'Confirm',
+          text: 'Xác nhận',
           onPress: async () => {
             try {
               setConfirming(reg.id);
@@ -231,7 +231,7 @@ const RegistrationsTab = () => {
               setRegistrations((prev) =>
                 prev.map((r) => (r.id === reg.id ? { ...r, status: 'confirmed' } : r))
               );
-              Alert.alert('Success', 'Registration confirmed successfully!');
+              Alert.alert('Thành công', 'Đã xác nhận đăng ký thành công!');
             } catch (e: any) {
               console.log(e)
               Alert.alert('Error', e?.response?.data?.message || 'Confirmation failed.');
@@ -248,7 +248,7 @@ const RegistrationsTab = () => {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#1E40AF" />
-        <Text style={styles.loadingText}>Loading registrations…</Text>
+        <Text style={styles.loadingText}>Đang tải đăng ký…</Text>
       </View>
     );
   }
@@ -259,7 +259,7 @@ const RegistrationsTab = () => {
         <Ionicons name="alert-circle-outline" size={52} color="#DC2626" />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryBtn} onPress={() => fetchData()}>
-          <Text style={styles.retryBtnText}>Try Again</Text>
+          <Text style={styles.retryBtnText}>Thử lại</Text>
         </TouchableOpacity>
       </View>
     );
@@ -280,9 +280,9 @@ const RegistrationsTab = () => {
       {registrations.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="document-outline" size={52} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>No registrations yet</Text>
+          <Text style={styles.emptyTitle}>Chưa có đăng ký nào</Text>
           <Text style={styles.emptySubtitle}>
-            Register for a region in the Regions tab to get started.
+            Đăng ký một vùng ở tab Vùng để bắt đầu.
           </Text>
         </View>
       ) : (
@@ -318,7 +318,7 @@ const RegistrationsTab = () => {
                   ) : (
                     <>
                       <Ionicons name="checkmark" size={18} color="#FFFFFF" />
-                      <Text style={styles.confirmButtonText}>Confirm</Text>
+                      <Text style={styles.confirmButtonText}>Xác nhận</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -343,7 +343,7 @@ const SupportedRegionsScreen = () => {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Regions</Text>
+        <Text style={styles.headerTitle}>Vùng</Text>
       </View>
 
       {/* Tabs */}
@@ -359,7 +359,7 @@ const SupportedRegionsScreen = () => {
             color={activeTab === 'regions' ? '#1E40AF' : '#6B7280'}
           />
           <Text style={[styles.tabLabel, activeTab === 'regions' && styles.tabLabelActive]}>
-            Regions
+            Vùng
           </Text>
         </TouchableOpacity>
 
@@ -374,7 +374,7 @@ const SupportedRegionsScreen = () => {
             color={activeTab === 'registrations' ? '#1E40AF' : '#6B7280'}
           />
           <Text style={[styles.tabLabel, activeTab === 'registrations' && styles.tabLabelActive]}>
-            My Registrations
+            Đăng ký của tôi
           </Text>
         </TouchableOpacity>
       </View>

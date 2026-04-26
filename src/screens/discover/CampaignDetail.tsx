@@ -142,8 +142,8 @@ const CampaignDetail = () => {
         </View>
       </View>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Children</Text>
-        <Text style={styles.sectionCount}>{children.length} found</Text>
+        <Text style={styles.sectionTitle}>Trẻ em</Text>
+        <Text style={styles.sectionCount}>{children.length} hồ sơ</Text>
       </View>
     </View>
   );
@@ -179,7 +179,7 @@ const CampaignDetail = () => {
 
               <View style={styles.donatedCard}>
                 <View style={styles.donatedTextWrap}>
-                  <Text style={styles.donatedLabel}>Total Donated</Text>
+                  <Text style={styles.donatedLabel}>Tổng đã quyên góp</Text>
                   <Text style={styles.donatedAmount}>
                     {regionInfo.total_donated.toLocaleString()} SUI
                   </Text>
@@ -195,7 +195,7 @@ const CampaignDetail = () => {
                   activeOpacity={0.85}
                 >
                   <Ionicons name="heart" size={16} color="#fff" />
-                  <Text style={styles.donateButtonText}>Donate</Text>
+                  <Text style={styles.donateButtonText}>Quyên góp</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -221,7 +221,7 @@ const CampaignDetail = () => {
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Ionicons name="people-outline" size={48} color="#D1D5DB" />
-                <Text style={styles.emptyText}>No children found</Text>
+                <Text style={styles.emptyText}>Không tìm thấy trẻ em nào</Text>
               </View>
             }
           />

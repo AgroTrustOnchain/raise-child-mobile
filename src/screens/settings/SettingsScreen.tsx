@@ -27,16 +27,16 @@ const SettingsScreen = () => {
 
   const handleChangeRoleToVolunteer = async () => {
     Alert.alert(
-      'Change Role',
-      'Are you sure you want to change your role to Volunteer?',
+      'Đổi vai trò',
+      'Bạn có chắc muốn đổi vai trò thành Tình nguyện viên không?',
       [
         {
-          text: 'Cancel',
+          text: 'Hủy',
           onPress: () => {},
           style: 'cancel',
         },
         {
-          text: 'Confirm',
+          text: 'Xác nhận',
           onPress: async () => {
             try {
               setIsChangingRole(true);
@@ -49,7 +49,7 @@ const SettingsScreen = () => {
                 setIsChangingRole(false);
               }, 500);
             } catch (error) {
-              Alert.alert('Error', 'Failed to change role. Please try again.');
+              Alert.alert('Lỗi', 'Không thể đổi vai trò. Vui lòng thử lại.');
               setIsChangingRole(false);
             }
           },
@@ -72,25 +72,26 @@ const SettingsScreen = () => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Settings</Text>
+          <Text style={styles.title}>Cài đặt</Text>
         </View>
 
         {/* Current User Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Information</Text>
+          <Text style={styles.sectionTitle}>Thông tin tài khoản</Text>
           <View style={styles.card}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name:</Text>
+              <Text style={styles.infoLabel}>Tên:</Text>
               <Text style={styles.infoValue}>{user?.name || 'N/A'}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email:</Text>
+
               <Text style={styles.infoValue}>{user?.email || 'N/A'}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Current Role:</Text>
+              <Text style={styles.infoLabel}>Vai trò hiện tại:</Text>
               <View style={styles.roleBadge}>
                 <Text style={styles.roleText}>
                   {user?.role?.[0]?.toUpperCase() || 'N/A'}
@@ -102,7 +103,7 @@ const SettingsScreen = () => {
 
         {/* Role Management */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Role Management</Text>
+          <Text style={styles.sectionTitle}>Quản lý vai trò</Text>
           <TouchableOpacity
             style={[
               styles.roleButton,
@@ -129,8 +130,8 @@ const SettingsScreen = () => {
                   ]}
                 >
                   {user?.role === 'volunteer'
-                    ? 'Already a Volunteer'
-                    : 'Switch to Volunteer'}
+                    ? 'Đã là Tình nguyện viên'
+                    : 'Chuyển sang Tình nguyện viên'}
                 </Text>
               </>
             )}
@@ -140,7 +141,7 @@ const SettingsScreen = () => {
             <View style={styles.successMessage}>
               <Ionicons name="checkmark-circle" size={20} color="#1E40AF" />
               <Text style={styles.successText}>
-                You are currently in Volunteer mode
+                Bạn đang ở chế độ Tình nguyện viên
               </Text>
             </View>
           )}
@@ -148,7 +149,7 @@ const SettingsScreen = () => {
 
         {/* Wallet */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Finance</Text>
+          <Text style={styles.sectionTitle}>Tài chính</Text>
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => navigation.navigate("Wallet" as any)}
@@ -156,7 +157,7 @@ const SettingsScreen = () => {
           >
             <View style={styles.settingLeft}>
               <Ionicons name="wallet" size={20} color="#1E40AF" />
-              <Text style={styles.settingText}>Wallet</Text>
+              <Text style={styles.settingText}>Ví</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
@@ -164,7 +165,7 @@ const SettingsScreen = () => {
 
         {/* Registration Form */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile Setup</Text>
+          <Text style={styles.sectionTitle}>Thiết lập hồ sơ</Text>
           <TouchableOpacity
             style={styles.registrationButton}
             onPress={() => navigation.navigate("RegistrationForm" as any)}
@@ -173,9 +174,9 @@ const SettingsScreen = () => {
             <View style={styles.registrationLeft}>
               <Ionicons name="document-text" size={20} color="#1E40AF" />
               <View>
-                <Text style={styles.registrationTitle}>Registration Form</Text>
+                <Text style={styles.registrationTitle}>Mẫu đăng ký</Text>
                 <Text style={styles.registrationSubtitle}>
-                  Complete your profile setup
+                  Hoàn thiện hồ sơ của bạn
                 </Text>
               </View>
             </View>
@@ -185,25 +186,25 @@ const SettingsScreen = () => {
 
         {/* Additional Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>Tùy chọn</Text>
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
               <Ionicons name="notifications" size={20} color="#1E40AF" />
-              <Text style={styles.settingText}>Notifications</Text>
+              <Text style={styles.settingText}>Thông báo</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
               <Ionicons name="lock-closed" size={20} color="#1E40AF" />
-              <Text style={styles.settingText}>Privacy & Security</Text>
+              <Text style={styles.settingText}>Quyền riêng tư & Bảo mật</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
               <Ionicons name="help-circle" size={20} color="#1E40AF" />
-              <Text style={styles.settingText}>Help & Support</Text>
+              <Text style={styles.settingText}>Trợ giúp & Hỗ trợ</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>

@@ -67,18 +67,18 @@ const ChildProofScreen = () => {
 
   const handleViewProof = (event: ImpactEvent) => {
     Alert.alert(
-      'Blockchain Proof',
-      `Transaction: ${event.walletAddress}\nAmount: ${event.amount} SUI\nEvent: ${event.title}`,
+      'Bằng chứng Blockchain',
+      `Giao dịch: ${event.walletAddress}\nSố tiền: ${event.amount} SUI\nSự kiện: ${event.title}`,
       [
-        { text: 'Close', style: 'cancel' },
-        { text: 'View on Explorer', onPress: handleViewExplorer },
+        { text: 'Đóng', style: 'cancel' },
+        { text: 'Xem trên Explorer', onPress: handleViewExplorer },
       ],
     );
   };
 
   const handleViewExplorer = () => {
     Linking.openURL('https://explorer.sui.io').catch(() => {
-      Alert.alert('Error', 'Could not open blockchain explorer');
+      Alert.alert('Lỗi', 'Không thể mở blockchain explorer');
     });
   };
 
@@ -89,7 +89,7 @@ const ChildProofScreen = () => {
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Impact Proof</Text>
+        <Text style={styles.headerTitle}>Bằng chứng tác động</Text>
         <View style={styles.headerButton} />
       </View>
 
@@ -98,7 +98,7 @@ const ChildProofScreen = () => {
         <View style={styles.titleSection}>
           <Text style={styles.title}>{childName}'s Journey</Text>
           <Text style={styles.subtitle}>
-            A historical timeline of verifiable impact events.
+            Dòng thời gian lịch sử các sự kiện tác động có thể xác minh.
           </Text>
         </View>
 
@@ -130,7 +130,7 @@ const ChildProofScreen = () => {
                   {event.verified && (
                     <View style={styles.verifiedBadge}>
                       <Ionicons name="shield-checkmark" size={14} color="#1E40AF" />
-                      <Text style={styles.verifiedText}>AI VERIFIED</Text>
+                      <Text style={styles.verifiedText}>AI XÁC MINH</Text>
                     </View>
                   )}
                 </View>
@@ -152,7 +152,7 @@ const ChildProofScreen = () => {
                       <Text style={styles.walletAddress}>{event.walletAddress}</Text>
                     </View>
                     <TouchableOpacity style={styles.viewProofButton} onPress={() => handleViewProof(event)}>
-                      <Text style={styles.viewProofText}>VIEW PROOF</Text>
+                      <Text style={styles.viewProofText}>XEM BẰNG CHỨNG</Text>
                       <Ionicons name="chevron-forward" size={12} color="#1E40AF" />
                     </TouchableOpacity>
                   </View>
@@ -169,11 +169,11 @@ const ChildProofScreen = () => {
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.explorerButton} onPress={handleViewExplorer} activeOpacity={0.85}>
           <Ionicons name="globe-outline" size={22} color="#FFFFFF" />
-          <Text style={styles.explorerButtonText}>View on Blockchain Explorer</Text>
+          <Text style={styles.explorerButtonText}>Xem trên Blockchain Explorer</Text>
         </TouchableOpacity>
         <View style={styles.securedRow}>
           <Ionicons name="lock-closed" size={10} color="#9CA3AF" />
-          <Text style={styles.protocolText}>VERIFIED BY AGROTRUST PROTOCOL V2.4</Text>
+          <Text style={styles.protocolText}>XÁC MINH BỞI AGROTRUST PROTOCOL V2.4</Text>
         </View>
       </View>
     </View>

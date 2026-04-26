@@ -54,7 +54,7 @@ const PaymentQrScreen = () => {
     if (supported) {
       await Linking.openURL(paymentUrl);
     } else {
-      Alert.alert("Error", "Cannot open payment link.");
+      Alert.alert("Lỗi", "Không thể mở liên kết thanh toán.");
     }
   };
 
@@ -77,16 +77,16 @@ const PaymentQrScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.heading}>Scan to Pay</Text>
+        <Text style={styles.heading}>Quét mã để thanh toán</Text>
         <Text style={styles.subtitle}>
-          Use any banking app to scan the VietQR code below, or open PayOS directly.
+          Dùng ứng dụng ngân hàng để quét mã VietQR bên dưới, hoặc mở PayOS trực tiếp.
         </Text>
 
         <View style={styles.qrCard}>
           {fetchingQr ? (
             <View style={styles.qrLoading}>
               <ActivityIndicator size="large" color="#1E40AF" />
-              <Text style={styles.qrLoadingText}>Loading QR code…</Text>
+              <Text style={styles.qrLoadingText}>Đang tải mã QR…</Text>
             </View>
           ) : bankingQrUrl ? (
             <>
@@ -96,12 +96,12 @@ const PaymentQrScreen = () => {
                 resizeMode="contain"
               />
               <Text style={styles.qrSub}>
-                Open any banking app and scan this VietQR code to complete payment.
+                Mở ứng dụng ngân hàng và quét mã VietQR này để hoàn tất thanh toán.
               </Text>
             </>
           ) : (
             <Text style={styles.qrSub}>
-              Could not load banking QR. Please open the payment page instead.
+              Không thể tải mã QR ngân hàng. Vui lòng mở trang thanh toán.
             </Text>
           )}
         </View>
@@ -112,11 +112,20 @@ const PaymentQrScreen = () => {
           activeOpacity={0.85}
         >
           <Ionicons name="open-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.openButtonText}>Open PayOS Page</Text>
+          <Text style={styles.openButtonText}>Mở trang PayOS</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.paidButton}
+          onPress={() => navigation.navigate("PaymentCallbackScreen")}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.paidButtonText}>Tôi đã thanh toán xong</Text>
         </TouchableOpacity>
 
         <Text style={styles.hint}>
-          After paying, tap the button below to verify the transaction.
+          Sau khi thanh toán, nhấn nút trên để xác minh giao dịch.
         </Text>
 
         <TouchableOpacity
@@ -125,7 +134,7 @@ const PaymentQrScreen = () => {
           activeOpacity={0.85}
         >
           <Ionicons name="bug-outline" size={16} color="#6B7280" />
-          <Text style={styles.testButtonText}>Test Callback (Dev)</Text>
+          <Text style={styles.testButtonText}>Kiểm tra Callback (Dev)</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -229,6 +238,23 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 16,
   },
+  paidButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#16A34A",
+    height: 60,
+    borderRadius: 16,
+    width: "100%",
+    shadowColor: "#16A34A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+    marginBottom: 16,
+  },
+  paidButtonText: { fontSize: 17, fontWeight: "800", color: "#FFFFFF" },
   testButton: {
     flexDirection: "row",
     alignItems: "center",

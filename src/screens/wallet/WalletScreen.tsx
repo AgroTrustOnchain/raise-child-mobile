@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,12 @@ import {
   FlatList,
   Image,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppSelector } from '../../store';
+import { getPaymentsByActor, PaymentTransaction } from '../../services/payment.service';
 
 interface Badge {
   id: string;
@@ -20,25 +23,28 @@ interface Badge {
   verified: boolean;
 }
 
-interface Transaction {
-  id: string;
-  title: string;
-  amount: string;
-  amountCrypto: string;
-  date: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  isIncoming: boolean;
-  hasExplorer: boolean;
-}
 
 const WalletScreen = () => {
   const insets = useSafeAreaInsets();
+  const { user } = useAppSelector((state) => state.auth);
 
   const [balance] = useState({
     usd: '$1,248.50',
     crypto: '845.20 SUI',
     network: 'SUI',
   });
+
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
+  const [loadingTx, setLoadingTx] = useState(false);
+
+  useEffect(() => {
+    if (!user?.walletAddress) return;
+    setLoadingTx(true);
+    getPaymentsByActor(user.walletAddress)
+      .then((res) => setTransactions(res.data ?? []))
+      .catch(() => Alert.alert('Error', 'Failed to load transactions.'))
+      .finally(() => setLoadingTx(false));
+  }, [user?.walletAddress]);
 
   const badges: Badge[] = [
     {
@@ -57,49 +63,17 @@ const WalletScreen = () => {
     },
   ];
 
-  const transactions: Transaction[] = [
-    {
-      id: '1',
-      title: 'Child Welfare Fund',
-      amount: '- $50.00',
-      amountCrypto: '34.2 SUI',
-      date: 'Today, 10:23 AM',
-      icon: 'heart',
-      isIncoming: false,
-      hasExplorer: true,
-    },
-    {
-      id: '2',
-      title: 'Wallet Deposit',
-      amount: '+ $200.00',
-      amountCrypto: '',
-      date: 'Yesterday, 4:15 PM',
-      icon: 'wallet',
-      isIncoming: true,
-      hasExplorer: false,
-    },
-    {
-      id: '3',
-      title: 'Rural Edu. Support',
-      amount: '- $120.00',
-      amountCrypto: '82.1 SUI',
-      date: 'May 12, 09:00 AM',
-      icon: 'school',
-      isIncoming: false,
-      hasExplorer: true,
-    },
-  ];
 
   const handleAddFunds = () => {
-    Alert.alert('Add Funds', 'Add funds feature coming soon');
+    Alert.alert('Nạp tiền', 'Tính năng nạp tiền sắp ra mắt');
   };
 
   const handleDonate = () => {
-    Alert.alert('Donate', 'Donate feature coming soon');
+    Alert.alert('Quyên góp', 'Tính năng quyên góp sắp ra mắt');
   };
 
   const handleQRCode = () => {
-    Alert.alert('QR Code', 'Show wallet QR code');
+    Alert.alert('Mã QR', 'Hiển thị mã QR ví');
   };
 
   const BadgeCard = ({ badge }: { badge: Badge }) => (
@@ -123,48 +97,41 @@ const WalletScreen = () => {
     </View>
   );
 
-  const TransactionItem = ({ transaction }: { transaction: Transaction }) => (
-    <View style={styles.transactionCard}>
-      <View style={styles.transactionLeft}>
-        <View style={styles.transactionIcon}>
-          <Ionicons
-            name={transaction.icon}
-            size={20}
-            color="#1E40AF"
-          />
-        </View>
-        <View style={styles.transactionDetails}>
-          <Text style={styles.transactionTitle}>{transaction.title}</Text>
-          <View style={styles.transactionMeta}>
-            <Text style={styles.transactionDate}>{transaction.date}</Text>
-            {transaction.hasExplorer && (
-              <>
-                <Text style={styles.metaDot}>•</Text>
-                <TouchableOpacity>
-                  <Text style={styles.explorerLink}>SUI Explorer</Text>
-                </TouchableOpacity>
-              </>
-            )}
+  const TransactionItem = ({ transaction }: { transaction: PaymentTransaction }) => {
+    const amount: number = transaction.amount ?? 0;
+    const isIncoming = amount > 0;
+    const date = transaction.created_at
+      ? new Date(transaction.created_at).toLocaleString()
+      : '';
+    return (
+      <View style={styles.transactionCard}>
+        <View style={styles.transactionLeft}>
+          <View style={styles.transactionIcon}>
+            <Ionicons name="heart" size={20} color="#1E40AF" />
+          </View>
+          <View style={styles.transactionDetails}>
+            <Text style={styles.transactionTitle} numberOfLines={1}>
+              {transaction.description ?? transaction.order_code ?? 'Giao dịch'}
+            </Text>
+            <View style={styles.transactionMeta}>
+              <Text style={styles.transactionDate}>{date}</Text>
+              {transaction.status != null && (
+                <>
+                  <Text style={styles.metaDot}>•</Text>
+                  <Text style={styles.explorerLink}>{transaction.status}</Text>
+                </>
+              )}
+            </View>
           </View>
         </View>
+        <View style={styles.transactionAmount}>
+          <Text style={[styles.amount, { color: isIncoming ? '#1E40AF' : '#111827' }]}>
+            {isIncoming ? '+' : '-'} {Math.abs(amount).toLocaleString()} VND
+          </Text>
+        </View>
       </View>
-      <View style={styles.transactionAmount}>
-        <Text
-          style={[
-            styles.amount,
-            { color: transaction.isIncoming ? '#1E40AF' : '#111827' },
-          ]}
-        >
-          {transaction.amount}
-        </Text>
-        {transaction.amountCrypto ? (
-          <Text style={styles.amountCrypto}>{transaction.amountCrypto}</Text>
-        ) : (
-          <Text style={styles.bankTransfer}>Bank Transfer</Text>
-        )}
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <ScrollView
@@ -175,7 +142,7 @@ const WalletScreen = () => {
       <View style={styles.balanceCard}>
         <View style={styles.balanceHeader}>
           <View>
-            <Text style={styles.balanceLabel}>Total Balance</Text>
+            <Text style={styles.balanceLabel}>Tổng số dư</Text>
             <Text style={styles.balanceAmount}>{balance.usd}</Text>
             <View style={styles.balanceMeta}>
               <Text style={styles.cryptoAmount}>≈ {balance.crypto}</Text>
@@ -198,14 +165,14 @@ const WalletScreen = () => {
             onPress={handleAddFunds}
           >
             <Ionicons name="add-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.buttonText}>Add Funds</Text>
+            <Text style={styles.buttonText}>Nạp tiền</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.donateButton}
             onPress={handleDonate}
           >
             <Ionicons name="heart" size={20} color="#FFFFFF" />
-            <Text style={styles.buttonText}>Donate</Text>
+            <Text style={styles.buttonText}>Quyên góp</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -214,14 +181,14 @@ const WalletScreen = () => {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle}>Philanthropist Badges</Text>
+            <Text style={styles.sectionTitle}>Huy hiệu Nhà từ thiện</Text>
             <View style={styles.badgeCount}>
-              <Text style={styles.badgeCountText}>5 Earned</Text>
+              <Text style={styles.badgeCountText}>5 Đã đạt</Text>
             </View>
           </View>
           <TouchableOpacity>
             <View style={styles.seeAllButton}>
-              <Text style={styles.seeAllText}>Gallery</Text>
+              <Text style={styles.seeAllText}>Bộ sưu tập</Text>
               <Ionicons name="chevron-forward" size={16} color="#1E40AF" />
             </View>
           </TouchableOpacity>
@@ -241,18 +208,21 @@ const WalletScreen = () => {
       {/* Donation Transactions Section */}
       <View style={styles.section}>
         <View style={styles.transactionHeader}>
-          <Text style={styles.sectionTitle}>Donation Transactions</Text>
+          <Text style={styles.sectionTitle}>Lịch sử quyên góp</Text>
           <TouchableOpacity>
-            <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.viewAllText}>Xem tất cả</Text>
           </TouchableOpacity>
         </View>
 
-        {transactions.map((transaction) => (
-          <TransactionItem
-            key={transaction.id}
-            transaction={transaction}
-          />
-        ))}
+        {loadingTx ? (
+          <ActivityIndicator size="small" color="#1E40AF" style={{ marginVertical: 16 }} />
+        ) : transactions.length === 0 ? (
+          <Text style={styles.emptyText}>Không có giao dịch nào.</Text>
+        ) : (
+          transactions.map((tx, i) => (
+            <TransactionItem key={tx.id ?? tx.order_code ?? i} transaction={tx} />
+          ))
+        )}
 
         {/* Info Card */}
         <View style={styles.infoCard}>
@@ -260,10 +230,10 @@ const WalletScreen = () => {
             <Ionicons name="shield-checkmark" size={20} color="#1E40AF" />
           </View>
           <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>On-Chain Transparency</Text>
+            <Text style={styles.infoTitle}>Minh bạch trên chuỗi</Text>
             <Text style={styles.infoText}>
-              Every donation generates a verifiable impact certificate on the SUI blockchain.
-              Impact NFTs represent your real-world contributions to rural welfare.
+              Mỗi khoản quyên góp tạo ra chứng chỉ tác động có thể xác minh trên blockchain SUI.
+              NFT tác động đại diện cho những đóng góp thực tế của bạn cho phúc lợi nông thôn.
             </Text>
           </View>
         </View>
@@ -579,6 +549,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     marginBottom: 4,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginVertical: 16,
   },
   infoText: {
     fontSize: 11,

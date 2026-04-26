@@ -69,7 +69,7 @@ const RegistrationFormScreen = () => {
       setRegions(data);
     } catch (error) {
       console.error('Failed to fetch regions:', error);
-      Alert.alert('Error', 'Failed to load regions. Please try again.');
+      Alert.alert('Lỗi', 'Không thể tải danh sách vùng. Vui lòng thử lại.');
     } finally {
       setIsLoadingRegions(false);
     }
@@ -112,7 +112,7 @@ const RegistrationFormScreen = () => {
             }));
           }
           
-          Alert.alert('Success', `${imageType === 'avatar' ? 'Avatar' : 'ID Card'} uploaded successfully!`);
+          Alert.alert('Thành công', `${imageType === 'avatar' ? 'Ảnh đại diện' : 'CMND/CCCD'} đã được tải lên thành công!`);
         } catch (uploadError) {
           Alert.alert(
             'Upload Error',
@@ -124,7 +124,7 @@ const RegistrationFormScreen = () => {
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick image');
+      Alert.alert('Lỗi', 'Không thể chọn ảnh');
       console.error('Image picker error:', error);
     }
   };
@@ -139,19 +139,19 @@ const RegistrationFormScreen = () => {
 
   const validateForm = () => {
     if (!formData.avatarBlobId) {
-      Alert.alert('Validation Error', 'Please upload an avatar image');
+      Alert.alert('Lỗi xác thực', 'Vui lòng tải lên ảnh đại diện');
       return false;
     }
     if (!formData.identityCardBlobId) {
-      Alert.alert('Validation Error', 'Please upload an identity card image');
+      Alert.alert('Lỗi xác thực', 'Vui lòng tải lên ảnh CMND/CCCD');
       return false;
     }
     if (!formData.region) {
-      Alert.alert('Validation Error', 'Please select a region');
+      Alert.alert('Lỗi xác thực', 'Vui lòng chọn vùng');
       return false;
     }
     if (!formData.registerRole) {
-      Alert.alert('Validation Error', 'Please select a role');
+      Alert.alert('Lỗi xác thực', 'Vui lòng chọn vai trò');
       return false;
     }
     return true;
@@ -167,7 +167,7 @@ const RegistrationFormScreen = () => {
       
       // Check if user token exists
       if (!user) {
-        Alert.alert('Error', 'You must be logged in to register');
+        Alert.alert('Lỗi', 'Bạn phải đăng nhập để đăng ký');
         return;
       }
       
@@ -185,10 +185,10 @@ const RegistrationFormScreen = () => {
 
       console.log(response)
       
-      Alert.alert('Success', 'Registration submitted successfully!');
+      Alert.alert('Thành công', 'Đã gửi đăng ký thành công!');
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to submit registration form');
+      Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể gửi mẫu đăng ký');
       console.error('Submit error:', error);
     } finally {
       setIsSubmitting(false);
@@ -211,7 +211,7 @@ const RegistrationFormScreen = () => {
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Ionicons name="chevron-back" size={28} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Registration Form</Text>
+        <Text style={styles.headerTitle}>Mẫu đăng ký</Text>
         <View style={{ width: 28 }} />
       </View>
 
@@ -221,7 +221,7 @@ const RegistrationFormScreen = () => {
       >
         {/* Avatar Upload */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile Picture</Text>
+          <Text style={styles.sectionTitle}>Ảnh đại diện</Text>
           <TouchableOpacity
             style={styles.imageUploadBox}
             onPress={() => pickImage('avatar')}
@@ -231,7 +231,7 @@ const RegistrationFormScreen = () => {
             {isUploadingImage ? (
               <View style={styles.uploadPlaceholder}>
                 <ActivityIndicator size="large" color="#1E40AF" />
-                <Text style={styles.uploadText}>Uploading to Walrus...</Text>
+                <Text style={styles.uploadText}>Đang tải lên Walrus...</Text>
               </View>
             ) : formData.avatarPreview ? (
               <Image
@@ -241,8 +241,8 @@ const RegistrationFormScreen = () => {
             ) : (
               <View style={styles.uploadPlaceholder}>
                 <Ionicons name="cloud-upload" size={40} color="#9ca3af" />
-                <Text style={styles.uploadText}>Upload Avatar</Text>
-                <Text style={styles.uploadSubtext}>Square image recommended</Text>
+                <Text style={styles.uploadText}>Tải ảnh đại diện</Text>
+                <Text style={styles.uploadSubtext}>Nên dùng ảnh vuông</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -250,7 +250,7 @@ const RegistrationFormScreen = () => {
 
         {/* Identity Card Upload */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Identity Card</Text>
+          <Text style={styles.sectionTitle}>CMND/CCCD</Text>
           <TouchableOpacity
             style={styles.imageUploadBox}
             onPress={() => pickImage('identityCard')}
@@ -260,7 +260,7 @@ const RegistrationFormScreen = () => {
             {isUploadingImage ? (
               <View style={styles.uploadPlaceholder}>
                 <ActivityIndicator size="large" color="#1E40AF" />
-                <Text style={styles.uploadText}>Uploading to Walrus...</Text>
+                <Text style={styles.uploadText}>Đang tải lên Walrus...</Text>
               </View>
             ) : formData.identityCardPreview ? (
               <Image
@@ -270,9 +270,9 @@ const RegistrationFormScreen = () => {
             ) : (
               <View style={styles.uploadPlaceholder}>
                 <Ionicons name="cloud-upload" size={40} color="#9ca3af" />
-                <Text style={styles.uploadText}>Upload ID Card</Text>
+                <Text style={styles.uploadText}>Tải ảnh CMND/CCCD</Text>
                 <Text style={styles.uploadSubtext}>
-                  Clear photo of front and back
+                  Ảnh rõ nét mặt trước và sau
                 </Text>
               </View>
             )}
@@ -281,7 +281,7 @@ const RegistrationFormScreen = () => {
 
         {/* Region Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Region</Text>
+          <Text style={styles.sectionTitle}>Vùng</Text>
           <TouchableOpacity
             style={styles.roleDropdown}
             onPress={() => setShowRegionModal(true)}
@@ -293,7 +293,7 @@ const RegistrationFormScreen = () => {
                 !formData.region && styles.roleDropdownPlaceholder,
               ]}
             >
-              {formData.region || 'Select a region'}
+              {formData.region || 'Chọn vùng'}
             </Text>
             <Ionicons name="chevron-down" size={20} color="#6b7280" />
           </TouchableOpacity>
@@ -308,7 +308,7 @@ const RegistrationFormScreen = () => {
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Region</Text>
+                  <Text style={styles.modalTitle}>Chọn vùng</Text>
                   <TouchableOpacity
                     onPress={() => setShowRegionModal(false)}
                     style={styles.modalCloseButton}
@@ -323,7 +323,7 @@ const RegistrationFormScreen = () => {
                   </View>
                 ) : regions.length === 0 ? (
                   <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>No regions available</Text>
+                    <Text style={styles.emptyText}>Không có vùng nào</Text>
                   </View>
                 ) : (
                   <ScrollView 
@@ -372,7 +372,7 @@ const RegistrationFormScreen = () => {
 
         {/* Role Selection */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Registration Role</Text>
+          <Text style={styles.sectionTitle}>Vai trò đăng ký</Text>
           <TouchableOpacity
             style={styles.roleDropdown}
             onPress={() => setShowRoleModal(true)}
@@ -384,7 +384,7 @@ const RegistrationFormScreen = () => {
                 !formData.registerRole && styles.roleDropdownPlaceholder,
               ]}
             >
-              {formData.registerRole || 'Select a role'}
+              {formData.registerRole || 'Chọn vai trò'}
             </Text>
             <Ionicons name="chevron-down" size={20} color="#6b7280" />
           </TouchableOpacity>
@@ -399,7 +399,7 @@ const RegistrationFormScreen = () => {
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Role</Text>
+                  <Text style={styles.modalTitle}>Chọn vai trò</Text>
                   <TouchableOpacity
                     onPress={() => setShowRoleModal(false)}
                     style={styles.modalCloseButton}
@@ -429,8 +429,8 @@ const RegistrationFormScreen = () => {
                       </Text>
                       <Text style={styles.roleOptionDescription}>
                         {role === 'Local Leader'
-                          ? 'Lead and manage local volunteer activities'
-                          : 'Contribute to child welfare and development'}
+                          ? 'Dẫn dắt và quản lý các hoạt động tình nguyện địa phương'
+                          : 'Đóng góp cho phúc lợi và phát triển của trẻ em'}
                       </Text>
                     </View>
                     {formData.registerRole === role && (
@@ -450,7 +450,7 @@ const RegistrationFormScreen = () => {
         {/* Form Summary */}
         <View style={styles.section}>
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Form Summary</Text>
+            <Text style={styles.summaryTitle}>Tóm tắt</Text>
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
                 <Ionicons
@@ -459,7 +459,7 @@ const RegistrationFormScreen = () => {
                   color={formData.avatarBlobId ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
-              <Text style={styles.summaryText}>Avatar uploaded</Text>
+              <Text style={styles.summaryText}>Đã tải ảnh đại diện</Text>
             </View>
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
@@ -469,7 +469,7 @@ const RegistrationFormScreen = () => {
                   color={formData.identityCardBlobId ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
-              <Text style={styles.summaryText}>ID card uploaded</Text>
+              <Text style={styles.summaryText}>Đã tải ảnh CMND/CCCD</Text>
             </View>
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
@@ -479,7 +479,7 @@ const RegistrationFormScreen = () => {
                   color={formData.region ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
-              <Text style={styles.summaryText}>Region selected: {formData.region}</Text>
+              <Text style={styles.summaryText}>Đã chọn vùng: {formData.region}</Text>
             </View>
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
@@ -489,7 +489,7 @@ const RegistrationFormScreen = () => {
                   color={formData.registerRole ? '#1E40AF' : '#D1D5DB'}
                 />
               </View>
-              <Text style={styles.summaryText}>Role selected: {formData.registerRole}</Text>
+              <Text style={styles.summaryText}>Đã chọn vai trò: {formData.registerRole}</Text>
             </View>
           </View>
         </View>
@@ -511,7 +511,7 @@ const RegistrationFormScreen = () => {
           ) : (
             <>
               <Ionicons name="checkmark" size={20} color="#fff" />
-              <Text style={styles.submitButtonText}>Submit Registration</Text>
+              <Text style={styles.submitButtonText}>Gửi đăng ký</Text>
             </>
           )}
         </TouchableOpacity>

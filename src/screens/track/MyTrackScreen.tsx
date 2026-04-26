@@ -92,7 +92,7 @@ const MyTrackScreen = () => {
           <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search children..."
+            placeholder="Tìm kiếm trẻ em..."
             placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -102,8 +102,8 @@ const MyTrackScreen = () => {
 
       {/* Section Header */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Active Sponsorships</Text>
-        <Text style={styles.totalCount}>{SPONSORED_CHILDREN.length} Total</Text>
+        <Text style={styles.sectionTitle}>Hỗ trợ đang hoạt động</Text>
+        <Text style={styles.totalCount}>{SPONSORED_CHILDREN.length} tổng cộng</Text>
       </View>
     </View>
   );
@@ -124,7 +124,7 @@ const MyTrackScreen = () => {
           {/* Verified Badge */}
           <View style={styles.verifiedBadge}>
             <Ionicons name="shield-checkmark" size={14} color="#FFFFFF" />
-            <Text style={styles.verifiedText}>Blockchain Verified</Text>
+            <Text style={styles.verifiedText}>Đã xác minh Blockchain</Text>
           </View>
         </View>
 
@@ -149,16 +149,16 @@ const MyTrackScreen = () => {
               color="#1E40AF" 
             />
             <Text style={styles.updateText}>
-              Latest Update: <Text style={styles.updateBold}>{item.latestUpdate}</Text>
+              Cập nhật mới nhất: <Text style={styles.updateBold}>{item.latestUpdate}</Text>
             </Text>
           </View>
 
           {/* Progress Section */}
           <View style={styles.progressSection}>
             <View style={styles.progressLabels}>
-              <Text style={styles.progressLabel}>MONTHLY SUPPORT STATUS</Text>
+              <Text style={styles.progressLabel}>TRẠNG THÁI HỖ TRỢ THÁNG</Text>
               <Text style={styles.progressDays}>
-                {item.daysProgress}/{item.totalDays} days
+                {item.daysProgress}/{item.totalDays} ngày
               </Text>
             </View>
             <View style={styles.progressBar}>

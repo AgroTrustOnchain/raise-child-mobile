@@ -27,7 +27,7 @@ const DonateRegionScreen = () => {
   const handleDonate = async () => {
     const numAmount = Number(amount);
     if (!numAmount || numAmount <= 0) {
-      Alert.alert("Invalid amount", "Please enter a valid donation amount.");
+      Alert.alert("Số tiền không hợp lệ", "Vui lòng nhập số tiền quyên góp hợp lệ.");
       return;
     }
     try {
@@ -43,7 +43,7 @@ const DonateRegionScreen = () => {
           title: `Donate to ${params.region}`,
         });
       } else {
-        Alert.alert("Success", "Donation submitted!", [
+        Alert.alert("Thành công", "Đã gửi quyên góp!", [
           { text: "OK", onPress: () => navigation.goBack() },
         ]);
       }
@@ -62,7 +62,7 @@ const DonateRegionScreen = () => {
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.navTitle} numberOfLines={1}>
-          Donate to {params.region}
+          Quyên góp cho {params.region}
         </Text>
         <View style={styles.navButton} />
       </View>
@@ -80,7 +80,7 @@ const DonateRegionScreen = () => {
             <Ionicons name="heart" size={48} color="#1E40AF" />
           </View>
 
-          <Text style={styles.label}>Amount (SUI)</Text>
+          <Text style={styles.label}>Số tiền (SUI)</Text>
           <TextInput
             style={styles.input}
             placeholder="e.g. 2000"
@@ -90,10 +90,10 @@ const DonateRegionScreen = () => {
             onChangeText={setAmount}
           />
 
-          <Text style={styles.label}>Message (optional)</Text>
+          <Text style={styles.label}>Lời nhắn (không bắt buộc)</Text>
           <TextInput
             style={[styles.input, styles.inputMultiline]}
-            placeholder="Leave a message..."
+            placeholder="Để lại lời nhắn..."
             placeholderTextColor="#9CA3AF"
             multiline
             numberOfLines={4}
@@ -112,7 +112,7 @@ const DonateRegionScreen = () => {
             ) : (
               <>
                 <Ionicons name="heart" size={18} color="#FFFFFF" />
-                <Text style={styles.submitButtonText}>Confirm Donation</Text>
+                <Text style={styles.submitButtonText}>Xác nhận quyên góp</Text>
               </>
             )}
           </TouchableOpacity>

@@ -24,21 +24,21 @@ const AppHeader = () => {
 
   const handleLogout = () => {
     setTimeout(() => Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+      "Đăng xuất",
+      "Bạn có chắc chắn muốn đăng xuất không?",
       [
         {
-          text: "Cancel",
+          text: "Hủy",
           onPress: () => {},
           style: "cancel",
         },
         {
-          text: "Logout",
+          text: "Đăng xuất",
           onPress: async () => {
             try {
               dispatch(logout());
             } catch (error) {
-              Alert.alert("Error", "Failed to logout");
+              Alert.alert("Lỗi", "Đăng xuất thất bại");
             }
           },
           style: "destructive",
