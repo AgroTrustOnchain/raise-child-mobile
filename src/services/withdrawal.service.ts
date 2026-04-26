@@ -134,12 +134,16 @@ export const getWithdrawalProposalById = async (id: string): Promise<WithdrawalP
 export const voteWithdrawalProposal = async (
   id: string,
   voteType: 'approve' | 'refuse',
-  reason?: string
+  refuseReason?: string
 ): Promise<void> => {
   try {
-    await apiService.post(`/withdraw-proposals/${id}/${voteType}`, {
-      ...(reason ? { reason } : {}),
+    const isVoteYes = voteType === 'approve';
+    const queryParams = new URLSearchParams({
+      is_vote_yes: isVoteYes.toString(),
+      ...(refuseReason && !isVoteYes ? { refuse_reason: refuseReason } : { refuse_reason: '' }),
     });
+
+    await apiService.post(`/withdraw-proposals/${id}/vote?${queryParams.toString()}`, '');
   } catch (error) {
     console.error(`Failed to ${voteType} withdrawal proposal ${id}:`, error);
     throw error;

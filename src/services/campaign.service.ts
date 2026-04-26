@@ -12,6 +12,40 @@ export type CampaignItem = {
   is_confirm_register?: boolean;
 };
 
+export type RegionChild = {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  gender?: string;
+  identity_code?: string;
+};
+
+export type RegionDetail = {
+  region: string;
+  pool_id: string;
+  center_phone_number: string;
+  center_address: string;
+  center_image_blob_id: string;
+  total_donated: number;
+  children: {
+    data: RegionChild[];
+    amount: number;
+    page: number;
+    total_pages: number;
+  };
+};
+
+export const getEstablishedRegion = async (
+  region: string,
+  page: number = 0,
+  pageSize: number = 10
+): Promise<RegionDetail> => {
+  const res = await apiService.get(
+    `/regions/established/${encodeURIComponent(region)}?page=${page}&page_size=${pageSize}`
+  );
+  return res.data;
+};
+
 export type CenterDetail = {
   id: string;
   profile_id: string;

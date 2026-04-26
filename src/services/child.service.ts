@@ -62,6 +62,58 @@ export const mapChildToBeneficiary = (c: ChildItem) => ({
 
 type ChildrenQuery = { campaignId?: string; region?: string };
 
+// Get available regions with pagination
+export const getRegions = async (
+  page: number = 1,
+  pageSize: number = 10
+): Promise<{ items: string[]; hasMore: boolean }> => {
+  try {
+    const res = await apiService.get(
+      `/children/regions?page=${page}&page_size=${pageSize}`
+    );
+    const regions = Array.isArray(res.data)
+      ? res.data
+      : res.data?.data || [];
+    const totalPages = res.data?.total_pages;
+    const hasMore =
+      typeof totalPages === 'number'
+        ? page < totalPages
+        : (regions as string[]).length >= pageSize;
+    return { items: regions as string[], hasMore };
+  } catch (e) {
+    // Fallback to mock regions if endpoint not available
+    console.warn("getRegions failed, using default regions", e);
+    const fallback = ['AgroTrust', 'North', 'South', 'Central'];
+    return { items: page === 1 ? fallback : [], hasMore: false };
+  }
+};
+
+// Get children by region with pagination
+export const getChildrenByRegion = async (
+  region: string,
+  page: number = 0,
+  pageSize: number = 10
+) => {
+  try {
+    const res = await apiService.get(
+      `/children?page=${page}&page_size=${pageSize}&region=${encodeURIComponent(region)}`
+    );
+
+    const data = res.data?.data || res.data || [];
+    const items = Array.isArray(data) ? data : [];
+    const pagination = {
+      amount: res.data?.amount || items.length,
+      page: res.data?.page || page,
+      totalPages: res.data?.total_pages || 1,
+    };
+
+    return { items: items as ChildItem[], pagination };
+  } catch (e) {
+    console.warn("getChildrenByRegion failed", e);
+    return { items: MOCK_CHILDREN as ChildItem[], pagination: { amount: MOCK_CHILDREN.length, page: 1, totalPages: 1 } };
+  }
+};
+
 export const getChildrenByCampaign = async ({
   campaignId,
   region,
@@ -93,7 +145,7 @@ export const getChildById = async (childId: string) => {
   try {
     const res = await apiService.get(`/children/${childId}`);
     const item = res.data?.data || res.data || res;
-    return item as any;
+    return res.data as any;
   } catch (e) {
     console.warn('getChildById failed, using mock first child', e);
     return MOCK_CHILDREN[0];

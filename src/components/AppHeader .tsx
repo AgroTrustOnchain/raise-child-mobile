@@ -1,11 +1,12 @@
 // src/components/AppHeader.tsx
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../hooks/useAuth";
 import { useDispatch } from "react-redux";
 import { logout, logoutUser } from "../store/authSlice";
+import { useNavigation } from "@react-navigation/native";
 
 type Props = {
   title: string;
@@ -13,32 +14,37 @@ type Props = {
 
 const AppHeader = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const dispatch = useDispatch()
   // const { logout } = useAuth();
 
-  const handleLogout = async () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+  const handleNavProfile = () => {
+    navigation.navigate("Profile");
+  }
+
+  const handleLogout = () => {
+    setTimeout(() => Alert.alert(
+      "Đăng xuất",
+      "Bạn có chắc chắn muốn đăng xuất không?",
       [
         {
-          text: "Cancel",
+          text: "Hủy",
           onPress: () => {},
           style: "cancel",
         },
         {
-          text: "Logout",
+          text: "Đăng xuất",
           onPress: async () => {
             try {
               dispatch(logout());
             } catch (error) {
-              Alert.alert("Error", "Failed to logout");
+              Alert.alert("Lỗi", "Đăng xuất thất bại");
             }
           },
           style: "destructive",
         },
       ]
-    );
+    ), 0);
   };
 
   return (
@@ -50,6 +56,9 @@ const AppHeader = () => {
         <Text style={styles.logoText}>AgroTrust</Text>
       </View>
       <View style={styles.headerActions}>
+        <TouchableOpacity style={styles.notificationButton} onPress={handleNavProfile}>
+          <FontAwesome5 name="user-circle" size={24} color="#6B7280" />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.notificationButton}>
           <Ionicons name="notifications-outline" size={24} color="#6B7280" />
         </TouchableOpacity>

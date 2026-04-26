@@ -8,7 +8,7 @@ import {
 
 interface AuthState {
   user: {
-    id: string;
+    id: string | null;
     email: string;
     name: string;
     role: string;
@@ -127,6 +127,11 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
     },
+    setRole: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.role = action.payload;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -176,6 +181,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, clearAuth, clearError, logout } =
+export const { setCredentials, clearAuth, clearError, logout, setRole } =
   authSlice.actions;
 export default authSlice.reducer;

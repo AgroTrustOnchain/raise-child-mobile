@@ -89,11 +89,11 @@ const MyTrackScreen = () => {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchWrapper}>
-          <Ionicons name="search" size={20} color="#61896f" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search children..."
-            placeholderTextColor="#61896f"
+            placeholder="Tìm kiếm trẻ em..."
+            placeholderTextColor="#9CA3AF"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -102,8 +102,8 @@ const MyTrackScreen = () => {
 
       {/* Section Header */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Active Sponsorships</Text>
-        <Text style={styles.totalCount}>{SPONSORED_CHILDREN.length} Total</Text>
+        <Text style={styles.sectionTitle}>Hỗ trợ đang hoạt động</Text>
+        <Text style={styles.totalCount}>{SPONSORED_CHILDREN.length} tổng cộng</Text>
       </View>
     </View>
   );
@@ -123,8 +123,8 @@ const MyTrackScreen = () => {
           
           {/* Verified Badge */}
           <View style={styles.verifiedBadge}>
-            <Ionicons name="shield-checkmark" size={14} color="#000" />
-            <Text style={styles.verifiedText}>Blockchain Verified</Text>
+            <Ionicons name="shield-checkmark" size={14} color="#FFFFFF" />
+            <Text style={styles.verifiedText}>Đã xác minh Blockchain</Text>
           </View>
         </View>
 
@@ -137,7 +137,7 @@ const MyTrackScreen = () => {
               <Text style={styles.campaignName}>{item.campaign}</Text>
             </View>
             <TouchableOpacity style={styles.chevronButton}>
-              <Ionicons name="chevron-forward" size={24} color="#13ec5b" />
+              <Ionicons name="chevron-forward" size={24} color="#1E40AF" />
             </TouchableOpacity>
           </View>
 
@@ -146,19 +146,19 @@ const MyTrackScreen = () => {
             <Ionicons 
               name={item.updateIcon as any} 
               size={20} 
-              color="#13ec5b" 
+              color="#1E40AF" 
             />
             <Text style={styles.updateText}>
-              Latest Update: <Text style={styles.updateBold}>{item.latestUpdate}</Text>
+              Cập nhật mới nhất: <Text style={styles.updateBold}>{item.latestUpdate}</Text>
             </Text>
           </View>
 
           {/* Progress Section */}
           <View style={styles.progressSection}>
             <View style={styles.progressLabels}>
-              <Text style={styles.progressLabel}>MONTHLY SUPPORT STATUS</Text>
+              <Text style={styles.progressLabel}>TRẠNG THÁI HỖ TRỢ THÁNG</Text>
               <Text style={styles.progressDays}>
-                {item.daysProgress}/{item.totalDays} days
+                {item.daysProgress}/{item.totalDays} ngày
               </Text>
             </View>
             <View style={styles.progressBar}>
@@ -187,7 +187,7 @@ const MyTrackScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f8f6',
+    backgroundColor: '#F8FAFC',
   },
   listContent: {
     paddingBottom: 100,
@@ -199,26 +199,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
-    backgroundColor: 'rgba(246, 248, 246, 0.8)',
+    backgroundColor: 'rgba(248,250,252,0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226,232,240,0.5)',
   },
   navButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
   navTitle: {
     flex: 1,
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111813',
+    fontWeight: '700',
+    color: '#111827',
     textAlign: 'center',
     paddingHorizontal: 8,
   },
@@ -229,8 +224,10 @@ const styles = StyleSheet.create({
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 24,
+    backgroundColor: '#F8FAFF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    borderRadius: 14,
     paddingHorizontal: 16,
     height: 48,
   },
@@ -240,7 +237,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#111813',
+    color: '#111827',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -252,24 +249,26 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111813',
+    fontWeight: '800',
+    color: '#111827',
   },
   totalCount: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#13ec5b',
+    fontWeight: '700',
+    color: '#1E40AF',
   },
   childCard: {
     marginHorizontal: 16,
     marginBottom: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 2,
   },
   imageContainer: {
@@ -288,15 +287,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#13ec5b',
+    backgroundColor: '#1E40AF',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
   },
   verifiedText: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   cardContent: {
     padding: 20,
@@ -312,20 +311,20 @@ const styles = StyleSheet.create({
   },
   childName: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111813',
+    fontWeight: '800',
+    color: '#111827',
     marginBottom: 4,
   },
   campaignName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#61896f',
+    color: '#6B7280',
   },
   chevronButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(19, 236, 91, 0.1)',
+    backgroundColor: '#EFF6FF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -333,17 +332,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#f6f8f6',
+    backgroundColor: '#EFF6FF',
     padding: 12,
     borderRadius: 12,
   },
   updateText: {
     flex: 1,
     fontSize: 14,
-    color: '#111813',
+    color: '#111827',
   },
   updateBold: {
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   progressSection: {
     marginTop: 8,
@@ -356,24 +355,24 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 10,
-    fontWeight: '500',
-    color: '#61896f',
+    fontWeight: '700',
+    color: '#9CA3AF',
     letterSpacing: 0.5,
   },
   progressDays: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#111813',
+    fontWeight: '700',
+    color: '#111827',
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#dbe6df',
+    backgroundColor: '#F1F5F9',
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#13ec5b',
+    backgroundColor: '#1E40AF',
     borderRadius: 4,
   },
   bottomNav: {
@@ -386,7 +385,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8e4',
+    borderTopColor: '#E5E7EB',
     paddingHorizontal: 24,
     paddingVertical: 12,
     paddingBottom: 24,
@@ -398,13 +397,13 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 10,
     fontWeight: '500',
-    color: '#61896f',
+    color: '#6B7280',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   navLabelActive: {
-    fontWeight: 'bold',
-    color: '#13ec5b',
+    fontWeight: '700',
+    color: '#1E40AF',
   },
 });
 

@@ -29,25 +29,37 @@ export interface AuthResponse {
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await apiService.post<{ token: string }>('/auth/login', credentials);
-    
-    // API returns {token: "..."}, we need to decode it and construct AuthResponse
-    const token = response.data.token;
-    const decoded = parseJWT(token);
-    
-    // Extract user info from JWT payload
+    const MAX_ROLE_RETRIES = 3;
+    const ROLE_RETRY_DELAY_MS = 1000;
+
+    let decoded: any;
+    let token: string = '';
+
+    for (let attempt = 1; attempt <= MAX_ROLE_RETRIES; attempt++) {
+      const response = await apiService.post<{ token: string }>('/auth/login', credentials);
+      token = response.data.token;
+      decoded = parseJWT(token);
+      console.log(`Login attempt ${attempt}:`, decoded);
+
+      if (decoded.roles) break;
+
+      if (attempt < MAX_ROLE_RETRIES) {
+        await new Promise((resolve) => setTimeout(resolve, ROLE_RETRY_DELAY_MS * attempt));
+      }
+    }
+
     const authResponse: AuthResponse = {
       user: {
         id: decoded.sub,
-        email: '', // Not provided by API
-        name: '', // Not provided by API
-        role: decoded.roles?.[0] || 'User',
+        email: '',
+        name: '',
+        role: decoded.roles.length > 0 ? decoded.roles : null,
         walletAddress: decoded.address,
       },
       accessToken: token,
-      refreshToken: token, // API doesn't provide refresh token, use same token
+      refreshToken: token,
     };
-    
+
     await this.storeTokens(authResponse.accessToken, authResponse.refreshToken);
     return authResponse;
   }

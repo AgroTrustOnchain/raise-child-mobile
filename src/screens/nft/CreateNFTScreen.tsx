@@ -116,7 +116,7 @@ const CreateNFTScreen = () => {
         <TextInput
           style={styles.input}
           placeholder="NFT Name"
-          placeholderTextColor="#999"
+          placeholderTextColor="#9CA3AF"
           value={formData.name}
           onChangeText={(text) => setFormData({ ...formData, name: text })}
         />
@@ -125,7 +125,7 @@ const CreateNFTScreen = () => {
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Description"
-          placeholderTextColor="#999"
+          placeholderTextColor="#9CA3AF"
           value={formData.description}
           onChangeText={(text) => setFormData({ ...formData, description: text })}
           multiline
@@ -151,22 +151,22 @@ const CreateNFTScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F8FAFC',
   },
   content: {
-    padding: 20,
+    padding: 16,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '800',
     marginBottom: 24,
-    color: '#333',
+    color: '#111827',
   },
   imageContainer: {
     width: '100%',
     aspectRatio: 1,
     marginBottom: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   imagePreview: {
@@ -176,16 +176,16 @@ const styles = StyleSheet.create({
   imagePlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#EFF6FF',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderColor: '#DBEAFE',
     borderStyle: 'dashed',
   },
   imagePlaceholderText: {
     fontSize: 16,
-    color: '#999',
+    color: '#9CA3AF',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -196,53 +196,61 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
   },
   imageButtonPrimary: {
-    backgroundColor: '#6366f1',
+    backgroundColor: '#1E40AF',
   },
   imageButtonSecondary: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#6366f1',
+    borderColor: '#1E40AF',
   },
   imageButtonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   imageButtonTextSecondary: {
-    color: '#6366f1',
+    color: '#1E40AF',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    backgroundColor: '#F8FAFF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    borderRadius: 14,
     padding: 16,
     marginBottom: 16,
     fontSize: 16,
-    color: '#333',
+    color: '#111827',
   },
   textArea: {
     height: 120,
     paddingTop: 16,
   },
   createButton: {
-    backgroundColor: '#6366f1',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#1E40AF',
+    height: 60,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8,
+    shadowColor: '#1E40AF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   createButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
   },
 });
 
