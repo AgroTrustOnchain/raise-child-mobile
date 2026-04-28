@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,18 +9,20 @@ import {
   ActivityIndicator,
   Image,
   Modal,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/MainNavigator';
-import { useAppSelector } from '../../store';
-import { submitRegistration, getRegions } from '../../services/registration.service';
-import { uploadImageToWalrus } from '../../services/walrus.service';
-import * as FileSystem from 'expo-file-system/legacy';
-
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../navigation/MainNavigator";
+import { useAppSelector } from "../../store";
+import {
+  submitRegistration,
+  getRegions,
+} from "../../services/registration.service";
+import { uploadImageToWalrus } from "../../services/walrus.service";
+import * as FileSystem from "expo-file-system/legacy";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -33,18 +35,19 @@ interface RegistrationFormData {
   registerRole: string;
 }
 
-const ROLES = ['Local Leader', 'Volunteer'];
+const ROLES = ["Local Leader", "Volunteer"];
 
 const RegistrationFormScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<any>();
-  const prefilledRegion: string = route.params?.region ?? '';
+  const prefilledRegion: string = route.params?.region ?? "";
   const { user } = useAppSelector((state) => state.auth);
   const [regions, setRegions] = useState<any[]>([]);
   const [isLoadingRegions, setIsLoadingRegions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadCCCD, setIsUploadCCCD] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showRegionModal, setShowRegionModal] = useState(false);
 
@@ -54,7 +57,7 @@ const RegistrationFormScreen = () => {
     identityCardBlobId: undefined,
     identityCardPreview: undefined,
     region: prefilledRegion,
-    registerRole: '',
+    registerRole: "",
   });
 
   // Fetch regions from API
@@ -68,37 +71,41 @@ const RegistrationFormScreen = () => {
       const data = await getRegions();
       setRegions(data);
     } catch (error) {
-      console.error('Failed to fetch regions:', error);
-      Alert.alert('Lỗi', 'Không thể tải danh sách vùng. Vui lòng thử lại.');
+      console.error("Failed to fetch regions:", error);
+      Alert.alert("Lỗi", "Không thể tải danh sách vùng. Vui lòng thử lại.");
     } finally {
       setIsLoadingRegions(false);
     }
   };
 
-  const pickImage = async (imageType: 'avatar' | 'identityCard') => {
+  const pickImage = async (imageType: "avatar" | "identityCard") => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: imageType === 'avatar' ? [1, 1] : [4, 3],
+        aspect: imageType === "avatar" ? [1, 1] : [4, 3],
         quality: 0.8,
       });
 
-      console.log('Image picker result:', result);
+      console.log("Image picker result:", result);
 
       if (!result.canceled) {
         const uri = result.assets[0].uri;
-        console.log(uri)
-        
+        console.log(uri);
+
         // Show loading indicator while uploading to Walrus
-        setIsUploadingImage(true);
-        
+        if (imageType === "identityCard") {
+          setIsUploadCCCD(true);
+        } else {
+          setIsUploadingImage(true);
+        }
+
         try {
           // Upload image to Walrus storage
           const walrusBlob = await uploadImageToWalrus(uri);
-          
+
           // Store both the blob ID (for server) and preview URI (for UI)
-          if (imageType === 'avatar') {
+          if (imageType === "avatar") {
             setFormData((prev) => ({
               ...prev,
               avatarBlobId: walrusBlob.blobId,
@@ -111,21 +118,27 @@ const RegistrationFormScreen = () => {
               identityCardPreview: uri, // Keep local URI for preview
             }));
           }
-          
-          Alert.alert('Thành công', `${imageType === 'avatar' ? 'Ảnh đại diện' : 'CMND/CCCD'} đã được tải lên thành công!`);
+
+          Alert.alert(
+            "Thành công",
+            `${imageType === "avatar" ? "Ảnh đại diện" : "CMND/CCCD"} đã được tải lên thành công!`,
+          );
         } catch (uploadError) {
           Alert.alert(
-            'Upload Error',
-            uploadError instanceof Error ? uploadError.message : 'Failed to upload image to Walrus'
+            "Upload Error",
+            uploadError instanceof Error
+              ? uploadError.message
+              : "Failed to upload image to Walrus",
           );
-          console.error('Walrus upload error:', uploadError);
+          console.error("Walrus upload error:", uploadError);
         } finally {
+          setIsUploadCCCD(false);
           setIsUploadingImage(false);
         }
       }
     } catch (error) {
-      Alert.alert('Lỗi', 'Không thể chọn ảnh');
-      console.error('Image picker error:', error);
+      Alert.alert("Lỗi", "Không thể chọn ảnh");
+      console.error("Image picker error:", error);
     }
   };
 
@@ -139,19 +152,19 @@ const RegistrationFormScreen = () => {
 
   const validateForm = () => {
     if (!formData.avatarBlobId) {
-      Alert.alert('Lỗi xác thực', 'Vui lòng tải lên ảnh đại diện');
+      Alert.alert("Lỗi xác thực", "Vui lòng tải lên ảnh đại diện");
       return false;
     }
     if (!formData.identityCardBlobId) {
-      Alert.alert('Lỗi xác thực', 'Vui lòng tải lên ảnh CMND/CCCD');
+      Alert.alert("Lỗi xác thực", "Vui lòng tải lên ảnh CMND/CCCD");
       return false;
     }
     if (!formData.region) {
-      Alert.alert('Lỗi xác thực', 'Vui lòng chọn vùng');
+      Alert.alert("Lỗi xác thực", "Vui lòng chọn vùng");
       return false;
     }
     if (!formData.registerRole) {
-      Alert.alert('Lỗi xác thực', 'Vui lòng chọn vai trò');
+      Alert.alert("Lỗi xác thực", "Vui lòng chọn vai trò");
       return false;
     }
     return true;
@@ -164,32 +177,35 @@ const RegistrationFormScreen = () => {
 
     try {
       setIsSubmitting(true);
-      
+
       // Check if user token exists
       if (!user) {
-        Alert.alert('Lỗi', 'Bạn phải đăng nhập để đăng ký');
+        Alert.alert("Lỗi", "Bạn phải đăng nhập để đăng ký");
         return;
       }
-      
+
       const payload = {
-        avatar_blob_id: formData.avatarBlobId || '',
-        identity_card_blob_id: formData.identityCardBlobId || '',
+        avatar_blob_id: formData.avatarBlobId || "",
+        identity_card_blob_id: formData.identityCardBlobId || "",
         region: formData.region,
-        register_role: formData.registerRole.replace(' ', '_'),
+        register_role: formData.registerRole.replace(" ", "_"),
       };
 
-      console.log('Submitting registration:', payload);
-      
+      console.log("Submitting registration:", payload);
+
       // Call the registration service - it will automatically get token from AsyncStorage
       const response = await submitRegistration(payload);
 
-      console.log(response)
-      
-      Alert.alert('Thành công', 'Đã gửi đăng ký thành công!');
+      console.log(response);
+
+      Alert.alert("Thành công", "Đã gửi đăng ký thành công!");
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thể gửi mẫu đăng ký');
-      console.error('Submit error:', error);
+      Alert.alert(
+        "Lỗi",
+        error instanceof Error ? error.message : "Không thể gửi mẫu đăng ký",
+      );
+      console.error("Submit error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -224,7 +240,7 @@ const RegistrationFormScreen = () => {
           <Text style={styles.sectionTitle}>Ảnh đại diện</Text>
           <TouchableOpacity
             style={styles.imageUploadBox}
-            onPress={() => pickImage('avatar')}
+            onPress={() => pickImage("avatar")}
             disabled={isUploadingImage}
             activeOpacity={0.7}
           >
@@ -253,11 +269,11 @@ const RegistrationFormScreen = () => {
           <Text style={styles.sectionTitle}>CMND/CCCD</Text>
           <TouchableOpacity
             style={styles.imageUploadBox}
-            onPress={() => pickImage('identityCard')}
-            disabled={isUploadingImage}
+            onPress={() => pickImage("identityCard")}
+            disabled={isUploadCCCD}
             activeOpacity={0.7}
           >
-            {isUploadingImage ? (
+            {isUploadCCCD ? (
               <View style={styles.uploadPlaceholder}>
                 <ActivityIndicator size="large" color="#1E40AF" />
                 <Text style={styles.uploadText}>Đang tải lên Walrus...</Text>
@@ -293,7 +309,7 @@ const RegistrationFormScreen = () => {
                 !formData.region && styles.roleDropdownPlaceholder,
               ]}
             >
-              {formData.region || 'Chọn vùng'}
+              {formData.region || "Chọn vùng"}
             </Text>
             <Ionicons name="chevron-down" size={20} color="#6b7280" />
           </TouchableOpacity>
@@ -326,7 +342,7 @@ const RegistrationFormScreen = () => {
                     <Text style={styles.emptyText}>Không có vùng nào</Text>
                   </View>
                 ) : (
-                  <ScrollView 
+                  <ScrollView
                     style={styles.modalScroll}
                     showsVerticalScrollIndicator={true}
                   >
@@ -384,7 +400,7 @@ const RegistrationFormScreen = () => {
                 !formData.registerRole && styles.roleDropdownPlaceholder,
               ]}
             >
-              {formData.registerRole || 'Chọn vai trò'}
+              {formData.registerRole || "Chọn vai trò"}
             </Text>
             <Ionicons name="chevron-down" size={20} color="#6b7280" />
           </TouchableOpacity>
@@ -428,9 +444,9 @@ const RegistrationFormScreen = () => {
                         {role}
                       </Text>
                       <Text style={styles.roleOptionDescription}>
-                        {role === 'Local Leader'
-                          ? 'Dẫn dắt và quản lý các hoạt động tình nguyện địa phương'
-                          : 'Đóng góp cho phúc lợi và phát triển của trẻ em'}
+                        {role === "Local Leader"
+                          ? "Dẫn dắt và quản lý các hoạt động tình nguyện địa phương"
+                          : "Đóng góp cho phúc lợi và phát triển của trẻ em"}
                       </Text>
                     </View>
                     {formData.registerRole === role && (
@@ -454,9 +470,13 @@ const RegistrationFormScreen = () => {
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
                 <Ionicons
-                  name={formData.avatarBlobId ? 'checkmark-circle' : 'ellipse-outline'}
+                  name={
+                    formData.avatarBlobId
+                      ? "checkmark-circle"
+                      : "ellipse-outline"
+                  }
                   size={20}
-                  color={formData.avatarBlobId ? '#1E40AF' : '#D1D5DB'}
+                  color={formData.avatarBlobId ? "#1E40AF" : "#D1D5DB"}
                 />
               </View>
               <Text style={styles.summaryText}>Đã tải ảnh đại diện</Text>
@@ -464,9 +484,13 @@ const RegistrationFormScreen = () => {
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
                 <Ionicons
-                  name={formData.identityCardBlobId ? 'checkmark-circle' : 'ellipse-outline'}
+                  name={
+                    formData.identityCardBlobId
+                      ? "checkmark-circle"
+                      : "ellipse-outline"
+                  }
                   size={20}
-                  color={formData.identityCardBlobId ? '#1E40AF' : '#D1D5DB'}
+                  color={formData.identityCardBlobId ? "#1E40AF" : "#D1D5DB"}
                 />
               </View>
               <Text style={styles.summaryText}>Đã tải ảnh CMND/CCCD</Text>
@@ -474,22 +498,32 @@ const RegistrationFormScreen = () => {
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
                 <Ionicons
-                  name={formData.region ? 'checkmark-circle' : 'ellipse-outline'}
+                  name={
+                    formData.region ? "checkmark-circle" : "ellipse-outline"
+                  }
                   size={20}
-                  color={formData.region ? '#1E40AF' : '#D1D5DB'}
+                  color={formData.region ? "#1E40AF" : "#D1D5DB"}
                 />
               </View>
-              <Text style={styles.summaryText}>Đã chọn vùng: {formData.region}</Text>
+              <Text style={styles.summaryText}>
+                Đã chọn vùng: {formData.region}
+              </Text>
             </View>
             <View style={styles.summaryRow}>
               <View style={styles.summaryCheck}>
                 <Ionicons
-                  name={formData.registerRole ? 'checkmark-circle' : 'ellipse-outline'}
+                  name={
+                    formData.registerRole
+                      ? "checkmark-circle"
+                      : "ellipse-outline"
+                  }
                   size={20}
-                  color={formData.registerRole ? '#1E40AF' : '#D1D5DB'}
+                  color={formData.registerRole ? "#1E40AF" : "#D1D5DB"}
                 />
               </View>
-              <Text style={styles.summaryText}>Đã chọn vai trò: {formData.registerRole}</Text>
+              <Text style={styles.summaryText}>
+                Đã chọn vai trò: {formData.registerRole}
+              </Text>
             </View>
           </View>
         </View>
@@ -523,28 +557,28 @@ const RegistrationFormScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.5)',
-    backgroundColor: 'rgba(248,250,252,0.85)',
+    borderBottomColor: "rgba(226,232,240,0.5)",
+    backgroundColor: "rgba(248,250,252,0.85)",
   },
   backButton: {
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
   },
   scrollContent: {
     padding: 16,
@@ -554,155 +588,155 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#9CA3AF',
+    fontWeight: "700",
+    color: "#9CA3AF",
     marginBottom: 12,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   imageUploadBox: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
-    borderStyle: 'dashed',
-    overflow: 'hidden',
-    backgroundColor: '#F8FAFF',
+    borderColor: "#DBEAFE",
+    borderStyle: "dashed",
+    overflow: "hidden",
+    backgroundColor: "#F8FAFF",
   },
   uploadPlaceholder: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
   },
   uploadText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#6B7280',
+    fontWeight: "700",
+    color: "#6B7280",
   },
   uploadSubtext: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   uploadedImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 40,
   },
   roleDropdown: {
-    backgroundColor: '#F8FAFF',
+    backgroundColor: "#F8FAFF",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: "#DBEAFE",
     paddingHorizontal: 16,
     paddingVertical: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   roleDropdownText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#111827',
+    fontWeight: "500",
+    color: "#111827",
   },
   roleDropdownPlaceholder: {
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
-//   modalContent: {
-//     backgroundColor: '#fff',
-//     borderTopLeftRadius: 20,
-//     borderTopRightRadius: 20,
-//     paddingBottom: 30,
-//     maxHeight: '80%',
-//   },
+  //   modalContent: {
+  //     backgroundColor: '#fff',
+  //     borderTopLeftRadius: 20,
+  //     borderTopRightRadius: 20,
+  //     paddingBottom: 30,
+  //     maxHeight: '80%',
+  //   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: "#F1F5F9",
   },
   modalContent: {
-  backgroundColor: '#FFFFFF',
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  paddingBottom: 30,
-  maxHeight: '80%',
-  flex: 0,  // don't stretch to full screen
-},
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 30,
+    maxHeight: "80%",
+    flex: 0, // don't stretch to full screen
+  },
 
-// Change modalScroll style
-modalScroll: {
-  flexGrow: 0,   // <-- key fix
-  flexShrink: 1, // <-- allows it to shrink within maxHeight
-},
+  // Change modalScroll style
+  modalScroll: {
+    flexGrow: 0, // <-- key fix
+    flexShrink: 1, // <-- allows it to shrink within maxHeight
+  },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
   },
   modalCloseButton: {
     width: 32,
     height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   roleOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: "#F1F5F9",
   },
   roleOptionActive: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: "#EFF6FF",
   },
   roleOptionContent: {
     flex: 1,
   },
   roleOptionText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: "600",
+    color: "#111827",
     marginBottom: 4,
   },
   roleOptionTextActive: {
-    color: '#1E40AF',
+    color: "#1E40AF",
   },
   roleOptionDescription: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   emptyContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 40,
   },
   emptyText: {
     fontSize: 14,
-    color: '#9CA3AF',
-    fontWeight: '500',
+    color: "#9CA3AF",
+    fontWeight: "500",
   },
   summaryCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#000',
+    borderColor: "#F1F5F9",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -710,13 +744,13 @@ modalScroll: {
   },
   summaryTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
     marginBottom: 14,
   },
   summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     marginBottom: 12,
   },
@@ -725,25 +759,25 @@ modalScroll: {
   },
   summaryText: {
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
     flex: 1,
   },
   footerContainer: {
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: "#E5E7EB",
+    backgroundColor: "#FFFFFF",
   },
   submitButton: {
-    backgroundColor: '#1E40AF',
+    backgroundColor: "#1E40AF",
     height: 60,
     borderRadius: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
-    shadowColor: '#1E40AF',
+    shadowColor: "#1E40AF",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -754,8 +788,8 @@ modalScroll: {
   },
   submitButtonText: {
     fontSize: 17,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontWeight: "800",
+    color: "#FFFFFF",
   },
 });
 

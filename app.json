@@ -14,8 +14,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.raisechild.mobile",
+      "newArchEnabled": false,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow access to your camera to take photos.",
+        "NSPhotoLibraryUsageDescription": "Allow access to your photo library to select images.",
+        "NSPhotoLibraryAddUsageDescription": "Allow saving photos to your library."
       }
     },
     "android": {
@@ -37,6 +41,13 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.189055599254-5546cfglttl20jv5qg0d57po8b9adl8k"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to your photo library to select images.",
+          "cameraPermission": "Allow access to your camera to take photos."
         }
       ]
     ],

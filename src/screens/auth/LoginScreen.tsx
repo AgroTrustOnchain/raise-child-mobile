@@ -48,7 +48,9 @@ const LoginScreen = () => {
   const handleLoginWithGoogle = async () => {
     try {
       setIsInProgress(true);
-      await GoogleSignin.hasPlayServices();
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices();
+      }
       const isSignedIn = GoogleSignin.getCurrentUser();
       if (isSignedIn) {
         await GoogleSignin.signOut();
@@ -86,7 +88,7 @@ const LoginScreen = () => {
               maxEpoch,
               salt: saltResult.salt,
             });
-            Alert.alert("Đăng nhập thành công", "Chào mừng trở lại!");
+            // Alert.alert("Đăng nhập thành công", "Chào mừng trở lại!");
             setIsInProgress(false);
           } else {
             Alert.alert("Đăng nhập thất bại", "Không thể xác thực với Google");
