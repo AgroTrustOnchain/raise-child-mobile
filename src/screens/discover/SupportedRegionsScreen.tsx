@@ -337,14 +337,19 @@ const RegistrationsTab = () => {
 
 const SupportedRegionsScreen = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp>();
   const [activeTab, setActiveTab] = useState<Tab>('regions');
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Vùng</Text>
-      </View>
+      {/* <View style={styles.header}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color="#111827" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Vùng cần hỗ trợ</Text>
+        <View style={styles.headerButton} />
+      </View> */}
 
       {/* Tabs */}
       <View style={styles.tabBar}>
@@ -399,13 +404,23 @@ const styles = StyleSheet.create({
   retryBtnText: { color: '#FFFFFF', fontWeight: '600', fontSize: 14 },
 
   header: {
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(226, 232, 240, 0.5)',
   },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: '#111827' },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
 
   tabBar: {
     flexDirection: 'row',

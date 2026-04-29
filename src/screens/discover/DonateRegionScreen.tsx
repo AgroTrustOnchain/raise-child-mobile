@@ -40,6 +40,7 @@ const DonateRegionScreen = () => {
       if (res?.url) {
         navigation.navigate("PaymentQrScreen", {
           paymentUrl: res.url,
+          paymentId: res.payment_id ?? res.order_code ?? res.id,
           title: `Donate to ${params.region}`,
         });
       } else {

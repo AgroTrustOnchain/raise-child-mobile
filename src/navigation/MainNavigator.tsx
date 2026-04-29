@@ -57,7 +57,7 @@ export type NFTStackParamList = {
     registration_req?: string;
     upload_child_req?: string;
   };
-  PaymentQrScreen: { paymentUrl: string; title?: string };
+  PaymentQrScreen: { paymentUrl: string; paymentId?: string | number; title?: string };
 };
 
 export type MainTabParamList = {
@@ -204,16 +204,18 @@ const MainNavigator = () => {
         name="Explore"
         component={DiscoverStack}
         options={{ headerShown: false, tabBarLabel: "Khám phá" }}
-        listeners={({ navigation }) => ({
-          blur: () => {
-            navigation.dispatch(StackActions.popToTop());
-          },
-        })}
+        // listeners={({ navigation }) => ({
+        //   blur: () => {
+        //     if (navigation.canGoBack()) {
+        //       navigation.dispatch(StackActions.popToTop());
+        //     }
+        //   },
+        // })}
       />
       <Tab.Screen
         name="Regions"
         component={SupportedRegionsScreen}
-        options={{ headerShown: false, tabBarLabel: "Khu vực" }}
+        options={{ headerShown: true, tabBarLabel: "Khu vực" }}
       />
       <Tab.Screen
         name="Withdrawal"

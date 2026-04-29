@@ -25,6 +25,13 @@ const SettingsScreen = () => {
   const { user, isLoading } = useAppSelector((state) => state.auth);
   const [isChangingRole, setIsChangingRole] = useState(false);
 
+  const roles: string[] = Array.isArray(user?.role)
+    ? user.role
+    : user?.role
+    ? [user.role]
+    : [];
+  const hasVolunteerRole = roles.some((r) => r.toLowerCase() === 'volunteer');
+
   const handleChangeRoleToVolunteer = async () => {
     Alert.alert(
       'Đổi vai trò',
@@ -107,41 +114,30 @@ const SettingsScreen = () => {
           <TouchableOpacity
             style={[
               styles.roleButton,
-              user?.role === 'volunteer' && styles.roleButtonActive,
+              !hasVolunteerRole && styles.roleButtonDisabled,
               isChangingRole && styles.roleButtonDisabled,
             ]}
             onPress={handleChangeRoleToVolunteer}
-            disabled={isChangingRole || user?.role === 'volunteer'}
+            disabled={isChangingRole || !hasVolunteerRole}
             activeOpacity={0.7}
           >
             {isChangingRole ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <>
-                <Ionicons
-                  name="person-add"
-                  size={20}
-                  color={user?.role === 'volunteer' ? '#666' : '#fff'}
-                />
-                <Text
-                  style={[
-                    styles.roleButtonText,
-                    user?.role === 'volunteer' && styles.roleButtonTextDisabled,
-                  ]}
-                >
-                  {user?.role === 'volunteer'
-                    ? 'Đã là Tình nguyện viên'
-                    : 'Chuyển sang Tình nguyện viên'}
+                <Ionicons name="person-add" size={20} color="#fff" />
+                <Text style={styles.roleButtonText}>
+                  Chuyển sang Tình nguyện viên
                 </Text>
               </>
             )}
           </TouchableOpacity>
 
-          {user?.role === 'volunteer' && (
-            <View style={styles.successMessage}>
-              <Ionicons name="checkmark-circle" size={20} color="#1E40AF" />
-              <Text style={styles.successText}>
-                Bạn đang ở chế độ Tình nguyện viên
+          {!hasVolunteerRole && (
+            <View style={styles.infoMessage}>
+              <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+              <Text style={styles.infoMessageText}>
+                Tài khoản của bạn chưa có quyền Tình nguyện viên
               </Text>
             </View>
           )}
@@ -329,6 +325,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#1E40AF',
+  },
+  infoMessage: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  infoMessageText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B7280',
+    flex: 1,
   },
   settingItem: {
     backgroundColor: '#FFFFFF',

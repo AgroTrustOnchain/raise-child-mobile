@@ -28,6 +28,7 @@ const PersonalInformationScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  console.log("Current User:", user);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -278,16 +279,25 @@ const PersonalInformationScreen = () => {
 
       {/* ── Fixed Footer ──────────────────────────────────────────────────── */}
       <View style={[styles.footer, { paddingBottom: insets.bottom || 16 }]}>
-        <TouchableOpacity
-          style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={isSaving}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.saveButtonText}>
-            {isSaving ? 'Saving…' : 'Save Changes'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.footerRow}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={isSaving}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.saveButtonText}>
+              {isSaving ? 'Saving…' : 'Save Changes'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -556,6 +566,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
   },
   saveButton: {
+    flex: 2,
     backgroundColor: '#1E40AF',
     height: 60,
     borderRadius: 16,
@@ -574,6 +585,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '800',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    height: 60,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  cancelButtonText: {
+    color: '#6B7280',
+    fontSize: 17,
+    fontWeight: '700',
   },
 });
 

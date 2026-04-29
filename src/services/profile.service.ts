@@ -25,6 +25,38 @@ export type Profile = {
   updated_at?: string;
 };
 
+export interface TransactionRecord {
+  id?: string;
+  order_code?: string;
+  description?: string;
+  amount?: number;
+  status?: string;
+  created_at?: string;
+}
+
+export interface WalletProfile {
+  wallet_address: string;
+  first_name: string;
+  last_name: string;
+  total_donation: number;
+  supported_childs: string[] | null;
+  transaction_records: TransactionRecord[] | null;
+  record_amount: number;
+  page: number;
+  total_pages: number;
+}
+
+export const getPersonalWalletProfile = async (
+  walletAddress: string,
+  page = 1
+): Promise<WalletProfile> => {
+  const res = await apiService.get<WalletProfile>(
+    `/profiles/personal-wallet-profile/${walletAddress}`,
+    { params: { page } }
+  );
+  return res.data;
+};
+
 export const getProfile = async (profileId: string): Promise<Profile> => {
   try {
     const res = await apiService.get<Profile>(`/profiles/${profileId}`);

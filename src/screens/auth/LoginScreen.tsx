@@ -77,6 +77,7 @@ const LoginScreen = () => {
           const loginResponse = await dispatch(
             loginUser({ address: userAddress, sub }),
           );
+          console.log("Login Response:", loginResponse.payload);
 
           if (loginResponse.payload) {
             setWallet({

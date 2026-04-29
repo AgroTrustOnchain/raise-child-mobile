@@ -8,6 +8,25 @@ export type DonatePayload = {
 
 export type DonateResponse = {
   url: string;
+  payment_id?: string | number;
+  order_code?: string | number;
+  id?: string | number;
+};
+
+export type PaymentStatus = {
+  id?: string | number;
+  order_code?: string | number;
+  status: string;
+  amount?: number;
+  description?: string;
+  [key: string]: any;
+};
+
+export const getPaymentStatus = async (
+  paymentId: string | number,
+): Promise<PaymentStatus> => {
+  const response = await apiService.get<PaymentStatus>(`/payments/${paymentId}`);
+  return response.data;
 };
 
 export const donateToPool = async (
