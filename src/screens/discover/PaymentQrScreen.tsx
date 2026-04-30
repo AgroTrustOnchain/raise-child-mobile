@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -17,24 +16,15 @@ import { getPaymentStatus } from "../../services/payment.service";
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLLS = 20; // 60 seconds total
 
-const SUCCESS_STATUSES = new Set(["PAID", "paid", "SUCCESS", "success", "completed", "COMPLETED"]);
-
-const extractBankingQr = async (payosUrl: string): Promise<string | null> => {
-  try {
-    const res = await fetch(payosUrl);
-    const html = await res.text();
-    const allMatches = [...html.matchAll(/src="(https:\/\/img\.vietqr\.io\/[^"]+)"/g)].map(
-      (m) => m[1].replace(/&amp;/g, "&")
-    );
-    const withAmount = allMatches.find(
-      (u) => u.includes("amount") || u.includes("addInfo") || u.includes("accountNo")
-    );
-    return withAmount ?? allMatches[0] ?? null;
-  } catch (e) {
-    console.warn("[VietQR] extract failed", e);
-    return null;
-  }
-};
+const SUCCESS_STATUSES = new Set([
+  "PAID",
+  "paid",
+  "SUCCESS",
+  "Success",
+  "success",
+  "completed",
+  "COMPLETED",
+]);
 
 const PaymentQrScreen = () => {
   const navigation = useNavigation<any>();
@@ -45,8 +35,6 @@ const PaymentQrScreen = () => {
     title?: string;
   };
 
-  const [bankingQrUrl, setBankingQrUrl] = useState<string | null>(null);
-  const [fetchingQr, setFetchingQr] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
@@ -54,13 +42,16 @@ const PaymentQrScreen = () => {
   const pollCountRef = useRef(0);
   const resolvedRef = useRef(false);
 
-  // ── QR extraction ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    extractBankingQr(paymentUrl).then((url) => {
-      setBankingQrUrl(url);
-      setFetchingQr(false);
-    });
-  }, [paymentUrl]);
+  const buildSuccessMessage = (data: { amount?: number; description?: string }) => {
+    const parts: string[] = [];
+    if (typeof data.amount === "number" && data.amount > 0) {
+      parts.push(`Khoản thanh toán ${data.amount.toLocaleString("vi-VN")}đ đã được ghi nhận.`);
+    } else {
+      parts.push("Khoản thanh toán của bạn đã được ghi nhận.");
+    }
+    if (data.description) parts.push(data.description);
+    return parts.join(" ");
+  };
 
   // ── Polling ────────────────────────────────────────────────────────────────
   const checkStatus = useCallback(async () => {
@@ -74,8 +65,11 @@ const PaymentQrScreen = () => {
       if (SUCCESS_STATUSES.has(status)) {
         resolvedRef.current = true;
         clearPollTimer();
-        // Navigate to callback/success screen
-        navigation.replace("PaymentCallbackScreen", {});
+        navigation.replace("PaymentCallbackScreen", {
+          status: "success",
+          title: "Quyên góp thành công!",
+          message: buildSuccessMessage(data),
+        });
         return;
       }
     } catch (err) {
@@ -86,7 +80,6 @@ const PaymentQrScreen = () => {
 
     if (pollCountRef.current >= MAX_POLLS) {
       clearPollTimer();
-      // Stop silently — user can still manually confirm
     } else {
       schedulePoll();
     }
@@ -105,7 +98,7 @@ const PaymentQrScreen = () => {
 
   useEffect(() => {
     if (paymentId) {
-      schedulePoll(); // first poll after POLL_INTERVAL_MS
+      schedulePoll();
     }
     return () => clearPollTimer();
   }, [checkStatus]);
@@ -113,7 +106,11 @@ const PaymentQrScreen = () => {
   // ── Manual check ───────────────────────────────────────────────────────────
   const handleManualCheck = async () => {
     if (!paymentId) {
-      navigation.navigate("PaymentCallbackScreen", {});
+      navigation.navigate("PaymentCallbackScreen", {
+        status: "error",
+        title: "Không thể xác nhận",
+        message: "Thiếu mã giao dịch. Vui lòng thử lại.",
+      });
       return;
     }
     setChecking(true);
@@ -124,7 +121,11 @@ const PaymentQrScreen = () => {
       setPaymentStatus(status);
       if (SUCCESS_STATUSES.has(status)) {
         resolvedRef.current = true;
-        navigation.replace("PaymentCallbackScreen", {});
+        navigation.replace("PaymentCallbackScreen", {
+          status: "success",
+          title: "Quyên góp thành công!",
+          message: buildSuccessMessage(data),
+        });
       } else {
         Alert.alert(
           "Chưa xác nhận",
@@ -152,7 +153,6 @@ const PaymentQrScreen = () => {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color="#111827" />
@@ -162,33 +162,14 @@ const PaymentQrScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Quét mã để thanh toán</Text>
+        <View style={styles.iconCircle}>
+          <Ionicons name="card-outline" size={36} color="#1E40AF" />
+        </View>
+        <Text style={styles.heading}>Hoàn tất thanh toán trên PayOS</Text>
         <Text style={styles.subtitle}>
-          Dùng ứng dụng ngân hàng để quét mã VietQR bên dưới, hoặc mở PayOS trực tiếp.
+          Nhấn "Mở trang PayOS" để hoàn tất thanh toán. Sau khi thanh toán thành công, ứng dụng sẽ tự động chuyển sang bước tiếp theo.
         </Text>
 
-        {/* QR Card */}
-        <View style={styles.qrCard}>
-          {fetchingQr ? (
-            <View style={styles.qrPlaceholder}>
-              <ActivityIndicator size="large" color="#1E40AF" />
-              <Text style={styles.qrLoadingText}>Đang tải mã QR…</Text>
-            </View>
-          ) : bankingQrUrl ? (
-            <>
-              <Image source={{ uri: bankingQrUrl }} style={styles.qrImage} resizeMode="contain" />
-              <Text style={styles.qrSub}>
-                Mở ứng dụng ngân hàng và quét mã VietQR này để hoàn tất thanh toán.
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.qrSub}>
-              Không thể tải mã QR. Vui lòng mở trang thanh toán bên dưới.
-            </Text>
-          )}
-        </View>
-
-        {/* Polling status indicator */}
         {paymentId && (
           <View style={styles.pollingRow}>
             <ActivityIndicator
@@ -206,13 +187,11 @@ const PaymentQrScreen = () => {
           </View>
         )}
 
-        {/* Open PayOS */}
         <TouchableOpacity style={styles.openButton} onPress={handleOpenPayment} activeOpacity={0.85}>
           <Ionicons name="open-outline" size={20} color="#FFFFFF" />
           <Text style={styles.openButtonText}>Mở trang PayOS</Text>
         </TouchableOpacity>
 
-        {/* Manual confirm */}
         <TouchableOpacity
           style={[styles.paidButton, checking && styles.buttonDisabled]}
           onPress={handleManualCheck}
@@ -230,7 +209,7 @@ const PaymentQrScreen = () => {
         </TouchableOpacity>
 
         <Text style={styles.hint}>
-          Sau khi quét mã, nhấn nút trên để xác nhận giao dịch.
+          Sau khi thanh toán thành công, nhấn nút trên để xác nhận giao dịch nếu chưa được tự động chuyển hướng.
         </Text>
       </ScrollView>
     </View>
@@ -264,6 +243,18 @@ const styles = StyleSheet.create({
   },
 
   content: { padding: 24, alignItems: "center" },
+
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    marginTop: 12,
+  },
+
   heading: {
     fontSize: 22,
     fontWeight: "800",
@@ -277,34 +268,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 20,
-  },
-
-  qrCard: {
-    width: "100%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-    padding: 20,
-    alignItems: "center",
-    marginBottom: 16,
-    minHeight: 240,
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  qrImage: { width: 240, height: 240 },
-  qrPlaceholder: { alignItems: "center", gap: 12, paddingVertical: 24 },
-  qrLoadingText: { fontSize: 13, color: "#9CA3AF" },
-  qrSub: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    textAlign: "center",
-    marginTop: 14,
-    lineHeight: 18,
   },
 
   pollingRow: {

@@ -35,37 +35,47 @@ export type MappedTransaction = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const INFLOW_TYPES = new Set(['Deposit', 'Donate', 'donate', 'deposit']);
+
 const formatRelativeTime = (isoDate: string): string => {
-  const now = Date.now();
+  if (!isoDate) return '—';
   const then = new Date(isoDate).getTime();
-  const diffMs = now - then;
+  if (isNaN(then) || then <= 0) return '—';
+
+  const diffMs = Date.now() - then;
+  if (diffMs < 0) return '—';
 
   const mins = Math.floor(diffMs / (1000 * 60));
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins} min${mins > 1 ? 's' : ''} ago`;
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  return `${days} day${days > 1 ? 's' : ''} ago`;
+  // Anything older than a year is almost certainly a placeholder/epoch date.
+  if (days > 365) return '—';
+
+  if (mins < 1) return 'Vừa xong';
+  if (mins < 60) return `${mins} phút trước`;
+  if (hours < 24) return `${hours} giờ trước`;
+  return `${days} ngày trước`;
 };
 
 const shortenAddress = (address: string): string => {
+  if (!address) return '';
   if (address.length <= 10) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
 };
 
 export const mapTxRecord = (tx: TxRecord): MappedTransaction => {
-  const isDeposit = tx.action_type === 'Deposit';
+  const isInflow = INFLOW_TYPES.has(tx.action_type);
+  const poolName = tx.pool_name?.trim() || 'Quỹ chung';
   return {
     id: tx.id,
     address: shortenAddress(tx.actor_address),
     time: formatRelativeTime(tx.created_at),
-    type: isDeposit ? 'inflow' : 'outflow',
-    amount: `${isDeposit ? '+' : '-'}${tx.amount.toLocaleString('vi-VN')}`,
-    description: tx.message,
-    category: tx.pool_name,
-    poolName: tx.pool_name,
+    type: isInflow ? 'inflow' : 'outflow',
+    amount: `${isInflow ? '+' : '-'}${tx.amount.toLocaleString('vi-VN')}`,
+    description: tx.message?.trim() || tx.action_type,
+    category: poolName,
+    poolName,
     coinType: tx.coin_type,
     rawAmount: tx.amount,
   };
@@ -74,7 +84,7 @@ export const mapTxRecord = (tx: TxRecord): MappedTransaction => {
 // ─── API Calls ────────────────────────────────────────────────────────────────
 
 export const getTxRecords = async (
-  page = 0,
+  page = 1,
   pageSize = 10
 ): Promise<TxRecordsResponse> => {
   try {

@@ -5,6 +5,7 @@ import {
   RegisterData,
   AuthResponse,
 } from "../services/auth.service";
+import { getProfile, Profile } from "../services/profile.service";
 
 interface AuthState {
   user: {
@@ -14,6 +15,8 @@ interface AuthState {
     role: string;
     walletAddress?: string;
   } | null;
+  profile: Profile | null;
+  isProfileLoading: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -21,6 +24,8 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
+  profile: null,
+  isProfileLoading: false,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -105,6 +110,20 @@ export const saltUser = createAsyncThunk(
   },
 );
 
+export const fetchProfile = createAsyncThunk(
+  "auth/fetchProfile",
+  async (sub: string, { rejectWithValue }) => {
+    try {
+      const profile = await getProfile(sub);
+      return profile;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch profile",
+      );
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -116,6 +135,7 @@ const authSlice = createSlice({
     },
     clearAuth: (state) => {
       state.user = null;
+      state.profile = null;
       state.isAuthenticated = false;
       state.error = null;
     },
@@ -124,6 +144,7 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.user = null;
+      state.profile = null;
       state.isAuthenticated = false;
       state.error = null;
     },
@@ -164,7 +185,18 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+        state.profile = null;
         state.isAuthenticated = false;
+      })
+      .addCase(fetchProfile.pending, (state) => {
+        state.isProfileLoading = true;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.isProfileLoading = false;
+        state.profile = action.payload;
+      })
+      .addCase(fetchProfile.rejected, (state) => {
+        state.isProfileLoading = false;
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.user = action.payload;

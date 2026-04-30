@@ -105,7 +105,7 @@ export const getHealthInsuranceNeedDetails = async (childId: string): Promise<{ 
  * POST /children/books-need/{id}/support
  * Supports the books need for a child.
  */
-export type SponsorResponse = { url: string };
+export type SponsorResponse = { url: string, payment_id?: string | number, order_code?: string | number, id?: string | number };
 
 export const supportBooksNeed = async (childId: string): Promise<SponsorResponse> => {
   const res = await apiService.post(`/children/books-need/${childId}/support`, {});

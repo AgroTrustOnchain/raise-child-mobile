@@ -13,6 +13,9 @@ export type UpdateProfileRequest = {
 
 export type Profile = {
   id: string;
+  status?: string;
+  salt?: string;
+  token?: string;
   date_of_birth?: string;
   email?: string;
   first_name?: string;

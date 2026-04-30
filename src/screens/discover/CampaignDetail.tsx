@@ -181,7 +181,7 @@ const CampaignDetail = () => {
                 <View style={styles.donatedTextWrap}>
                   <Text style={styles.donatedLabel}>Tổng đã quyên góp</Text>
                   <Text style={styles.donatedAmount}>
-                    {regionInfo.total_donated.toLocaleString()} SUI
+                    {regionInfo.total_donated.toLocaleString()} đ
                   </Text>
                 </View>
                 <TouchableOpacity

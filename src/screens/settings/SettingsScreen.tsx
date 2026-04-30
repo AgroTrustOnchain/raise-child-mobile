@@ -22,7 +22,12 @@ const SettingsScreen = () => {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
-  const { user, isLoading } = useAppSelector((state) => state.auth);
+  const { user, profile } = useAppSelector((state) => state.auth);
+  const displayName =
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim() ||
+    user?.name ||
+    'N/A';
+  const displayEmail = profile?.email || user?.email || 'N/A';
   const [isChangingRole, setIsChangingRole] = useState(false);
 
   const roles: string[] = Array.isArray(user?.role)
@@ -88,13 +93,13 @@ const SettingsScreen = () => {
           <View style={styles.card}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Tên:</Text>
-              <Text style={styles.infoValue}>{user?.name || 'N/A'}</Text>
+              <Text style={styles.infoValue}>{displayName}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email:</Text>
 
-              <Text style={styles.infoValue}>{user?.email || 'N/A'}</Text>
+              <Text style={styles.infoValue}>{displayEmail}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>

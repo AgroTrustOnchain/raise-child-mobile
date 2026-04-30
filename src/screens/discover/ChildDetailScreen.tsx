@@ -142,9 +142,11 @@ const ChildDetailScreen = () => {
       } else if (selectedSupport === 'health') {
         res = await submitSponsorship({ type: 'health', childId: raw.health_insurance_need });
       }
+      console.log(res)
       if (res?.url) {
         navigation.navigate('PaymentQrScreen', {
           paymentUrl: res.url,
+          paymentId: res.payment_id ?? res.order_code ?? res.id,
           title: `Sponsor ${beneficiary.name}`,
         });
       } else {

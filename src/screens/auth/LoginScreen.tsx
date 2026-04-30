@@ -18,7 +18,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 import { useDispatch } from "react-redux";
-import { loginUser, saltUser } from "../../store/authSlice";
+import { loginUser, saltUser, fetchProfile } from "../../store/authSlice";
 import { AppDispatch } from "../../store";
 import { getSubFromJWT } from "../../utils/jwt";
 import { jwtToAddress } from "../../utils/zklogin";
@@ -89,6 +89,7 @@ const LoginScreen = () => {
               maxEpoch,
               salt: saltResult.salt,
             });
+            dispatch(fetchProfile(sub));
             // Alert.alert("Đăng nhập thành công", "Chào mừng trở lại!");
             setIsInProgress(false);
           } else {

@@ -37,6 +37,7 @@ const DonateRegionScreen = () => {
         message: message.trim(),
         pool_id: params.pool_id,
       });
+      console.log(res)
       if (res?.url) {
         navigation.navigate("PaymentQrScreen", {
           paymentUrl: res.url,

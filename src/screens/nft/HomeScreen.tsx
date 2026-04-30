@@ -63,7 +63,7 @@ const HomeScreen = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   // ── Filter state ───────────────────────────────────────────────────────────
@@ -89,6 +89,7 @@ const HomeScreen = () => {
       // console.log(response)
       const mapped = response?.data?.length > 0 ? response.data.map(mapTxRecord) : [];
 
+
       setTransactions(prev => (append ? [...prev, ...mapped] : mapped));
       setTotalPages(response.total_pages);
       setPage(pageNum);
@@ -101,20 +102,20 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    fetchTransactions(0);
+    fetchTransactions(1);
   }, [fetchTransactions]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetchTransactions(0);
+      await fetchTransactions(1);
     } finally {
       setRefreshing(false);
     }
   };
 
   const handleLoadMore = () => {
-    if (!loadingMore && page + 1 < totalPages) {
+    if (!loadingMore && page < totalPages) {
       fetchTransactions(page + 1, true);
     }
   };
@@ -245,7 +246,7 @@ const HomeScreen = () => {
         <View style={styles.errorBanner}>
           <Ionicons name="alert-circle-outline" size={16} color="#DC2626" />
           <Text style={styles.errorBannerText}>{error}</Text>
-          <TouchableOpacity onPress={() => fetchTransactions(0)}>
+          <TouchableOpacity onPress={() => fetchTransactions(1)}>
             <Text style={styles.errorRetryText}>Thử lại</Text>
           </TouchableOpacity>
         </View>
@@ -263,65 +264,88 @@ const HomeScreen = () => {
 
   // ─── Transaction row ───────────────────────────────────────────────────────
 
-  const renderTransaction = ({ item }: { item: MappedTransaction }) => (
-    <TouchableOpacity
-      style={[
-        styles.transactionItem,
-        item.type === 'outflow' && styles.transactionOutflow,
-      ]}
-      activeOpacity={0.7}
-    >
-      <View style={styles.transactionLeft}>
-        <View style={[
-          styles.transactionIcon,
-          item.type === 'outflow' ? styles.iconOutflow : styles.iconInflow,
-        ]}>
-          <Ionicons
-            name={item.type === 'inflow' ? 'arrow-down' : 'arrow-up'}
-            size={18}
-            color={item.type === 'inflow' ? '#1E40AF' : '#EA580C'}
-          />
-        </View>
+  const renderTransaction = ({ item }: { item: MappedTransaction }) => {
+    const showPool = !!item.poolName && item.poolName !== 'Quỹ chung';
+    const showTime = item.time !== '—';
 
-        <View style={styles.transactionDetails}>
-          <View style={styles.addressRow}>
-            <Text style={styles.transactionAddress}>{item.address}</Text>
-            <Ionicons name="open-outline" size={13} color="#9CA3AF" />
+    return (
+      <TouchableOpacity
+        style={[
+          styles.transactionItem,
+          item.type === 'outflow' && styles.transactionOutflow,
+        ]}
+        activeOpacity={0.7}
+      >
+        <View style={styles.transactionLeft}>
+          <View
+            style={[
+              styles.transactionIcon,
+              item.type === 'outflow' ? styles.iconOutflow : styles.iconInflow,
+            ]}
+          >
+            <Ionicons
+              name={item.type === 'inflow' ? 'arrow-down' : 'arrow-up'}
+              size={18}
+              color={item.type === 'inflow' ? '#1E40AF' : '#EA580C'}
+            />
           </View>
-          <View style={styles.transactionMeta}>
-            <Text style={styles.transactionTime}>{item.time}</Text>
-            <View style={styles.metaDot} />
-            <Text style={[
-              styles.transactionCategory,
-              item.type === 'outflow' ? { color: '#EA580C' } : { color: '#1E40AF' },
-            ]}>
-              {item.coinType}
+
+          <View style={styles.transactionDetails}>
+            <Text style={styles.transactionMessage} numberOfLines={1}>
+              {item.description}
             </Text>
+            <View style={styles.addressRow}>
+              <Text style={styles.transactionAddress}>{item.address}</Text>
+              <Ionicons name="open-outline" size={12} color="#9CA3AF" />
+            </View>
+            <View style={styles.transactionMeta}>
+              {showTime && (
+                <>
+                  <Text style={styles.transactionTime}>{item.time}</Text>
+                  <View style={styles.metaDot} />
+                </>
+              )}
+              <Text
+                style={[
+                  styles.transactionCategory,
+                  item.type === 'outflow'
+                    ? { color: '#EA580C' }
+                    : { color: '#1E40AF' },
+                ]}
+              >
+                {item.coinType}
+              </Text>
+              {showPool && (
+                <>
+                  <View style={styles.metaDot} />
+                  <Text style={styles.transactionPoolName} numberOfLines={1}>
+                    {item.poolName}
+                  </Text>
+                </>
+              )}
+            </View>
           </View>
-          <Text style={styles.transactionPoolName} numberOfLines={1}>
-            {item.poolName}
-          </Text>
         </View>
-      </View>
 
-      <View style={styles.transactionRight}>
-        <Text style={[
-          styles.transactionAmount,
-          item.type === 'inflow' ? styles.amountInflow : styles.amountOutflow,
-        ]}>
-          {item.amount}
-        </Text>
-        <Text style={styles.transactionDescription} numberOfLines={1}>
-          {item.description}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.transactionRight}>
+          <Text
+            style={[
+              styles.transactionAmount,
+              item.type === 'inflow' ? styles.amountInflow : styles.amountOutflow,
+            ]}
+          >
+            {item.amount}
+          </Text>
+          <Text style={styles.transactionCoinSuffix}>{item.coinType}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   // ─── Load more footer ──────────────────────────────────────────────────────
 
   const renderFooter = () => {
-    if (page + 1 >= totalPages) return null;
+    if (page >= totalPages) return null;
     return (
       <TouchableOpacity
         style={styles.loadMoreBtn}
@@ -331,7 +355,7 @@ const HomeScreen = () => {
         {loadingMore ? (
           <ActivityIndicator size="small" color="#1E40AF" />
         ) : (
-          <Text style={styles.loadMoreText}>Tải thêm  ·  Trang {page + 1}/{totalPages}</Text>
+          <Text style={styles.loadMoreText}>Tải thêm  ·  Trang {page}/{totalPages}</Text>
         )}
       </TouchableOpacity>
     );
@@ -523,6 +547,8 @@ const styles = StyleSheet.create({
   amountInflow: { color: '#1E40AF' },
   amountOutflow: { color: '#EA580C' },
   transactionDescription: { fontSize: 10, color: '#9CA3AF', marginTop: 2, maxWidth: 100 },
+  transactionMessage: { fontSize: 14, fontWeight: '700', color: '#111827', marginBottom: 2 },
+  transactionCoinSuffix: { fontSize: 11, color: '#9CA3AF', marginTop: 2, fontWeight: '600' },
 
   // Load more
   loadMoreBtn: {
