@@ -75,6 +75,7 @@ export default function TaskScreen() {
           pageSize: PAGE_SIZE,
         });
         const list = extractTasksFromResponse(res);
+        console.log(list)
         const tp = typeof res.total_pages === 'number' ? res.total_pages : 1;
         setTotalPages(tp);
         setPage(pageToFetch);

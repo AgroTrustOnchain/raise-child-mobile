@@ -22,6 +22,7 @@ import PersonalInformationScreen from "../screens/profile/PersonalInformationScr
 import WelfareUpdateScreen from "../screens/volunteer/Welfareupdatescreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
 import RegistrationFormScreen from "../screens/settings/RegistrationFormScreen";
+import ChildUploadReqScreen from "../screens/profile/ChildUploadReqScreen";
 import { VolunteerNavigator } from "./VolunteerNavigator";
 
 // Define all global/modal screens that aren't in tab navigation
@@ -33,6 +34,7 @@ export type GlobalModalParamList = {
   RegistrationForm: { region?: string } | undefined;
   SupportedRegions: undefined;
   Wallet: undefined;
+  ChildUploadReq: undefined;
   // CreateNFT: undefined;
   // Add more modal screens here as needed
   // ChildHealthReport: { childId: string };
@@ -319,6 +321,11 @@ export const RootNavigator = () => {
           name="SupportedRegions"
           component={SupportedRegionsScreen}
           options={{ title: 'Regions Needing Support', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="ChildUploadReq"
+          component={ChildUploadReqScreen}
+          options={{ title: 'Đăng ký trẻ em', headerShown: false }}
         />
         {/* Add more global modal screens here as needed */}
         {/* <RootStack.Screen

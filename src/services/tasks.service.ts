@@ -39,6 +39,7 @@ export interface GetTasksParams {
   page?: number;
   pageSize?: number;
   region?: string;
+  assignedStaff?: string;
 }
 
 /**
@@ -48,7 +49,7 @@ export interface GetTasksParams {
  */
 export const getTasks = async (params: GetTasksParams = {}): Promise<TasksListResponse> => {
   try {
-    const { keyword = '', page = 0, pageSize = 10, region = '' } = params;
+    const { keyword = '', page = 0, pageSize = 10, region = '', assignedStaff = '' } = params;
 
     // Build query parameters
     const queryParams = new URLSearchParams();
@@ -56,6 +57,7 @@ export const getTasks = async (params: GetTasksParams = {}): Promise<TasksListRe
     if (page !== undefined) queryParams.append('page', page.toString());
     if (pageSize !== undefined) queryParams.append('page_size', pageSize.toString());
     if (region) queryParams.append('region', region);
+    if (assignedStaff) queryParams.append('assgined_staff', assignedStaff);
 
     const queryString = queryParams.toString();
     const url = `/tasks${queryString ? '?' + queryString : ''}`;

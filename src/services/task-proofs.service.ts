@@ -45,6 +45,8 @@ export const submitTaskProof = async (
       imageBlobId
     )}`;
 
+    console.log(url)
+
     const response = await apiService.post<TaskProofResponse>(url, {});
 
     return response.data;

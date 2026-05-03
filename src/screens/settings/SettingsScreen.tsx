@@ -183,6 +183,23 @@ const SettingsScreen = () => {
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.registrationButton, { marginTop: 8 }]}
+            onPress={() => navigation.navigate("ChildUploadReq" as any)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.registrationLeft}>
+              <Ionicons name="person-add" size={20} color="#1E40AF" />
+              <View>
+                <Text style={styles.registrationTitle}>Đăng ký trẻ em</Text>
+                <Text style={styles.registrationSubtitle}>
+                  Gửi yêu cầu thêm hồ sơ trẻ em mới
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
         </View>
 
         {/* Additional Settings */}

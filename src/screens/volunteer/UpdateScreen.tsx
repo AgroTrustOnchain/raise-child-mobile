@@ -14,12 +14,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getTasks, TaskItem } from '../../services/tasks.service';
+import { useWallet } from '../../context/WalletContext';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
 function UpdateScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const { wallet } = useWallet();
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ function UpdateScreen() {
   useFocusEffect(
     React.useCallback(() => {
       fetchTasks();
-    }, [])
+    }, [wallet?.address])
   );
 
   const fetchTasks = async () => {
@@ -39,6 +41,7 @@ function UpdateScreen() {
       const response = await getTasks({
         page: 0,
         pageSize: 20,
+        assignedStaff: wallet?.address,
       });
 
       // Extract tasks from response (handles different formats)
