@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
-type CallbackStatus = "success" | "error";
+type CallbackStatus = "success" | "error" | "cancelled";
 
 const PaymentCallbackScreen = () => {
   const navigation = useNavigation<any>();
@@ -15,57 +15,91 @@ const PaymentCallbackScreen = () => {
     message?: string;
   };
 
-  const status: CallbackStatus = params.status === "error" ? "error" : "success";
-  const isError = status === "error";
+  const status: CallbackStatus =
+    params.status === "cancelled"
+      ? "cancelled"
+      : params.status === "error"
+      ? "error"
+      : "success";
+
+  const isSuccess = status === "success";
+  const isCancelled = status === "cancelled";
 
   const title =
     params.title ??
-    (isError ? "Giao dịch thất bại" : "Quyên góp thành công!");
+    (isSuccess
+      ? "Quyên góp thành công!"
+      : isCancelled
+      ? "Giao dịch đã bị huỷ"
+      : "Giao dịch thất bại");
 
   const message =
     params.message ??
-    (isError
-      ? "Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại."
-      : "Thanh toán của bạn đã được ghi nhận thành công.");
+    (isSuccess
+      ? "Thanh toán của bạn đã được ghi nhận thành công."
+      : isCancelled
+      ? "Bạn đã huỷ giao dịch hoặc giao dịch bị huỷ bởi hệ thống thanh toán."
+      : "Đã xảy ra lỗi trong quá trình xử lý. Vui lòng thử lại.");
+
+  const iconName = isSuccess ? "checkmark-circle" : isCancelled ? "close-circle-outline" : "close-circle";
+  const iconColor = isSuccess ? "#1E40AF" : isCancelled ? "#D97706" : "#DC2626";
+  const iconBg = isSuccess ? "#EFF6FF" : isCancelled ? "#FFFBEB" : "#FEE2E2";
+
+  const buttonLabel = isSuccess ? "Về trang Khám phá" : isCancelled ? "Thử lại" : "Quay lại";
+
+  const handleButton = () => {
+    if (isCancelled) {
+      navigation.goBack();
+      return;
+    }
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: "Main",
+          state: {
+            routes: [
+              {
+                name: "Explore",
+                state: { routes: [{ name: "Discover" }] },
+              },
+            ],
+          },
+        },
+      ],
+    });
+  };
 
   return (
     <View style={styles.container}>
-      <View style={[styles.iconWrap, isError ? styles.iconError : styles.iconSuccess]}>
-        <Ionicons
-          name={isError ? "close-circle" : "checkmark-circle"}
-          size={64}
-          color={isError ? "#DC2626" : "#1E40AF"}
-        />
+      <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
+        <Ionicons name={iconName} size={64} color={iconColor} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.subtitle}>{message}</Text>
 
       <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: "Main",
-                state: {
-                  routes: [
-                    {
-                      name: "Explore",
-                      state: { routes: [{ name: "Discover" }] },
-                    },
-                  ],
-                },
-              },
-            ],
-          })
-        }
+        style={[styles.button, isCancelled && styles.buttonWarning]}
+        onPress={handleButton}
         activeOpacity={0.85}
       >
-        <Text style={styles.buttonText}>
-          {isError ? "Quay lại" : "Về trang Khám phá"}
-        </Text>
+        <Text style={styles.buttonText}>{buttonLabel}</Text>
       </TouchableOpacity>
+
+      {!isSuccess && (
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Main", state: { routes: [{ name: "Explore", state: { routes: [{ name: "Discover" }] } }] } }],
+            })
+          }
+          activeOpacity={0.7}
+        >
+          <Text style={styles.secondaryButtonText}>Về trang Khám phá</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -86,8 +120,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
   },
-  iconSuccess: { backgroundColor: "#EFF6FF" },
-  iconError: { backgroundColor: "#FEE2E2" },
   title: {
     fontSize: 24,
     fontWeight: "800",
@@ -117,8 +149,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+    marginBottom: 12,
+  },
+  buttonWarning: {
+    backgroundColor: "#D97706",
+    shadowColor: "#D97706",
   },
   buttonText: { fontSize: 17, fontWeight: "800", color: "#FFFFFF" },
+  secondaryButton: { paddingVertical: 12, paddingHorizontal: 24 },
+  secondaryButtonText: { fontSize: 14, fontWeight: "600", color: "#6B7280" },
 });
 
 export default PaymentCallbackScreen;

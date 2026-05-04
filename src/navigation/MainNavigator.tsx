@@ -35,6 +35,16 @@ export type GlobalModalParamList = {
   SupportedRegions: undefined;
   Wallet: undefined;
   ChildUploadReq: undefined;
+  PaymentCallbackScreen: {
+    status?: string;
+    title?: string;
+    message?: string;
+    tx_bytes?: string;
+    proposal_id?: string;
+    center_req?: string;
+    registration_req?: string;
+    upload_child_req?: string;
+  };
   // CreateNFT: undefined;
   // Add more modal screens here as needed
   // ChildHealthReport: { childId: string };
@@ -326,6 +336,11 @@ export const RootNavigator = () => {
           name="ChildUploadReq"
           component={ChildUploadReqScreen}
           options={{ title: 'Đăng ký trẻ em', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="PaymentCallbackScreen"
+          component={PaymentCallbackScreen}
+          options={{ headerShown: false }}
         />
         {/* Add more global modal screens here as needed */}
         {/* <RootStack.Screen

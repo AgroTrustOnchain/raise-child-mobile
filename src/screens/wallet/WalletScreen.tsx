@@ -60,13 +60,8 @@ const BadgeCard = ({ badge }: { badge: typeof BADGES[0] }) => (
 
 const TransactionItem = ({ tx }: { tx: TransactionRecord }) => {
   const amount = tx.amount ?? 0;
+  const coinType = tx.coin_type ?? 'VND';
   const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString('vi-VN') : '';
-  const statusColor =
-    tx.status === 'SUCCESS' || tx.status === 'success'
-      ? '#1E40AF'
-      : tx.status === 'FAILED' || tx.status === 'failed'
-      ? '#DC2626'
-      : '#EA580C';
 
   return (
     <View style={styles.transactionCard}>
@@ -75,21 +70,33 @@ const TransactionItem = ({ tx }: { tx: TransactionRecord }) => {
           <Ionicons name="heart" size={18} color="#1E40AF" />
         </View>
         <View style={styles.txDetails}>
-          <Text style={styles.txTitle} numberOfLines={1}>
-            {tx.description ?? tx.order_code ?? 'Giao dịch'}
-          </Text>
+          <View style={styles.txTitleRow}>
+            {!!tx.action_type && (
+              <View style={styles.actionBadge}>
+                <Text style={styles.actionBadgeText}>{tx.action_type}</Text>
+              </View>
+            )}
+            {!!tx.pool_name && (
+              <Text style={styles.txTitle} numberOfLines={1}>{tx.pool_name}</Text>
+            )}
+          </View>
+          {!!tx.message && (
+            <Text style={styles.txMessage} numberOfLines={2}>{tx.message}</Text>
+          )}
           <View style={styles.txMeta}>
             {!!date && <Text style={styles.txDate}>{date}</Text>}
-            {!!tx.status && (
+            {!!tx.coin_type && (
               <>
                 {!!date && <Text style={styles.metaDot}>•</Text>}
-                <Text style={[styles.txStatus, { color: statusColor }]}>{tx.status}</Text>
+                <Text style={styles.txCoin}>{coinType}</Text>
               </>
             )}
           </View>
         </View>
       </View>
-      <Text style={styles.txAmount}>{formatVND(Math.abs(amount))}</Text>
+      <Text style={styles.txAmount}>
+        {Math.abs(amount).toLocaleString('vi-VN')}
+      </Text>
     </View>
   );
 };
@@ -536,7 +543,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderWidth: 1,
     borderColor: '#F1F5F9',
     shadowColor: '#000',
@@ -545,7 +552,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  txLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  txLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flex: 1 },
   txIcon: {
     width: 40,
     height: 40,
@@ -555,12 +562,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   txDetails: { flex: 1 },
-  txTitle: { fontSize: 13, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  txTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' },
+  actionBadge: {
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  actionBadgeText: { fontSize: 9, fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase' },
+  txTitle: { fontSize: 13, fontWeight: '700', color: '#111827', flex: 1 },
+  txMessage: { fontSize: 11, color: '#6B7280', marginBottom: 4, lineHeight: 15 },
   txMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   txDate: { fontSize: 10, color: '#6B7280' },
   metaDot: { color: '#9CA3AF', fontSize: 10 },
-  txStatus: { fontSize: 9, fontWeight: '700' },
-  txAmount: { fontSize: 13, fontWeight: '700', color: '#111827' },
+  txCoin: { fontSize: 10, fontWeight: '600', color: '#1E40AF' },
+  txAmount: { fontSize: 14, fontWeight: '800', color: '#111827', marginLeft: 8 },
 
   // Load more
   loadMoreButton: {

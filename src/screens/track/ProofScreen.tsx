@@ -1,5 +1,4 @@
-// src/screens/profile/ImpactProofGalleryScreen.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,198 +6,233 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Linking,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { getChildById } from '../../services/child.service';
+import { getMealNeedProof, MealNeedProof } from '../../services/sponsorship.service';
+import { API_BASE_URL } from '../../services/api.service';
 
-interface ImpactEvent {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
-  amount: string;
-  walletAddress: string;
-  image: string;
-  verified: boolean;
-  isRecent: boolean;
-}
-
-const IMPACT_EVENTS: ImpactEvent[] = [
-  {
-    id: '1',
-    date: 'Jan 12, 2024',
-    title: 'Weekly Meal',
-    description: 'Nutritional support for education',
-    amount: '2.4',
-    walletAddress: '0x74a2...d4',
-    image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=400',
-    verified: true,
-    isRecent: true,
-  },
-  {
-    id: '2',
-    date: 'Dec 28, 2023',
-    title: 'Health Check',
-    description: 'Quarterly pediatric screening',
-    amount: '12.0',
-    walletAddress: '0x3b2a...e1',
-    image: 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=400',
-    verified: true,
-    isRecent: false,
-  },
-  {
-    id: '3',
-    date: 'Nov 15, 2023',
-    title: 'School Supplies',
-    description: 'Annual book and uniform kit',
-    amount: '25.0',
-    walletAddress: '0x88f2...9c',
-    image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400',
-    verified: true,
-    isRecent: false,
-  },
-];
+const formatDate = (raw: string): string => {
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
 
 const ProofScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute();
+  const { childId } = (route.params ?? {}) as { childId?: string };
 
-  const handleFilter = () => {
-    Alert.alert('Filter Options', 'Filter functionality coming soon');
-  };
+  const [childName, setChildName] = useState('');
+  const [proof, setProof] = useState<MealNeedProof | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleViewProof = (event: ImpactEvent) => {
-    Alert.alert(
-      'Blockchain Proof',
-      `Transaction: ${event.walletAddress}\nAmount: ${event.amount} SUI\nEvent: ${event.title}`,
-      [
-        { text: 'Close', style: 'cancel' },
-        { text: 'View on Explorer', onPress: () => handleViewExplorer() },
-      ]
+  useEffect(() => {
+    if (!childId) {
+      setError('Không có ID trẻ em.');
+      setLoading(false);
+      return;
+    }
+    const load = async () => {
+      try {
+        const child = await getChildById(childId);
+        const name = `${child.first_name || ''} ${child.last_name || ''}`.trim();
+        setChildName(name);
+
+        if (!child.meal_need) {
+          setError('Trẻ em này chưa có thông tin bữa ăn.');
+          return;
+        }
+        const proofData = await getMealNeedProof(child.meal_need);
+        setProof(proofData);
+      } catch (e) {
+        setError('Không thể tải dữ liệu. Vui lòng thử lại.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [childId]);
+
+  // ── Loading ──────────────────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={22} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Bằng chứng hỗ trợ</Text>
+          <View style={styles.headerButton} />
+        </View>
+        <ActivityIndicator size="large" color="#1E40AF" style={{ marginTop: 60 }} />
+      </View>
     );
-  };
+  }
 
-  const handleViewExplorer = () => {
-    // Example blockchain explorer URL
-    const explorerUrl = 'https://explorer.sui.io';
-    Linking.openURL(explorerUrl).catch(() => {
-      Alert.alert('Error', 'Could not open blockchain explorer');
-    });
-  };
+  // ── Error ────────────────────────────────────────────────────────────────────
+  if (error || !proof) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={22} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Bằng chứng hỗ trợ</Text>
+          <View style={styles.headerButton} />
+        </View>
+        <View style={styles.emptyState}>
+          <Ionicons name="document-outline" size={56} color="#D1D5DB" />
+          <Text style={styles.emptyTitle}>{error ?? 'Chưa có dữ liệu'}</Text>
+        </View>
+      </View>
+    );
+  }
 
+  // ── Build timeline entries from 1-to-1 mapping of dates ↔ images ────────────
+  const entries = proof.provide_meal_dates.map((date, i) => ({
+    date,
+    imageId: proof.provide_meal_image_blob_ids[i] ?? null,
+    period: proof.provide_meal_periods[i] ?? null,
+    staff: proof.provide_meal_staffs[i] ?? null,
+  }));
+
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color="#111827" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {childName || 'Bằng chứng hỗ trợ'}
+        </Text>
+        <View style={styles.headerButton} />
+      </View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Title Section */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Summary card */}
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>{proof.total_supported_months}</Text>
+              <Text style={styles.summaryLabel}>Tháng hỗ trợ</Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>{entries.length}</Text>
+              <Text style={styles.summaryLabel}>Bữa ăn đã cung cấp</Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryValue}>
+                {proof.value > 0 ? proof.value.toLocaleString('vi-VN') : '—'}
+              </Text>
+              <Text style={styles.summaryLabel}>Giá trị (đ)</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Section title */}
         <View style={styles.titleSection}>
-          <Text style={styles.title}>Malati's Journey</Text>
+          <Text style={styles.title}>Lịch sử bữa ăn</Text>
           <Text style={styles.subtitle}>
-            A historical timeline of verifiable impact events.
+            Mỗi mục là một bằng chứng đã được xác minh trên blockchain.
           </Text>
         </View>
 
         {/* Timeline */}
-        <View style={styles.timeline}>
-          {/* Timeline Line */}
-          <View style={styles.timelineLine} />
-
-          {/* Events */}
-          {IMPACT_EVENTS.map((event, index) => (
-            <View key={event.id} style={styles.timelineItem}>
-              {/* Date Header */}
-              <View style={styles.dateHeader}>
-                <View style={[
-                  styles.timelineDot,
-                  event.isRecent && styles.timelineDotActive
-                ]} />
-                <Text style={[
-                  styles.dateText,
-                  event.isRecent && styles.dateTextActive
-                ]}>
-                  {event.date}
-                </Text>
-              </View>
-
-              {/* Event Card */}
-              <TouchableOpacity
-                style={[
-                  styles.eventCard,
-                  !event.isRecent && { opacity: index === 1 ? 0.9 : 0.8 }
-                ]}
-                onPress={() => handleViewProof(event)}
-                activeOpacity={0.9}
-              >
-                {/* Event Image */}
-                <View style={styles.eventImageContainer}>
-                  <Image 
-                    source={{ uri: event.image }} 
-                    style={[
-                      styles.eventImage,
-                      !event.isRecent && { opacity: 0.95 }
-                    ]}
-                  />
-                  {event.verified && (
-                    <View style={styles.verifiedBadge}>
-                      <Ionicons name="shield-checkmark" size={14} color="#1E40AF" />
-                      <Text style={styles.verifiedText}>AI VERIFIED</Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Event Content */}
-                <View style={styles.eventContent}>
-                  <View style={styles.eventHeader}>
-                    <View style={styles.eventInfo}>
-                      <Text style={styles.eventTitle}>{event.title}</Text>
-                      <Text style={styles.eventDescription}>{event.description}</Text>
-                    </View>
-                    <View style={styles.eventAmount}>
-                      <Text style={styles.amountText}>{event.amount} SUI</Text>
-                    </View>
+        {entries.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="restaurant-outline" size={48} color="#D1D5DB" />
+            <Text style={styles.emptyTitle}>Chưa có bữa ăn nào được ghi nhận</Text>
+          </View>
+        ) : (
+          <View style={styles.timeline}>
+            <View style={styles.timelineLine} />
+            {entries.map((entry, index) => {
+              const isFirst = index === 0;
+              const imageUri = entry.imageId
+                ? `${API_BASE_URL.replace(/\/+$/, '')}/blobs/${entry.imageId}`
+                : null;
+              return (
+                <View key={index} style={styles.timelineItem}>
+                  <View style={styles.dateHeader}>
+                    <View style={[styles.timelineDot, isFirst && styles.timelineDotActive]} />
+                    <Text style={[styles.dateText, isFirst && styles.dateTextActive]}>
+                      {formatDate(entry.date)}
+                    </Text>
+                    {!!entry.period && (
+                      <View style={styles.periodBadge}>
+                        <Text style={styles.periodText}>{entry.period}</Text>
+                      </View>
+                    )}
                   </View>
 
-                  {/* Event Footer */}
-                  <View style={styles.eventFooter}>
-                    <View style={styles.walletInfo}>
-                      <Ionicons name="wallet" size={16} color="#1E40AF" />
-                      <Text style={styles.walletAddress}>{event.walletAddress}</Text>
+                  <View style={styles.eventCard}>
+                    {/* Image */}
+                    <View style={styles.eventImageContainer}>
+                      {imageUri ? (
+                        <Image source={{ uri: imageUri }} style={styles.eventImage} resizeMode="cover" />
+                      ) : (
+                        <View style={[styles.eventImage, styles.imagePlaceholder]}>
+                          <Ionicons name="image-outline" size={36} color="#BFDBFE" />
+                          <Text style={styles.imagePlaceholderText}>Chưa có ảnh</Text>
+                        </View>
+                      )}
+                      <View style={styles.verifiedBadge}>
+                        <Ionicons name="shield-checkmark" size={12} color="#1E40AF" />
+                        <Text style={styles.verifiedText}>ĐÃ XÁC MINH</Text>
+                      </View>
                     </View>
-                    <TouchableOpacity 
-                      style={styles.viewProofButton}
-                      onPress={() => handleViewProof(event)}
-                    >
-                      <Text style={styles.viewProofText}>VIEW PROOF</Text>
-                      <Ionicons name="chevron-forward" size={12} color="#1E40AF" />
-                    </TouchableOpacity>
+
+                    {/* Content */}
+                    <View style={styles.eventContent}>
+                      <Text style={styles.eventTitle}>Bữa ăn ngày {formatDate(entry.date)}</Text>
+
+                      {!!entry.staff && (
+                        <View style={styles.infoRow}>
+                          <Ionicons name="person-outline" size={13} color="#6B7280" />
+                          <Text style={styles.infoText}>{entry.staff}</Text>
+                        </View>
+                      )}
+
+                      <View style={styles.eventFooter}>
+                        <View style={styles.walletInfo}>
+                          <Ionicons name="cube-outline" size={13} color="#1E40AF" />
+                          <Text style={styles.walletAddress} numberOfLines={1}>
+                            {proof.id.slice(0, 10)}…{proof.id.slice(-6)}
+                          </Text>
+                        </View>
+                        <View style={styles.verifiedChip}>
+                          <Ionicons name="checkmark-circle" size={12} color="#059669" />
+                          <Text style={styles.verifiedChipText}>On-chain</Text>
+                        </View>
+                      </View>
+                    </View>
                   </View>
                 </View>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+              );
+            })}
+          </View>
+        )}
 
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Bottom CTA */}
+      {/* Bottom bar */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity 
-          style={styles.explorerButton}
-          onPress={handleViewExplorer}
-          activeOpacity={0.95}
-        >
-          <Ionicons name="globe-outline" size={24} color="#FFFFFF" />
-          <Text style={styles.explorerButtonText}>View on Blockchain Explorer</Text>
-        </TouchableOpacity>
-        <Text style={styles.protocolText}>
-          VERIFIED BY AGROTRUST PROTOCOL V2.4
+        <View style={styles.bottomInfo}>
+          <Ionicons name="shield-checkmark" size={16} color="#1E40AF" />
+          <Text style={styles.protocolText}>XÁC MINH BỞI AGROTRUST PROTOCOL</Text>
+        </View>
+        <Text style={styles.needIdText} numberOfLines={1}>
+          Need ID: {proof.id.slice(0, 16)}…
         </Text>
       </View>
     </View>
@@ -206,243 +240,120 @@ const ProofScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    backgroundColor: 'rgba(248,250,252,0.85)',
+    paddingVertical: 16,
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(226,232,240,0.5)',
+    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
   },
   headerButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
   },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827', flex: 1, textAlign: 'center' },
+
+  scrollView: { flex: 1 },
+
+  summaryCard: {
+    margin: 16,
+    backgroundColor: '#1E40AF',
+    borderRadius: 20,
+    padding: 20,
   },
-  scrollView: {
-    flex: 1,
-  },
-  titleSection: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#111827',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  timeline: {
-    position: 'relative',
-    paddingHorizontal: 16,
-    paddingBottom: 48,
-  },
+  summaryRow: { flexDirection: 'row', alignItems: 'center' },
+  summaryItem: { flex: 1, alignItems: 'center' },
+  summaryValue: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
+  summaryLabel: { fontSize: 10, fontWeight: '500', color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
+  summaryDivider: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,0.2)' },
+
+  titleSection: { paddingHorizontal: 16, paddingBottom: 8 },
+  title: { fontSize: 20, fontWeight: '800', color: '#111827' },
+  subtitle: { fontSize: 13, color: '#6B7280', marginTop: 4, lineHeight: 18 },
+
+  timeline: { position: 'relative', paddingHorizontal: 16, paddingBottom: 24 },
   timelineLine: {
-    position: 'absolute',
-    left: 36,
-    top: 0,
-    bottom: 0,
-    width: 2,
-    backgroundColor: '#DBEAFE',
+    position: 'absolute', left: 36, top: 0, bottom: 0, width: 2, backgroundColor: '#DBEAFE',
   },
-  timelineItem: {
-    position: 'relative',
-    marginBottom: 32,
-  },
+  timelineItem: { position: 'relative', marginBottom: 28 },
   dateHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-    marginLeft: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, marginLeft: 4,
   },
   timelineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#DBEAFE',
-    borderWidth: 2,
-    borderColor: '#F8FAFC',
+    width: 12, height: 12, borderRadius: 6, backgroundColor: '#DBEAFE',
+    borderWidth: 2, borderColor: '#F8FAFC',
   },
   timelineDotActive: {
     backgroundColor: '#1E40AF',
-    shadowColor: '#1E40AF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#1E40AF', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4,
+    shadowRadius: 6, elevation: 4,
   },
   dateText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#9CA3AF',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    fontSize: 11, fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 1,
   },
-  dateTextActive: {
-    color: '#1E40AF',
+  dateTextActive: { color: '#1E40AF' },
+  periodBadge: {
+    backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 2,
+    borderRadius: 8, borderWidth: 1, borderColor: '#DBEAFE',
   },
+  periodText: { fontSize: 10, fontWeight: '600', color: '#1E40AF' },
+
   eventCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden',
+    borderWidth: 1, borderColor: '#F1F5F9',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
   },
-  eventImageContainer: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    position: 'relative',
+  eventImageContainer: { width: '100%', aspectRatio: 16 / 9, position: 'relative' },
+  eventImage: { width: '100%', height: '100%' },
+  imagePlaceholder: {
+    backgroundColor: '#F0F9FF', justifyContent: 'center', alignItems: 'center', gap: 6,
   },
-  eventImage: {
-    width: '100%',
-    height: '100%',
-  },
+  imagePlaceholderText: { fontSize: 12, color: '#93C5FD' },
   verifiedBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
+    position: 'absolute', top: 10, left: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.95)', paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 16, borderWidth: 1, borderColor: '#DBEAFE',
   },
-  verifiedText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#111827',
-    letterSpacing: 0.5,
-  },
-  eventContent: {
-    padding: 16,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  eventInfo: {
-    flex: 1,
-  },
-  eventTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  eventDescription: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  eventAmount: {
-    marginLeft: 12,
-  },
-  amountText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1E40AF',
-  },
+  verifiedText: { fontSize: 9, fontWeight: '700', color: '#1E40AF', letterSpacing: 0.5 },
+
+  eventContent: { padding: 14, gap: 8 },
+  eventTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  infoText: { fontSize: 12, color: '#6B7280', flex: 1 },
+
   eventFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F1F5F9',
   },
-  walletInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  walletInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
+  walletAddress: { fontSize: 10, color: '#9CA3AF', fontVariant: ['tabular-nums'], flex: 1 },
+  verifiedChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#F0FDF4', paddingHorizontal: 8, paddingVertical: 3,
+    borderRadius: 8, borderWidth: 1, borderColor: '#BBF7D0',
   },
-  walletAddress: {
-    fontSize: 10,
-    fontFamily: 'monospace',
-    color: '#9CA3AF',
-  },
-  viewProofButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  viewProofText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1E40AF',
-    letterSpacing: 0.8,
-  },
-  bottomSpacing: {
-    height: 120,
-  },
+  verifiedChipText: { fontSize: 10, fontWeight: '700', color: '#059669' },
+
+  emptyState: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32, gap: 12 },
+  emptyTitle: { fontSize: 15, fontWeight: '600', color: '#6B7280', textAlign: 'center' },
+
   bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(248,250,252,0.95)',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    backgroundColor: 'rgba(248,250,252,0.97)',
+    borderTopWidth: 1, borderTopColor: '#E5E7EB',
+    paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20,
+    alignItems: 'center', gap: 4,
   },
-  explorerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    backgroundColor: '#1E40AF',
-    height: 60,
-    borderRadius: 16,
-    shadowColor: '#1E40AF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  explorerButtonText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
+  bottomInfo: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   protocolText: {
-    textAlign: 'center',
-    fontSize: 10,
-    color: '#9CA3AF',
-    letterSpacing: 2,
-    marginTop: 12,
+    fontSize: 10, fontWeight: '700', color: '#1E40AF', letterSpacing: 1.5,
   },
+  needIdText: { fontSize: 9, color: '#9CA3AF', fontVariant: ['tabular-nums'] },
 });
 
 export default ProofScreen;

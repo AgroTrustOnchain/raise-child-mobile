@@ -31,9 +31,14 @@ export type Profile = {
 export interface TransactionRecord {
   id?: string;
   order_code?: string;
-  description?: string;
+  actor_address?: string;
+  action_type?: string;
+  pool_name?: string;
   amount?: number;
+  message?: string;
+  coin_type?: string;
   status?: string;
+  description?: string;
   created_at?: string;
 }
 
