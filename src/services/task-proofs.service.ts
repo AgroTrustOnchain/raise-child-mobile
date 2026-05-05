@@ -41,13 +41,13 @@ export const submitTaskProof = async (
       throw new Error('Image blob ID is required');
     }
 
-    const url = `/task-proofs/task/${taskId}/submit?image_blob_id=${encodeURIComponent(
-      imageBlobId
-    )}`;
+    const url = `/task-proofs/task/${taskId}/submit`;
 
-    console.log(url)
+    console.log(`Submitting task proof for task ${taskId} with image blob ID ${imageBlobId}`);
 
-    const response = await apiService.post<TaskProofResponse>(url, {});
+    const response = await apiService.post<TaskProofResponse>(url, {
+      image_blob_id: imageBlobId,
+    });
 
     return response.data;
   } catch (error) {

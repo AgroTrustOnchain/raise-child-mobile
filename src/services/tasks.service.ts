@@ -125,6 +125,19 @@ export const extractTasksFromResponse = (response: TasksListResponse): TaskItem[
 };
 
 /**
+ * GET /tasks/staff/{walletAddress}
+ * Fetch all tasks assigned to a volunteer staff by wallet address
+ */
+export const getStaffTasks = async (walletAddress: string): Promise<TaskItem[]> => {
+  const response = await apiService.get<TaskItem[] | TasksListResponse>(
+    `/tasks/staff/${walletAddress}`
+  );
+  const d = response.data;
+  if (Array.isArray(d)) return d;
+  return extractTasksFromResponse(d as TasksListResponse);
+};
+
+/**
  * Assign a task to the current volunteer profile
  * POST /tasks/{taskId}/assign
  */

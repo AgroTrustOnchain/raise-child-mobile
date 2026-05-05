@@ -1,5 +1,6 @@
 {
   "expo": {
+    "newArchEnabled": true,
     "name": "raise-child-mobile",
     "slug": "raise-child-mobile",
     "version": "1.0.0",
@@ -14,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.raisechild.mobile",
-      "newArchEnabled": false,
+      "newArchEnabled": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Allow access to your camera to take photos.",
@@ -30,7 +31,7 @@
       "package": "com.raisechild.mobile",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "newArchEnabled": false
+      "newArchEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
