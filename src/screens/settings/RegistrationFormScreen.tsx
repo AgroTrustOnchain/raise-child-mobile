@@ -188,7 +188,7 @@ const RegistrationFormScreen = () => {
         avatar_blob_id: formData.avatarBlobId || "",
         identity_card_blob_id: formData.identityCardBlobId || "",
         region: formData.region,
-        register_role: formData.registerRole.replace(" ", "_"),
+        register_role: formData.registerRole,
       };
 
       console.log("Submitting registration:", payload);
@@ -201,6 +201,7 @@ const RegistrationFormScreen = () => {
       Alert.alert("Thành công", "Đã gửi đăng ký thành công!");
       navigation.goBack();
     } catch (error) {
+      console.error("Registration submission error:", error);
       Alert.alert(
         "Lỗi",
         error instanceof Error ? error.message : "Không thể gửi mẫu đăng ký",
