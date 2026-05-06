@@ -23,6 +23,7 @@ import WelfareUpdateScreen from "../screens/volunteer/Welfareupdatescreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
 import RegistrationFormScreen from "../screens/settings/RegistrationFormScreen";
 import ChildUploadReqScreen from "../screens/profile/ChildUploadReqScreen";
+import SubmittedProofsScreen from "../screens/volunteer/SubmittedProofsScreen";
 import { VolunteerNavigator } from "./VolunteerNavigator";
 
 // Define all global/modal screens that aren't in tab navigation
@@ -35,6 +36,7 @@ export type GlobalModalParamList = {
   SupportedRegions: undefined;
   Wallet: undefined;
   ChildUploadReq: undefined;
+  SubmittedProofs: undefined;
   PaymentCallbackScreen: {
     status?: string;
     title?: string;
@@ -173,6 +175,11 @@ const TrackStack = () => {
         name="ProofScreen"
         component={ProofScreen}
         options={{ title: "Impact Proof" }}
+      />
+      <Stack.Screen
+        name="ChildDetailScreen"
+        component={ChildDetailScreen}
+        options={{ title: "Child Details" }}
       />
     </Stack.Navigator>
   );
@@ -336,6 +343,11 @@ export const RootNavigator = () => {
           name="ChildUploadReq"
           component={ChildUploadReqScreen}
           options={{ title: 'Đăng ký trẻ em', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="SubmittedProofs"
+          component={SubmittedProofsScreen}
+          options={{ title: 'Submitted Proofs', headerShown: false }}
         />
         <RootStack.Screen
           name="PaymentCallbackScreen"

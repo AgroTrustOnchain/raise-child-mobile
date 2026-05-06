@@ -4,10 +4,34 @@ export interface TaskProof {
   id: string;
   task_id: string;
   image_blob_id: string;
+  description?: string;
+  actor_profile_id?: string;
+  actor_address?: string;
+  reviewed_by?: string | null;
+  ai_evaluation?: string;
+  review_status?: 'Pending' | 'Approved' | 'Rejected' | string;
+  raw_submit_date?: string;
   verified?: boolean;
   created_at?: string;
+  updated_at?: string;
   [key: string]: any;
 }
+
+export interface TaskProofsListResponse {
+  data: TaskProof[];
+  amount: number;
+  page: number;
+  total_pages: number;
+}
+
+export const getTaskProofsByActor = async (
+  actorAddress: string,
+): Promise<TaskProofsListResponse> => {
+  const response = await apiService.get<TaskProofsListResponse>('/task-proofs', {
+    params: { actor_address: actorAddress },
+  });
+  return response.data;
+};
 
 export interface SubmitTaskProofParams {
   taskId: string | number;

@@ -79,16 +79,19 @@ const HomeScreen = () => {
     ).start();
   }, []);
 
+  // Guard so FlatList's onEndReached can't trigger overlapping fetches
+  const isFetchingRef = useRef(false);
+
   // ── Fetch transactions ─────────────────────────────────────────────────────
   const fetchTransactions = useCallback(async (pageNum: number, append = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       append ? setLoadingMore(true) : setLoading(true);
       setError(null);
 
       const response = await getTxRecords(pageNum, 10);
-      // console.log(response)
       const mapped = response?.data?.length > 0 ? response.data.map(mapTxRecord) : [];
-
 
       setTransactions(prev => (append ? [...prev, ...mapped] : mapped));
       setTotalPages(response.total_pages);
@@ -98,6 +101,7 @@ const HomeScreen = () => {
     } finally {
       setLoading(false);
       setLoadingMore(false);
+      isFetchingRef.current = false;
     }
   }, []);
 
@@ -114,11 +118,11 @@ const HomeScreen = () => {
     }
   };
 
-  const handleLoadMore = () => {
-    if (!loadingMore && page < totalPages) {
-      fetchTransactions(page + 1, true);
-    }
-  };
+  const handleLoadMore = useCallback(() => {
+    if (loading || refreshing || loadingMore) return;
+    if (page >= totalPages) return;
+    fetchTransactions(page + 1, true);
+  }, [loading, refreshing, loadingMore, page, totalPages, fetchTransactions]);
 
   // ── Filtered list ──────────────────────────────────────────────────────────
   const filteredTransactions =
@@ -345,20 +349,22 @@ const HomeScreen = () => {
   // ─── Load more footer ──────────────────────────────────────────────────────
 
   const renderFooter = () => {
-    if (page >= totalPages) return null;
-    return (
-      <TouchableOpacity
-        style={styles.loadMoreBtn}
-        onPress={handleLoadMore}
-        disabled={loadingMore}
-      >
-        {loadingMore ? (
+    if (loadingMore) {
+      return (
+        <View style={styles.footerLoading}>
           <ActivityIndicator size="small" color="#1E40AF" />
-        ) : (
-          <Text style={styles.loadMoreText}>Tải thêm  ·  Trang {page}/{totalPages}</Text>
-        )}
-      </TouchableOpacity>
-    );
+          <Text style={styles.footerLoadingText}>Đang tải thêm…</Text>
+        </View>
+      );
+    }
+    if (transactions.length > 0 && page >= totalPages) {
+      return (
+        <View style={styles.footerEnd}>
+          <Text style={styles.footerEndText}>— Đã xem hết giao dịch —</Text>
+        </View>
+      );
+    }
+    return null;
   };
 
   // ─── Root render ──────────────────────────────────────────────────────────
@@ -371,6 +377,8 @@ const HomeScreen = () => {
         keyExtractor={item => item.id}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.4}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -557,6 +565,26 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: '#F1F5F9',
   },
   loadMoreText: { fontSize: 13, fontWeight: '600', color: '#1E40AF' },
+
+  footerLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  footerLoadingText: { fontSize: 12, color: '#6B7280', fontWeight: '500' },
+  footerEnd: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  footerEndText: { fontSize: 11, color: '#9CA3AF', fontWeight: '500' },
 });
 
 export default HomeScreen;

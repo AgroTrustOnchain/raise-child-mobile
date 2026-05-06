@@ -9,6 +9,7 @@ export interface TaskItem {
   assgined_staff?: string | null;
   review_profile_status?: string;
   reviewed_by?: string | null;
+  is_submitted?: boolean;
   region?: string;
   description?: string;
   start_period?: string;
