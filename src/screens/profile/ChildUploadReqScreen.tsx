@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { uploadImageToWalrus } from "../../services/walrus.service";
-import { getRegions } from "../../services/registration.service";
+import RegionPicker from "../../components/RegionPicker";
 import {
   submitChildUploadRequest,
   ChildUploadReqPayload,
@@ -82,13 +82,10 @@ const ChildUploadReqScreen = () => {
   const [secondGuardian, setSecondGuardian] = useState<GuardianForm>(emptyGuardian());
 
   // UI state
-  const [regions, setRegions] = useState<string[]>([]);
-  const [isLoadingRegions, setIsLoadingRegions] = useState(false);
   const [uploadingSlot, setUploadingSlot] = useState<ImageSlot | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Modals
-  const [showRegionModal, setShowRegionModal] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [openRelationPicker, setOpenRelationPicker] = useState<
@@ -109,22 +106,6 @@ const ChildUploadReqScreen = () => {
   );
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
   const yearOptions = Array.from({ length: 30 }, (_, i) => today.getFullYear() - i);
-
-  useEffect(() => {
-    fetchRegions();
-  }, []);
-
-  const fetchRegions = async () => {
-    try {
-      setIsLoadingRegions(true);
-      const data = await getRegions();
-      setRegions(data);
-    } catch (e) {
-      console.error("Failed to fetch regions:", e);
-    } finally {
-      setIsLoadingRegions(false);
-    }
-  };
 
   const pickImage = async (slot: ImageSlot) => {
     try {
@@ -569,16 +550,7 @@ const ChildUploadReqScreen = () => {
           <Text style={styles.label}>
             Khu vực <Text style={styles.requiredStar}>*</Text>
           </Text>
-          <TouchableOpacity
-            style={styles.pickerButton}
-            onPress={() => setShowRegionModal(true)}
-            disabled={isLoadingRegions}
-          >
-            <Text style={[styles.pickerText, !region && styles.pickerPlaceholder]}>
-              {region || (isLoadingRegions ? "Đang tải…" : "Chọn khu vực")}
-            </Text>
-            <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
-          </TouchableOpacity>
+          <RegionPicker value={region} onChange={setRegion} placeholder="Chọn xã/phường" />
         </View>
 
         {renderImageUpload("home", "Ảnh nơi ở", homeBlobId, homePreview)}
@@ -627,62 +599,6 @@ const ChildUploadReqScreen = () => {
           )}
         </TouchableOpacity>
       </View>
-
-      {/* Region modal */}
-      <Modal
-        visible={showRegionModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowRegionModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowRegionModal(false)}
-        >
-          <TouchableOpacity activeOpacity={1} style={styles.regionModalCard}>
-            <Text style={styles.modalTitle}>Chọn khu vực</Text>
-            <FlatList
-              data={regions}
-              keyExtractor={(item) => item}
-              style={{ maxHeight: 360 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.regionItem,
-                    region === item && styles.regionItemSelected,
-                  ]}
-                  onPress={() => {
-                    setRegion(item);
-                    setShowRegionModal(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.regionItemText,
-                      region === item && styles.regionItemTextSelected,
-                    ]}
-                  >
-                    {item}
-                  </Text>
-                  {region === item && (
-                    <Ionicons name="checkmark" size={18} color="#1E40AF" />
-                  )}
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>Không có khu vực nào</Text>
-              }
-            />
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={() => setShowRegionModal(false)}
-            >
-              <Text style={styles.modalCloseText}>Đóng</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
 
       {/* Date modal */}
       <Modal

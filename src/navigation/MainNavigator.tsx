@@ -15,6 +15,7 @@ import WithdrawalScreen from "../screens/wallet/WithdrawalScreen";
 import ChildProofScreen from "../screens/discover/ChildProofScreen";
 import DonateRegionScreen from "../screens/discover/DonateRegionScreen";
 import SupportedRegionsScreen from "../screens/discover/SupportedRegionsScreen";
+import CreateSupportedRegionScreen from "../screens/discover/CreateSupportedRegionScreen";
 import PaymentCallbackScreen from "../screens/discover/PaymentCallbackScreen";
 import PaymentQrScreen from "../screens/discover/PaymentQrScreen";
 import WalletScreen from "../screens/wallet/WalletScreen";
@@ -34,6 +35,7 @@ export type GlobalModalParamList = {
   Volunteer: undefined;
   RegistrationForm: { region?: string } | undefined;
   SupportedRegions: undefined;
+  CreateSupportedRegion: undefined;
   Wallet: undefined;
   ChildUploadReq: undefined;
   SubmittedProofs: undefined;
@@ -338,6 +340,11 @@ export const RootNavigator = () => {
           name="SupportedRegions"
           component={SupportedRegionsScreen}
           options={{ title: 'Regions Needing Support', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="CreateSupportedRegion"
+          component={CreateSupportedRegionScreen}
+          options={{ title: 'Đề xuất vùng', headerShown: false }}
         />
         <RootStack.Screen
           name="ChildUploadReq"

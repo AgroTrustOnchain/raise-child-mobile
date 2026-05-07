@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -17,10 +17,8 @@ import * as ImagePicker from "expo-image-picker";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../navigation/MainNavigator";
 import { useAppSelector } from "../../store";
-import {
-  submitRegistration,
-  getRegions,
-} from "../../services/registration.service";
+import { submitRegistration } from "../../services/registration.service";
+import RegionPicker from "../../components/RegionPicker";
 import { uploadImageToWalrus } from "../../services/walrus.service";
 import * as FileSystem from "expo-file-system/legacy";
 
@@ -43,13 +41,10 @@ const RegistrationFormScreen = () => {
   const route = useRoute<any>();
   const prefilledRegion: string = route.params?.region ?? "";
   const { user } = useAppSelector((state) => state.auth);
-  const [regions, setRegions] = useState<any[]>([]);
-  const [isLoadingRegions, setIsLoadingRegions] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadCCCD, setIsUploadCCCD] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [showRegionModal, setShowRegionModal] = useState(false);
 
   const [formData, setFormData] = useState<RegistrationFormData>({
     avatarBlobId: undefined,
@@ -59,24 +54,6 @@ const RegistrationFormScreen = () => {
     region: prefilledRegion,
     registerRole: "",
   });
-
-  // Fetch regions from API
-  useEffect(() => {
-    fetchRegions();
-  }, []);
-
-  const fetchRegions = async () => {
-    try {
-      setIsLoadingRegions(true);
-      const data = await getRegions();
-      setRegions(data);
-    } catch (error) {
-      console.error("Failed to fetch regions:", error);
-      Alert.alert("Lỗi", "Không thể tải danh sách vùng. Vui lòng thử lại.");
-    } finally {
-      setIsLoadingRegions(false);
-    }
-  };
 
   const pickImage = async (imageType: "avatar" | "identityCard") => {
     try {
@@ -299,92 +276,11 @@ const RegistrationFormScreen = () => {
         {/* Region Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Vùng</Text>
-          <TouchableOpacity
-            style={styles.roleDropdown}
-            onPress={() => setShowRegionModal(true)}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.roleDropdownText,
-                !formData.region && styles.roleDropdownPlaceholder,
-              ]}
-            >
-              {formData.region || "Chọn vùng"}
-            </Text>
-            <Ionicons name="chevron-down" size={20} color="#6b7280" />
-          </TouchableOpacity>
-
-          {/* Region Modal */}
-          <Modal
-            visible={showRegionModal}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setShowRegionModal(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Chọn vùng</Text>
-                  <TouchableOpacity
-                    onPress={() => setShowRegionModal(false)}
-                    style={styles.modalCloseButton}
-                  >
-                    <Ionicons name="close" size={24} color="#111827" />
-                  </TouchableOpacity>
-                </View>
-
-                {isLoadingRegions ? (
-                  <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#1E40AF" />
-                  </View>
-                ) : regions.length === 0 ? (
-                  <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyText}>Không có vùng nào</Text>
-                  </View>
-                ) : (
-                  <ScrollView
-                    style={styles.modalScroll}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    {regions.map((region) => (
-                      <TouchableOpacity
-                        key={region?.id || region}
-                        style={[
-                          styles.roleOption,
-                          formData.region === region && styles.roleOptionActive,
-                        ]}
-                        onPress={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            region: region,
-                          }));
-                          setShowRegionModal(false);
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.roleOptionText,
-                            formData.region === region &&
-                              styles.roleOptionTextActive,
-                          ]}
-                        >
-                          {region}
-                        </Text>
-                        {formData.region === region && (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={24}
-                            color="#1E40AF"
-                          />
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                )}
-              </View>
-            </View>
-          </Modal>
+          <RegionPicker
+            value={formData.region}
+            onChange={(r) => setFormData((prev) => ({ ...prev, region: r }))}
+            placeholder="Chọn xã/phường"
+          />
         </View>
 
         {/* Role Selection */}
