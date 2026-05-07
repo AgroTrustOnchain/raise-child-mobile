@@ -151,3 +151,21 @@ export const getChildById = async (childId: string) => {
     return MOCK_CHILDREN[0];
   }
 };
+
+export type SupportedChildrenResponse = {
+  data: any[];
+  amount: number;
+  page: number;
+  total_pages: number;
+};
+
+export const getSupportedChildren = async (
+  walletAddress: string,
+  page = 1
+): Promise<SupportedChildrenResponse> => {
+  const res = await apiService.get<SupportedChildrenResponse>(
+    `/children/user/${walletAddress}/supported`,
+    { params: { page } }
+  );
+  return res.data;
+};

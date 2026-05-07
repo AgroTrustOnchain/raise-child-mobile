@@ -18,7 +18,7 @@ import {
 } from "@react-native-google-signin/google-signin";
 import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 import { useDispatch } from "react-redux";
-import { loginUser, saltUser } from "../../store/authSlice";
+import { loginUser, saltUser, fetchProfile } from "../../store/authSlice";
 import { AppDispatch } from "../../store";
 import { getSubFromJWT } from "../../utils/jwt";
 import { jwtToAddress } from "../../utils/zklogin";
@@ -48,7 +48,9 @@ const LoginScreen = () => {
   const handleLoginWithGoogle = async () => {
     try {
       setIsInProgress(true);
-      await GoogleSignin.hasPlayServices();
+      if (Platform.OS === "android") {
+        await GoogleSignin.hasPlayServices();
+      }
       const isSignedIn = GoogleSignin.getCurrentUser();
       if (isSignedIn) {
         await GoogleSignin.signOut();
@@ -75,6 +77,7 @@ const LoginScreen = () => {
           const loginResponse = await dispatch(
             loginUser({ address: userAddress, sub }),
           );
+          console.log("Login Response:", loginResponse.payload);
 
           if (loginResponse.payload) {
             setWallet({
@@ -86,7 +89,8 @@ const LoginScreen = () => {
               maxEpoch,
               salt: saltResult.salt,
             });
-            Alert.alert("Đăng nhập thành công", "Chào mừng trở lại!");
+            dispatch(fetchProfile(sub));
+            // Alert.alert("Đăng nhập thành công", "Chào mừng trở lại!");
             setIsInProgress(false);
           } else {
             Alert.alert("Đăng nhập thất bại", "Không thể xác thực với Google");

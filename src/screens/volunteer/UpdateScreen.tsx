@@ -13,13 +13,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { getTasks, TaskItem } from '../../services/tasks.service';
+import { getStaffTasks, TaskItem } from '../../services/tasks.service';
+import { useWallet } from '../../context/WalletContext';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
 function UpdateScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const { wallet } = useWallet();
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ function UpdateScreen() {
   useFocusEffect(
     React.useCallback(() => {
       fetchTasks();
-    }, [])
+    }, [wallet?.address])
   );
 
   const fetchTasks = async () => {
@@ -36,13 +38,13 @@ function UpdateScreen() {
       setIsLoading(true);
       setError(null);
 
-      const response = await getTasks({
-        page: 0,
-        pageSize: 20,
-      });
+      if (!wallet?.address) {
+        setTasks([]);
+        return;
+      }
 
-      // Extract tasks from response (handles different formats)
-      const tasksList = response.data || response.items || response.tasks || [];
+      const tasksList = await getStaffTasks(wallet.address);
+      console.log(tasksList)
       setTasks(tasksList);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load tasks';
@@ -66,6 +68,14 @@ function UpdateScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Upload Updates</Text>
+        <TouchableOpacity
+          style={styles.headerActionBtn}
+          onPress={() => navigation.navigate('SubmittedProofs')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="document-text" size={16} color="#FFFFFF" />
+          <Text style={styles.headerActionText}>Submitted</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Subtitle */}
@@ -146,13 +156,22 @@ function UpdateScreen() {
 
               {/* Action Button */}
               <TouchableOpacity
-                style={styles.uploadButton}
+                style={[styles.uploadButton, task.is_submitted && styles.uploadButtonDisabled]}
                 onPress={() => handleUploadUpdate(task)}
+                disabled={task.is_submitted}
                 activeOpacity={0.7}
               >
-                <Ionicons name="cloud-upload" size={18} color="#fff" />
-                <Text style={styles.uploadButtonText}>Upload Welfare Update</Text>
-                <Ionicons name="chevron-forward" size={18} color="#fff" />
+                <Ionicons
+                  name={task.is_submitted ? 'checkmark-circle' : 'cloud-upload'}
+                  size={18}
+                  color="#fff"
+                />
+                <Text style={styles.uploadButtonText}>
+                  {task.is_submitted ? 'Already Submitted' : 'Upload Welfare Update'}
+                </Text>
+                {!task.is_submitted && (
+                  <Ionicons name="chevron-forward" size={18} color="#fff" />
+                )}
               </TouchableOpacity>
             </View>
           ))}
@@ -184,6 +203,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E40AF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  headerActionText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   headerTitle: {
     fontSize: 18,
@@ -312,6 +350,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E40AF',
     paddingVertical: 14,
     paddingHorizontal: 16,
+  },
+  uploadButtonDisabled: {
+    backgroundColor: '#9CA3AF',
+    opacity: 0.7,
   },
   uploadButtonText: {
     fontSize: 15,

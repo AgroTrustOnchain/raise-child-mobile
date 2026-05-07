@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,231 +9,324 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../../store';
-import { getPaymentsByActor, PaymentTransaction } from '../../services/payment.service';
+import {
+  getPersonalWalletProfile,
+  WalletProfile,
+  TransactionRecord,
+} from '../../services/profile.service';
 
-interface Badge {
-  id: string;
-  title: string;
-  tier: string;
-  image: string;
-  verified: boolean;
-}
+const formatVND = (value: number) =>
+  `${Math.round(value).toLocaleString('vi-VN')} ₫`;
 
+// ── Badge data (static) ───────────────────────────────────────────────────────
+const BADGES = [
+  {
+    id: '1',
+    title: 'Seed Sower #42',
+    tier: 'Gold Tier',
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuD2i2YL68NSk1J9vyAJywSPcCqgJdE-bcKRaBc_z0b-Zd7pMCzS7kXaj4QZrDF4a3IGpw3x_nAB_PGHzm3X-ptSc13pS031T2V4sS0Qr7I2oLCjDxip06Goz4BKjO4iGKI9FYAt5xiPcWHS73Wpo9Ua0vvR9VyvxNEFE1QP5iicmpv7ROqB1Bc5aAag5AE_K5ow-6UyCx5lYXjEvo6UYI_1STd8J0Rff-ekbr-CgzvtW0L39kfnJKirfVi5yHYS2w_1BzLihca6Ahlt',
+  },
+  {
+    id: '2',
+    title: 'Knowledge Keeper',
+    tier: 'Rare',
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuDvVNzDrD7Npuzkca_2WOHC6gYDJ8gT0GsbbtHPwuR8cLBttJf-bhq0WL6ucdtE0ReK4qWOWHTb3LRYYnv046nveZp3OyafmhBzphgXcTc6E-doWQ1GvFkUnQi9hMZYsp4lrwziLqGUAgmnYPt9yBVbSDXUzFW0H0XwhyAaAAJdSIhueLg9YUr89nqBk0EFAzUUU73Rp0QcCmAG_VfF5xu_ZI1ccVIZRyOaICThR_VM0SZEv7BrzPFc_4kC4JDbr_GzEuyA2srRGeQ8',
+  },
+];
 
-const WalletScreen = () => {
-  const insets = useSafeAreaInsets();
-  const { user } = useAppSelector((state) => state.auth);
+// ── Sub-components ────────────────────────────────────────────────────────────
 
-  const [balance] = useState({
-    usd: '$1,248.50',
-    crypto: '845.20 SUI',
-    network: 'SUI',
-  });
-
-  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
-  const [loadingTx, setLoadingTx] = useState(false);
-
-  useEffect(() => {
-    if (!user?.walletAddress) return;
-    setLoadingTx(true);
-    getPaymentsByActor(user.walletAddress)
-      .then((res) => setTransactions(res.data ?? []))
-      .catch(() => Alert.alert('Error', 'Failed to load transactions.'))
-      .finally(() => setLoadingTx(false));
-  }, [user?.walletAddress]);
-
-  const badges: Badge[] = [
-    {
-      id: '1',
-      title: 'Seed Sower #42',
-      tier: 'Gold Tier',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD2i2YL68NSk1J9vyAJywSPcCqgJdE-bcKRaBc_z0b-Zd7pMCzS7kXaj4QZrDF4a3IGpw3x_nAB_PGHzm3X-ptSc13pS031T2V4sS0Qr7I2oLCjDxip06Goz4BKjO4iGKI9FYAt5xiPcWHS73Wpo9Ua0vvR9VyvxNEFE1QP5iicmpv7ROqB1Bc5aAag5AE_K5ow-6UyCx5lYXjEvo6UYI_1STd8J0Rff-ekbr-CgzvtW0L39kfnJKirfVi5yHYS2w_1BzLihca6Ahlt',
-      verified: true,
-    },
-    {
-      id: '2',
-      title: 'Knowledge Keeper',
-      tier: 'Rare',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDvVNzDrD7Npuzkca_2WOHC6gYDJ8gT0GsbbtHPwuR8cLBttJf-bhq0WL6ucdtE0ReK4qWOWHTb3LRYYnr046nveZp3OyafmhBzphgXcTc6E-doWQ1GvFkUnQi9hMZYsp4lrwziLqGUAgmnYPt9yBVbSDXUzFW0H0XwhyAaAAJdSIhueLg9YUr89nqBk0EFAzUUU73Rp0QcCmAG_VfF5xu_ZI1ccVIZRyOaICThR_VM0SZEv7BrzPFc_4kC4JDbr_GzEuyA2srRGeQ8',
-      verified: true,
-    },
-  ];
-
-
-  const handleAddFunds = () => {
-    Alert.alert('Nạp tiền', 'Tính năng nạp tiền sắp ra mắt');
-  };
-
-  const handleDonate = () => {
-    Alert.alert('Quyên góp', 'Tính năng quyên góp sắp ra mắt');
-  };
-
-  const handleQRCode = () => {
-    Alert.alert('Mã QR', 'Hiển thị mã QR ví');
-  };
-
-  const BadgeCard = ({ badge }: { badge: Badge }) => (
-    <View style={styles.badgeCard}>
-      <Image
-        source={{ uri: badge.image }}
-        style={styles.badgeImage}
-        resizeMode="cover"
-      />
-      <View style={styles.badgeGradientOverlay}>
-        <View style={styles.badgeInfo}>
-          <Text style={styles.badgeTier}>{badge.tier}</Text>
-          <Text style={styles.badgeTitle}>{badge.title}</Text>
-        </View>
-        {badge.verified && (
-          <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={16} color="#60A5FA" />
-          </View>
-        )}
+const BadgeCard = ({ badge }: { badge: typeof BADGES[0] }) => (
+  <View style={styles.badgeCard}>
+    <Image source={{ uri: badge.image }} style={styles.badgeImage} resizeMode="cover" />
+    <View style={styles.badgeOverlay}>
+      <View style={styles.badgeInfo}>
+        <Text style={styles.badgeTier}>{badge.tier}</Text>
+        <Text style={styles.badgeTitle}>{badge.title}</Text>
+      </View>
+      <View style={styles.verifiedBadge}>
+        <Ionicons name="checkmark-circle" size={16} color="#60A5FA" />
       </View>
     </View>
-  );
+  </View>
+);
 
-  const TransactionItem = ({ transaction }: { transaction: PaymentTransaction }) => {
-    const amount: number = transaction.amount ?? 0;
-    const isIncoming = amount > 0;
-    const date = transaction.created_at
-      ? new Date(transaction.created_at).toLocaleString()
-      : '';
-    return (
-      <View style={styles.transactionCard}>
-        <View style={styles.transactionLeft}>
-          <View style={styles.transactionIcon}>
-            <Ionicons name="heart" size={20} color="#1E40AF" />
-          </View>
-          <View style={styles.transactionDetails}>
-            <Text style={styles.transactionTitle} numberOfLines={1}>
-              {transaction.description ?? transaction.order_code ?? 'Giao dịch'}
-            </Text>
-            <View style={styles.transactionMeta}>
-              <Text style={styles.transactionDate}>{date}</Text>
-              {transaction.status != null && (
-                <>
-                  <Text style={styles.metaDot}>•</Text>
-                  <Text style={styles.explorerLink}>{transaction.status}</Text>
-                </>
-              )}
-            </View>
-          </View>
-        </View>
-        <View style={styles.transactionAmount}>
-          <Text style={[styles.amount, { color: isIncoming ? '#1E40AF' : '#111827' }]}>
-            {isIncoming ? '+' : '-'} {Math.abs(amount).toLocaleString()} VND
-          </Text>
-        </View>
-      </View>
-    );
-  };
+const TransactionItem = ({ tx }: { tx: TransactionRecord }) => {
+  const amount = tx.amount ?? 0;
+  const coinType = tx.coin_type ?? 'VND';
+  const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString('vi-VN') : '';
 
   return (
+    <View style={styles.transactionCard}>
+      <View style={styles.txLeft}>
+        <View style={styles.txIcon}>
+          <Ionicons name="heart" size={18} color="#1E40AF" />
+        </View>
+        <View style={styles.txDetails}>
+          <View style={styles.txTitleRow}>
+            {!!tx.action_type && (
+              <View style={styles.actionBadge}>
+                <Text style={styles.actionBadgeText}>{tx.action_type}</Text>
+              </View>
+            )}
+            {!!tx.pool_name && (
+              <Text style={styles.txTitle} numberOfLines={1}>{tx.pool_name}</Text>
+            )}
+          </View>
+          {!!tx.message && (
+            <Text style={styles.txMessage} numberOfLines={2}>{tx.message}</Text>
+          )}
+          <View style={styles.txMeta}>
+            {!!date && <Text style={styles.txDate}>{date}</Text>}
+            {!!tx.coin_type && (
+              <>
+                {!!date && <Text style={styles.metaDot}>•</Text>}
+                <Text style={styles.txCoin}>{coinType}</Text>
+              </>
+            )}
+          </View>
+        </View>
+      </View>
+      <Text style={styles.txAmount}>
+        {Math.abs(amount).toLocaleString('vi-VN')}
+      </Text>
+    </View>
+  );
+};
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+const WalletScreen = () => {
+  const navigation = useNavigation();
+  const { user } = useAppSelector((state) => state.auth);
+  const walletAddress = user?.walletAddress ?? '';
+
+  const [profile, setProfile] = useState<WalletProfile | null>(null);
+  const [records, setRecords] = useState<TransactionRecord[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const isFetching = useRef(false);
+
+  const fetchPage = useCallback(
+    async (pageNum: number, replace: boolean) => {
+      if (!walletAddress || isFetching.current) return;
+      isFetching.current = true;
+      try {
+        const data = await getPersonalWalletProfile(walletAddress, pageNum);
+        setProfile(data);
+        setTotalPages(data.total_pages || 1);
+        const incoming = data.transaction_records ?? [];
+        setRecords((prev) => (replace ? incoming : [...prev, ...incoming]));
+        setPage(pageNum);
+      } catch {
+        Alert.alert('Lỗi', 'Không thể tải dữ liệu ví. Vui lòng thử lại.');
+      } finally {
+        isFetching.current = false;
+        setLoading(false);
+        setLoadingMore(false);
+        setRefreshing(false);
+      }
+    },
+    [walletAddress]
+  );
+
+  useEffect(() => {
+    setLoading(true);
+    fetchPage(1, true);
+  }, [walletAddress]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchPage(1, true);
+  };
+
+  const loadMore = () => {
+    if (loadingMore || page >= totalPages) return;
+    setLoadingMore(true);
+    fetchPage(page + 1, false);
+  };
+
+  const fullName =
+    profile?.first_name || profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`.trim()
+      : walletAddress
+      ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`
+      : 'Ví của tôi';
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+  return (
     <ScrollView
-      style={[styles.container]}
+      style={[styles.container, { paddingTop: 20 }]}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1E40AF" />
+      }
     >
-      {/* Balance Card */}
+      {/* ── Header ────────────────────────────────────────────────────────── */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color="#111827" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Ví</Text>
+        <View style={styles.headerButton} />
+      </View>
+
+      {/* ── Balance Card ──────────────────────────────────────────────────── */}
       <View style={styles.balanceCard}>
         <View style={styles.balanceHeader}>
-          <View>
-            <Text style={styles.balanceLabel}>Tổng số dư</Text>
-            <Text style={styles.balanceAmount}>{balance.usd}</Text>
-            <View style={styles.balanceMeta}>
-              <Text style={styles.cryptoAmount}>≈ {balance.crypto}</Text>
-              <View style={styles.networkBadge}>
-                <Text style={styles.networkLabel}>NETWORK: {balance.network}</Text>
-              </View>
-            </View>
+          <View style={{ flex: 1 }}>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" style={{ marginVertical: 8 }} />
+            ) : (
+              <>
+                <Text style={styles.balanceLabel}>Tổng quyên góp</Text>
+                <Text style={styles.balanceAmount}>
+                  {formatVND(profile?.total_donation ?? 0)}
+                </Text>
+                <Text style={styles.balanceName}>{fullName}</Text>
+                {!!walletAddress && (
+                  <View style={styles.addressRow}>
+                    <Text style={styles.addressText}>
+                      {walletAddress.slice(0, 10)}…{walletAddress.slice(-6)}
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
           </View>
           <TouchableOpacity
             style={styles.qrButton}
-            onPress={handleQRCode}
+            onPress={() => Alert.alert('Mã QR', 'Hiển thị mã QR ví')}
           >
             <Ionicons name="qr-code" size={28} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.actionButtons}>
+        {/* Stats row */}
+        {!loading && (
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{profile?.record_amount ?? 0}</Text>
+              <Text style={styles.statLabel}>Giao dịch</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>
+                {profile?.supported_childs?.length ?? 0}
+              </Text>
+              <Text style={styles.statLabel}>Trẻ được hỗ trợ</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{totalPages}</Text>
+              <Text style={styles.statLabel}>Trang</Text>
+            </View>
+          </View>
+        )}
+
+        {/* <View style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.addFundsButton}
-            onPress={handleAddFunds}
+            onPress={() => Alert.alert('Nạp tiền', 'Tính năng nạp tiền sắp ra mắt')}
           >
             <Ionicons name="add-circle" size={20} color="#FFFFFF" />
             <Text style={styles.buttonText}>Nạp tiền</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.donateButton}
-            onPress={handleDonate}
+            onPress={() => Alert.alert('Quyên góp', 'Tính năng quyên góp sắp ra mắt')}
           >
             <Ionicons name="heart" size={20} color="#FFFFFF" />
             <Text style={styles.buttonText}>Quyên góp</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
 
-      {/* Philanthropist Badges Section */}
-      <View style={styles.section}>
+      {/* ── Badges ────────────────────────────────────────────────────────── */}
+      {/* <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleContainer}>
+          <View style={styles.sectionTitleRow}>
             <Text style={styles.sectionTitle}>Huy hiệu Nhà từ thiện</Text>
-            <View style={styles.badgeCount}>
-              <Text style={styles.badgeCountText}>5 Đã đạt</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>5 Đã đạt</Text>
             </View>
           </View>
-          <TouchableOpacity>
-            <View style={styles.seeAllButton}>
-              <Text style={styles.seeAllText}>Bộ sưu tập</Text>
-              <Ionicons name="chevron-forward" size={16} color="#1E40AF" />
-            </View>
+          <TouchableOpacity style={styles.seeAll}>
+            <Text style={styles.seeAllText}>Bộ sưu tập</Text>
+            <Ionicons name="chevron-forward" size={16} color="#1E40AF" />
           </TouchableOpacity>
         </View>
-
         <FlatList
-          data={badges}
+          data={BADGES}
           renderItem={({ item }) => <BadgeCard badge={item} />}
           keyExtractor={(item) => item.id}
           horizontal
           scrollEnabled
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.badgesList}
+          contentContainerStyle={{ gap: 12 }}
         />
-      </View>
+      </View> */}
 
-      {/* Donation Transactions Section */}
+      {/* ── Transaction Records ────────────────────────────────────────────── */}
       <View style={styles.section}>
-        <View style={styles.transactionHeader}>
-          <Text style={styles.sectionTitle}>Lịch sử quyên góp</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAllText}>Xem tất cả</Text>
-          </TouchableOpacity>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Lịch sử giao dịch</Text>
+          {totalPages > 1 && (
+            <Text style={styles.pageLabel}>Trang {page}/{totalPages}</Text>
+          )}
         </View>
 
-        {loadingTx ? (
-          <ActivityIndicator size="small" color="#1E40AF" style={{ marginVertical: 16 }} />
-        ) : transactions.length === 0 ? (
-          <Text style={styles.emptyText}>Không có giao dịch nào.</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#1E40AF" style={{ marginVertical: 20 }} />
+        ) : records.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="receipt-outline" size={40} color="#D1D5DB" />
+            <Text style={styles.emptyText}>Chưa có giao dịch nào</Text>
+          </View>
         ) : (
-          transactions.map((tx, i) => (
-            <TransactionItem key={tx.id ?? tx.order_code ?? i} transaction={tx} />
+          records.map((tx, i) => (
+            <TransactionItem key={tx.id ?? tx.order_code ?? i} tx={tx} />
           ))
         )}
 
-        {/* Info Card */}
+        {/* Load more */}
+        {!loading && page < totalPages && (
+          <TouchableOpacity
+            style={styles.loadMoreButton}
+            onPress={loadMore}
+            disabled={loadingMore}
+            activeOpacity={0.8}
+          >
+            {loadingMore ? (
+              <ActivityIndicator size="small" color="#1E40AF" />
+            ) : (
+              <>
+                <Text style={styles.loadMoreText}>Tải thêm</Text>
+                <Ionicons name="chevron-down" size={16} color="#1E40AF" />
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {/* Info card */}
         <View style={styles.infoCard}>
           <View style={styles.infoIconContainer}>
             <Ionicons name="shield-checkmark" size={20} color="#1E40AF" />
           </View>
-          <View style={styles.infoContent}>
+          <View style={{ flex: 1 }}>
             <Text style={styles.infoTitle}>Minh bạch trên chuỗi</Text>
             <Text style={styles.infoText}>
               Mỗi khoản quyên góp tạo ra chứng chỉ tác động có thể xác minh trên blockchain SUI.
-              NFT tác động đại diện cho những đóng góp thực tế của bạn cho phúc lợi nông thôn.
             </Text>
           </View>
         </View>
@@ -244,79 +337,117 @@ const WalletScreen = () => {
   );
 };
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(226, 232, 240, 0.5)',
   },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
+
+  // Balance card
   balanceCard: {
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 24,
     backgroundColor: '#1E40AF',
     borderRadius: 24,
-    padding: 28,
-    overflow: 'hidden',
+    padding: 24,
   },
   balanceHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   balanceLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255,255,255,0.7)',
     marginBottom: 4,
   },
   balanceAmount: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  balanceMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  cryptoAmount: {
-    fontSize: 13,
+  balanceName: {
+    fontSize: 14,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 4,
   },
-  networkBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  addressRow: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    alignSelf: 'flex-start',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  networkLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
+  addressText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.75)',
+    fontVariant: ['tabular-nums'],
   },
   qrButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     width: 48,
     height: 48,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255,255,255,0.1)',
   },
-  actionButtons: {
+  statsRow: {
     flexDirection: 'row',
-    gap: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    paddingVertical: 12,
+    marginBottom: 20,
   },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.65)',
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginVertical: 4,
+  },
+  actionButtons: { flexDirection: 'row', gap: 12 },
   addFundsButton: {
     flex: 1,
     backgroundColor: '#1E3A8A',
     paddingVertical: 12,
-    paddingHorizontal: 16,
     borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -327,64 +458,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F97316',
     paddingVertical: 12,
-    paddingHorizontal: 16,
     borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  section: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-  },
+  buttonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+
+  // Sections
+  section: { marginHorizontal: 16, marginBottom: 24 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  sectionTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  badgeCount: {
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
+  countBadge: {
     backgroundColor: '#DBEAFE',
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 12,
   },
-  badgeCountText: {
+  countBadgeText: {
     fontSize: 9,
     fontWeight: '700',
     color: '#1E40AF',
-    letterSpacing: 0.5,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  seeAllText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1E40AF',
-  },
-  badgesList: {
-    gap: 12,
-  },
+  seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  seeAllText: { fontSize: 13, fontWeight: '600', color: '#1E40AF' },
+  pageLabel: { fontSize: 12, fontWeight: '600', color: '#6B7280' },
+
+  // Badges
   badgeCard: {
     width: 160,
     height: 220,
@@ -394,24 +503,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
-  badgeImage: {
-    width: '100%',
-    height: '100%',
-  },
-  badgeGradientOverlay: {
+  badgeImage: { width: '100%', height: '100%' },
+  badgeOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     height: 100,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    backgroundColor: 'rgba(15,23,42,0.6)',
     justifyContent: 'space-between',
     padding: 12,
   },
-  badgeInfo: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
+  badgeInfo: { flex: 1, justifyContent: 'flex-end' },
   badgeTier: {
     fontSize: 9,
     fontWeight: '700',
@@ -420,40 +523,27 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     textTransform: 'uppercase',
   },
-  badgeTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
+  badgeTitle: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
   verifiedBadge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
     padding: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  transactionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  viewAllText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#1E40AF',
-  },
+
+  // Transactions
   transactionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderWidth: 1,
     borderColor: '#F1F5F9',
     shadowColor: '#000',
@@ -462,13 +552,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  transactionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  transactionIcon: {
+  txLeft: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flex: 1 },
+  txIcon: {
     width: 40,
     height: 40,
     borderRadius: 12,
@@ -476,52 +561,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  transactionDetails: {
-    flex: 1,
+  txDetails: { flex: 1 },
+  txTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' },
+  actionBadge: {
+    backgroundColor: '#DBEAFE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  transactionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  transactionMeta: {
+  actionBadgeText: { fontSize: 9, fontWeight: '700', color: '#1E40AF', textTransform: 'uppercase' },
+  txTitle: { fontSize: 13, fontWeight: '700', color: '#111827', flex: 1 },
+  txMessage: { fontSize: 11, color: '#6B7280', marginBottom: 4, lineHeight: 15 },
+  txMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  txDate: { fontSize: 10, color: '#6B7280' },
+  metaDot: { color: '#9CA3AF', fontSize: 10 },
+  txCoin: { fontSize: 10, fontWeight: '600', color: '#1E40AF' },
+  txAmount: { fontSize: 14, fontWeight: '800', color: '#111827', marginLeft: 8 },
+
+  // Load more
+  loadMoreButton: {
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    backgroundColor: '#F8FAFF',
+    marginBottom: 12,
   },
-  transactionDate: {
-    fontSize: 10,
-    color: '#6B7280',
-  },
-  metaDot: {
-    color: '#9CA3AF',
-  },
-  explorerLink: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#1E40AF',
-  },
-  bankTransfer: {
-    fontSize: 9,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  transactionAmount: {
-    alignItems: 'flex-end',
-  },
-  amount: {
-    fontSize: 13,
-    fontWeight: '700',
-    marginBottom: 2,
-  },
-  amountCrypto: {
-    fontSize: 9,
-    color: '#6B7280',
-    fontFamily: 'monospace',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
+  loadMoreText: { fontSize: 14, fontWeight: '600', color: '#1E40AF' },
+
+  // Empty / Info
+  emptyState: { alignItems: 'center', paddingVertical: 32, gap: 8 },
+  emptyText: { fontSize: 13, color: '#9CA3AF', fontWeight: '500' },
   infoCard: {
     backgroundColor: '#EFF6FF',
     borderRadius: 16,
@@ -539,28 +613,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
-  infoContent: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  emptyText: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginVertical: 16,
-  },
-  infoText: {
-    fontSize: 11,
-    color: '#6B7280',
-    lineHeight: 16,
-  },
+  infoTitle: { fontSize: 13, fontWeight: '700', color: '#111827', marginBottom: 4 },
+  infoText: { fontSize: 11, color: '#6B7280', lineHeight: 16 },
 });
 
 export default WalletScreen;

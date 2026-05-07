@@ -9,6 +9,7 @@ export interface TaskItem {
   assgined_staff?: string | null;
   review_profile_status?: string;
   reviewed_by?: string | null;
+  is_submitted?: boolean;
   region?: string;
   description?: string;
   start_period?: string;
@@ -39,6 +40,7 @@ export interface GetTasksParams {
   page?: number;
   pageSize?: number;
   region?: string;
+  assignedStaff?: string;
 }
 
 /**
@@ -48,7 +50,7 @@ export interface GetTasksParams {
  */
 export const getTasks = async (params: GetTasksParams = {}): Promise<TasksListResponse> => {
   try {
-    const { keyword = '', page = 0, pageSize = 10, region = '' } = params;
+    const { keyword = '', page = 0, pageSize = 10, region = '', assignedStaff = '' } = params;
 
     // Build query parameters
     const queryParams = new URLSearchParams();
@@ -56,6 +58,7 @@ export const getTasks = async (params: GetTasksParams = {}): Promise<TasksListRe
     if (page !== undefined) queryParams.append('page', page.toString());
     if (pageSize !== undefined) queryParams.append('page_size', pageSize.toString());
     if (region) queryParams.append('region', region);
+    if (assignedStaff) queryParams.append('assgined_staff', assignedStaff);
 
     const queryString = queryParams.toString();
     const url = `/tasks${queryString ? '?' + queryString : ''}`;
@@ -120,6 +123,19 @@ export const getTasksByRegion = async (
  */
 export const extractTasksFromResponse = (response: TasksListResponse): TaskItem[] => {
   return response.data || response.items || response.tasks || [];
+};
+
+/**
+ * GET /tasks/staff/{walletAddress}
+ * Fetch all tasks assigned to a volunteer staff by wallet address
+ */
+export const getStaffTasks = async (walletAddress: string): Promise<TaskItem[]> => {
+  const response = await apiService.get<TaskItem[] | TasksListResponse>(
+    `/tasks/staff/${walletAddress}`
+  );
+  const d = response.data;
+  if (Array.isArray(d)) return d;
+  return extractTasksFromResponse(d as TasksListResponse);
 };
 
 /**

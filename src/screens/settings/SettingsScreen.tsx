@@ -22,8 +22,20 @@ const SettingsScreen = () => {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
-  const { user, isLoading } = useAppSelector((state) => state.auth);
+  const { user, profile } = useAppSelector((state) => state.auth);
+  const displayName =
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim() ||
+    user?.name ||
+    'N/A';
+  const displayEmail = profile?.email || user?.email || 'N/A';
   const [isChangingRole, setIsChangingRole] = useState(false);
+
+  const roles: string[] = Array.isArray(user?.role)
+    ? user.role
+    : user?.role
+    ? [user.role]
+    : [];
+  const hasVolunteerRole = roles.some((r) => r.toLowerCase() === 'volunteer');
 
   const handleChangeRoleToVolunteer = async () => {
     Alert.alert(
@@ -81,13 +93,13 @@ const SettingsScreen = () => {
           <View style={styles.card}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Tên:</Text>
-              <Text style={styles.infoValue}>{user?.name || 'N/A'}</Text>
+              <Text style={styles.infoValue}>{displayName}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Email:</Text>
 
-              <Text style={styles.infoValue}>{user?.email || 'N/A'}</Text>
+              <Text style={styles.infoValue}>{displayEmail}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.infoRow}>
@@ -107,41 +119,30 @@ const SettingsScreen = () => {
           <TouchableOpacity
             style={[
               styles.roleButton,
-              user?.role === 'volunteer' && styles.roleButtonActive,
+              !hasVolunteerRole && styles.roleButtonDisabled,
               isChangingRole && styles.roleButtonDisabled,
             ]}
             onPress={handleChangeRoleToVolunteer}
-            disabled={isChangingRole || user?.role === 'volunteer'}
+            disabled={isChangingRole || !hasVolunteerRole}
             activeOpacity={0.7}
           >
             {isChangingRole ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
               <>
-                <Ionicons
-                  name="person-add"
-                  size={20}
-                  color={user?.role === 'volunteer' ? '#666' : '#fff'}
-                />
-                <Text
-                  style={[
-                    styles.roleButtonText,
-                    user?.role === 'volunteer' && styles.roleButtonTextDisabled,
-                  ]}
-                >
-                  {user?.role === 'volunteer'
-                    ? 'Đã là Tình nguyện viên'
-                    : 'Chuyển sang Tình nguyện viên'}
+                <Ionicons name="person-add" size={20} color="#fff" />
+                <Text style={styles.roleButtonText}>
+                  Chuyển sang Tình nguyện viên
                 </Text>
               </>
             )}
           </TouchableOpacity>
 
-          {user?.role === 'volunteer' && (
-            <View style={styles.successMessage}>
-              <Ionicons name="checkmark-circle" size={20} color="#1E40AF" />
-              <Text style={styles.successText}>
-                Bạn đang ở chế độ Tình nguyện viên
+          {!hasVolunteerRole && (
+            <View style={styles.infoMessage}>
+              <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+              <Text style={styles.infoMessageText}>
+                Tài khoản của bạn chưa có quyền Tình nguyện viên
               </Text>
             </View>
           )}
@@ -177,6 +178,23 @@ const SettingsScreen = () => {
                 <Text style={styles.registrationTitle}>Mẫu đăng ký</Text>
                 <Text style={styles.registrationSubtitle}>
                   Hoàn thiện hồ sơ của bạn
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.registrationButton, { marginTop: 8 }]}
+            onPress={() => navigation.navigate("ChildUploadReq" as any)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.registrationLeft}>
+              <Ionicons name="person-add" size={20} color="#1E40AF" />
+              <View>
+                <Text style={styles.registrationTitle}>Đăng ký trẻ em</Text>
+                <Text style={styles.registrationSubtitle}>
+                  Gửi yêu cầu thêm hồ sơ trẻ em mới
                 </Text>
               </View>
             </View>
@@ -329,6 +347,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#1E40AF',
+  },
+  infoMessage: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  infoMessageText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B7280',
+    flex: 1,
   },
   settingItem: {
     backgroundColor: '#FFFFFF',

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -26,6 +27,12 @@ import {
   getMealNeedDetails,
   getHealthInsuranceNeedDetails,
 } from '../../services/sponsorship.service';
+import { getPaymentStatus } from '../../services/payment.service';
+
+const POLL_INTERVAL_MS = 3000;
+const MAX_POLLS = 20;
+const SUCCESS_STATUSES = new Set(["PAID", "paid", "SUCCESS", "Success", "success", "completed", "COMPLETED"]);
+const CANCELLED_STATUSES = new Set(["CANCELLED", "Cancelled", "cancelled", "CANCELED", "canceled"]);
 
 const { width } = Dimensions.get('window');
 
@@ -46,6 +53,65 @@ const ChildDetailScreen = () => {
   const [mealMonths, setMealMonths] = useState('3');
   const [recurringEnabled, setRecurringEnabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Payment polling
+  const [waitingPayment, setWaitingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const paymentIdRef = useRef<string | number | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollCountRef = useRef(0);
+  const resolvedRef = useRef(false);
+
+  const clearPoll = () => {
+    if (pollTimer.current) { clearTimeout(pollTimer.current); pollTimer.current = null; }
+  };
+
+  useEffect(() => () => clearPoll(), []);
+
+  const navigateToResult = useCallback((
+    result: 'success' | 'cancelled',
+    data: { amount?: number; description?: string }
+  ) => {
+    resolvedRef.current = true;
+    clearPoll();
+    if (result === 'cancelled') {
+      navigation.replace('PaymentCallbackScreen', {
+        status: 'cancelled',
+        title: 'Giao dịch đã bị huỷ',
+        message: 'Giao dịch đã bị huỷ bởi người dùng hoặc hệ thống thanh toán.',
+      });
+      return;
+    }
+    const parts: string[] = [];
+    if (typeof data.amount === 'number' && data.amount > 0) {
+      parts.push(`Khoản thanh toán ${data.amount.toLocaleString('vi-VN')}đ đã được ghi nhận.`);
+    } else {
+      parts.push('Khoản thanh toán của bạn đã được ghi nhận.');
+    }
+    if (data.description) parts.push(data.description);
+    navigation.replace('PaymentCallbackScreen', {
+      status: 'success',
+      title: 'Bảo trợ thành công!',
+      message: parts.join(' '),
+    });
+  }, [navigation]);
+
+  const checkStatus = useCallback(async () => {
+    const pid = paymentIdRef.current;
+    if (!pid || resolvedRef.current) return;
+    try {
+      const data = await getPaymentStatus(pid);
+      const status = data.status ?? '';
+      setPaymentStatus(status);
+      if (SUCCESS_STATUSES.has(status)) { navigateToResult('success', data); return; }
+      if (CANCELLED_STATUSES.has(status)) { navigateToResult('cancelled', data); return; }
+    } catch { /* keep polling */ }
+    pollCountRef.current += 1;
+    if (pollCountRef.current < MAX_POLLS) {
+      pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
+    }
+  }, [navigateToResult]);
 
   useEffect(() => {
     const params = route.params as { childId?: string } | undefined;
@@ -143,10 +209,19 @@ const ChildDetailScreen = () => {
         res = await submitSponsorship({ type: 'health', childId: raw.health_insurance_need });
       }
       if (res?.url) {
-        navigation.navigate('PaymentQrScreen', {
-          paymentUrl: res.url,
-          title: `Sponsor ${beneficiary.name}`,
-        });
+        const supported = await Linking.canOpenURL(res.url);
+        if (supported) await Linking.openURL(res.url);
+        else Alert.alert('Lỗi', 'Không thể mở liên kết thanh toán.');
+
+        const pid = res.payment_id ?? res.order_code ?? res.id ?? null;
+        if (pid) {
+          paymentIdRef.current = pid;
+          pollCountRef.current = 0;
+          resolvedRef.current = false;
+          setPaymentStatus(null);
+          setWaitingPayment(true);
+          pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
+        }
       } else {
         Alert.alert(
           'Đã gửi bảo trợ!',
@@ -159,6 +234,40 @@ const ChildDetailScreen = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleManualCheck = async () => {
+    const pid = paymentIdRef.current;
+    if (!pid) return;
+    setChecking(true);
+    clearPoll();
+    try {
+      const data = await getPaymentStatus(pid);
+      const status = data.status ?? '';
+      setPaymentStatus(status);
+      if (SUCCESS_STATUSES.has(status)) {
+        navigateToResult('success', data);
+      } else if (CANCELLED_STATUSES.has(status)) {
+        navigateToResult('cancelled', data);
+      } else {
+        Alert.alert('Chưa xác nhận', `Trạng thái: ${status || 'Đang xử lý'}. Vui lòng thử lại sau vài giây.`);
+        pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
+      }
+    } catch {
+      Alert.alert('Lỗi', 'Không thể kiểm tra trạng thái. Vui lòng thử lại.');
+      pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleCancelWaiting = () => {
+    clearPoll();
+    setWaitingPayment(false);
+    setPaymentStatus(null);
+    paymentIdRef.current = null;
+    pollCountRef.current = 0;
+    resolvedRef.current = false;
   };
 
   const handleProof = () => {
@@ -175,6 +284,54 @@ const ChildDetailScreen = () => {
       console.error(error);
     }
   };
+
+  if (waitingPayment) {
+    const timedOut = pollCountRef.current >= MAX_POLLS;
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={handleCancelWaiting}>
+            <Ionicons name="arrow-back" size={24} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Bảo trợ {beneficiary?.name}</Text>
+          <View style={styles.headerButton} />
+        </View>
+        <View style={{ flex: 1, padding: 24, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+            <Ionicons name="card-outline" size={40} color="#1E40AF" />
+          </View>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: '#111827', marginBottom: 8, textAlign: 'center' }}>
+            Đang chờ thanh toán
+          </Text>
+          <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', lineHeight: 22, marginBottom: 24 }}>
+            Hoàn tất thanh toán trên trình duyệt. Ứng dụng sẽ tự động chuyển khi giao dịch thành công.
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#EFF6FF', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, width: '100%', marginBottom: 20, borderWidth: 1, borderColor: '#DBEAFE' }}>
+            <ActivityIndicator size="small" color={timedOut ? '#9CA3AF' : '#1E40AF'} animating={!timedOut && !resolvedRef.current} />
+            <Text style={{ flex: 1, fontSize: 12, color: '#1E40AF', fontWeight: '500', lineHeight: 18 }}>
+              {timedOut ? 'Tự động kiểm tra đã hết thời gian — nhấn nút bên dưới để xác nhận' : paymentStatus ? `Trạng thái: ${paymentStatus}` : 'Đang tự động kiểm tra trạng thái thanh toán…'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#1E40AF', height: 60, borderRadius: 16, width: '100%', marginBottom: 12, elevation: 4 }, checking && { opacity: 0.6 }]}
+            onPress={handleManualCheck}
+            disabled={checking}
+            activeOpacity={0.85}
+          >
+            {checking ? <ActivityIndicator size="small" color="#FFFFFF" /> : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#FFFFFF' }}>Tôi đã thanh toán xong</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={{ paddingVertical: 12, paddingHorizontal: 24 }} onPress={handleCancelWaiting} activeOpacity={0.7}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#6B7280' }}>Huỷ giao dịch</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   if (loading) {
     return (

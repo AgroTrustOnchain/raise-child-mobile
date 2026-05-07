@@ -1,5 +1,5 @@
 // src/screens/profile/PersonalInformationScreen.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,16 @@ import {
   Image,
   Platform,
   KeyboardAvoidingView,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { updateProfile } from '../../services/profile.service';
 import { useAuth } from '../../hooks/useAuth';
+import { useProfile } from '../../hooks/useProfile';
+import { useWallet } from '../../context/WalletContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -28,6 +32,8 @@ const PersonalInformationScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { profile, refresh } = useProfile();
+  const { wallet } = useWallet();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -38,42 +44,129 @@ const PersonalInformationScreen = () => {
   const [identityCode, setIdentityCode] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Unique ID is read-only / blockchain-verified
-  const uniqueId = 'AT-882910-B7';
+  const uniqueId = profile?.id || wallet?.sub || 'AT-882910-B7';
+
+  useEffect(() => {
+    if (!profile && wallet?.sub) {
+      refresh(wallet.sub);
+    }
+  }, [profile, wallet?.sub]);
+
+  useEffect(() => {
+    if (!profile) return;
+    setFirstName(profile.first_name || '');
+    setLastName(profile.last_name || '');
+    setGender((profile.gender as Gender) || '');
+    setDateOfBirth(profile.date_of_birth || '');
+    setPhoneNumber(profile.phone_number || '');
+    setEmail(profile.email || '');
+    setIdentityCode(profile.identity_code || '');
+  }, [profile]);
 
   const genderOptions: Gender[] = ['Male', 'Female', 'Other', 'Prefer not to say'];
   const [showGenderPicker, setShowGenderPicker] = useState(false);
 
-  const handleSave = async () => {
-  if (!firstName.trim() || !lastName.trim()) {
-    Alert.alert('Error', 'Please enter your first and last name');
-    return;
-  }
+  // Date picker
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const today = new Date();
+  const [pickerDay, setPickerDay] = useState(1);
+  const [pickerMonth, setPickerMonth] = useState(1);
+  const [pickerYear, setPickerYear] = useState(today.getFullYear() - 20);
 
-  try {
-    setIsSaving(true);
+  const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+  const daysInMonth = (m: number, y: number) => new Date(y, m, 0).getDate();
+  const days = Array.from(
+    { length: daysInMonth(pickerMonth, pickerYear) },
+    (_, i) => i + 1,
+  );
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from({ length: 100 }, (_, i) => today.getFullYear() - i);
 
-    const payload = {
-      first_name: firstName,
-      last_name: lastName,
-      gender,
-      date_of_birth: dateOfBirth,
-      phone_number: phoneNumber,
-      email,
-      identity_code: identityCode,
-    };
-    console.log(payload)
+  const openDatePicker = () => {
+    const m = dateOfBirth.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      setPickerDay(Number(m[1]));
+      setPickerMonth(Number(m[2]));
+      setPickerYear(Number(m[3]));
+    }
+    setShowDatePicker(true);
+  };
 
-    await updateProfile(user ? user?.id : null, payload);
+  const confirmDate = () => {
+    const maxDay = daysInMonth(pickerMonth, pickerYear);
+    const day = Math.min(pickerDay, maxDay);
+    setDateOfBirth(`${pad2(day)}/${pad2(pickerMonth)}/${pickerYear}`);
+    setShowDatePicker(false);
+  };
 
-    Alert.alert('Success', 'Your profile has been updated.');
-  } catch (err: any) {
-    console.error(err);
-    Alert.alert('Failed', err?.response?.data?.message || 'Please try again');
-  } finally {
-    setIsSaving(false);
-  }
-};
+  const isFormValid =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    gender !== '' &&
+    dateOfBirth.trim().length > 0 &&
+    phoneNumber.trim().length > 0 &&
+    email.trim().length > 0 &&
+    identityCode.trim().length > 0;
+
+  // Profile is "locked" (already filled) if the server already has every required field.
+  // After the first successful update the profile cannot be edited again.
+  const isProfileLocked = !!(
+    profile &&
+    profile.first_name &&
+    profile.last_name &&
+    profile.gender &&
+    profile.date_of_birth &&
+    profile.phone_number &&
+    profile.email &&
+    profile.identity_code
+  );
+
+  const submitProfile = async () => {
+    try {
+      setIsSaving(true);
+      const payload = {
+        first_name: firstName,
+        last_name: lastName,
+        gender,
+        date_of_birth: dateOfBirth,
+        phone_number: phoneNumber,
+        email,
+        identity_code: identityCode,
+      };
+      await updateProfile(user ? user?.id : null, payload);
+      if (wallet?.sub) {
+        refresh(wallet.sub);
+      }
+      Alert.alert('Success', 'Your profile has been updated.');
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert('Failed', err?.response?.data?.message || 'Please try again');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSave = () => {
+    if (isProfileLocked) {
+      Alert.alert(
+        'Profile already set',
+        'Your profile has already been submitted and cannot be changed.',
+      );
+      return;
+    }
+    if (!isFormValid) {
+      Alert.alert('Error', 'Please fill in all required fields');
+      return;
+    }
+    Alert.alert(
+      'Confirm submission',
+      'You can only update your profile once. Please review your information carefully before submitting — this action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Submit', style: 'destructive', onPress: submitProfile },
+      ],
+    );
+  };
 
   const handleChangePhoto = () => {
     Alert.alert('Change Photo', 'Photo upload will be implemented');
@@ -116,6 +209,23 @@ const PersonalInformationScreen = () => {
         {/* ── Fields ──────────────────────────────────────────────────────── */}
         <View style={styles.form}>
 
+          {/* One-time-update warning */}
+          {!isProfileLocked ? (
+            <View style={styles.warningBanner}>
+              <Ionicons name="warning" size={18} color="#B45309" />
+              <Text style={styles.warningText}>
+                You can only update your profile once. Please review your information carefully before submitting.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.lockedBanner}>
+              <Ionicons name="lock-closed" size={18} color="#1E40AF" />
+              <Text style={styles.lockedText}>
+                Your profile has already been submitted and cannot be edited.
+              </Text>
+            </View>
+          )}
+
           {/* Unique ID — read only */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Unique Identifier</Text>
@@ -129,7 +239,9 @@ const PersonalInformationScreen = () => {
           {/* First / Last Name */}
           <View style={styles.row}>
             <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text style={styles.label}>First Name</Text>
+              <Text style={styles.label}>
+                First Name <Text style={styles.requiredStar}>*</Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="John"
@@ -137,10 +249,13 @@ const PersonalInformationScreen = () => {
                 value={firstName}
                 onChangeText={setFirstName}
                 autoCapitalize="words"
+                editable={!isProfileLocked}
               />
             </View>
             <View style={[styles.fieldGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Last Name</Text>
+              <Text style={styles.label}>
+                Last Name <Text style={styles.requiredStar}>*</Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Doe"
@@ -148,17 +263,21 @@ const PersonalInformationScreen = () => {
                 value={lastName}
                 onChangeText={setLastName}
                 autoCapitalize="words"
+                editable={!isProfileLocked}
               />
             </View>
           </View>
 
           {/* Gender — custom picker */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Gender</Text>
+            <Text style={styles.label}>
+              Gender <Text style={styles.requiredStar}>*</Text>
+            </Text>
             <TouchableOpacity
               style={styles.pickerButton}
               onPress={() => setShowGenderPicker(prev => !prev)}
               activeOpacity={0.8}
+              disabled={isProfileLocked}
             >
               <Text style={[styles.pickerText, !gender && styles.pickerPlaceholder]}>
                 {gender || 'Select Gender'}
@@ -202,18 +321,20 @@ const PersonalInformationScreen = () => {
 
           {/* Date of Birth */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Date of Birth</Text>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, { paddingRight: 48 }]}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor="#9CA3AF"
-                value={dateOfBirth}
-                onChangeText={setDateOfBirth}
-                keyboardType="numbers-and-punctuation"
-              />
-              <Ionicons name="calendar-outline" size={18} color="#9CA3AF" style={styles.inputIcon} />
-            </View>
+            <Text style={styles.label}>
+              Date of Birth <Text style={styles.requiredStar}>*</Text>
+            </Text>
+            <TouchableOpacity
+              style={styles.pickerButton}
+              onPress={openDatePicker}
+              activeOpacity={0.8}
+              disabled={isProfileLocked}
+            >
+              <Text style={[styles.pickerText, !dateOfBirth && styles.pickerPlaceholder]}>
+                {dateOfBirth || 'DD/MM/YYYY'}
+              </Text>
+              <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
+            </TouchableOpacity>
           </View>
 
           {/* ── Contact Details ──────────────────────────────────────────── */}
@@ -223,7 +344,9 @@ const PersonalInformationScreen = () => {
 
           {/* Phone */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={styles.label}>
+              Phone Number <Text style={styles.requiredStar}>*</Text>
+            </Text>
             <View style={styles.phoneRow}>
               <View style={styles.countryCodeBox}>
                 <Text style={styles.countryCodeText}>+1</Text>
@@ -236,13 +359,16 @@ const PersonalInformationScreen = () => {
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
                 keyboardType="phone-pad"
+                editable={!isProfileLocked}
               />
             </View>
           </View>
 
           {/* Email */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={styles.label}>
+              Email Address <Text style={styles.requiredStar}>*</Text>
+            </Text>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[styles.input, { paddingRight: 48 }]}
@@ -252,6 +378,7 @@ const PersonalInformationScreen = () => {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!isProfileLocked}
               />
               <Ionicons name="checkmark-circle" size={20} color="#1E40AF" style={styles.inputIcon} />
             </View>
@@ -259,7 +386,9 @@ const PersonalInformationScreen = () => {
 
           {/* Identity Code */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Identity Code</Text>
+            <Text style={styles.label}>
+              Identity Code <Text style={styles.requiredStar}>*</Text>
+            </Text>
             <TextInput
               style={styles.input}
               placeholder="Enter your identity code"
@@ -267,6 +396,7 @@ const PersonalInformationScreen = () => {
               value={identityCode}
               onChangeText={setIdentityCode}
               autoCapitalize="none"
+              editable={!isProfileLocked}
             />
           </View>
 
@@ -278,17 +408,141 @@ const PersonalInformationScreen = () => {
 
       {/* ── Fixed Footer ──────────────────────────────────────────────────── */}
       <View style={[styles.footer, { paddingBottom: insets.bottom || 16 }]}>
-        <TouchableOpacity
-          style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={isSaving}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.saveButtonText}>
-            {isSaving ? 'Saving…' : 'Save Changes'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.footerRow}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.saveButton,
+              (isSaving || !isFormValid || isProfileLocked) && styles.saveButtonDisabled,
+            ]}
+            onPress={handleSave}
+            disabled={isSaving || !isFormValid || isProfileLocked}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.saveButtonText}>
+              {isProfileLocked ? 'Already Submitted' : isSaving ? 'Saving…' : 'Save Changes'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* ── Date Picker Modal ────────────────────────────────────────────── */}
+      <Modal
+        visible={showDatePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDatePicker(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.dateModalCard}>
+            <Text style={styles.dateModalTitle}>Select Date of Birth</Text>
+            <View style={styles.dateColumns}>
+              <View style={styles.dateColumn}>
+                <Text style={styles.dateColumnLabel}>Day</Text>
+                <FlatList
+                  data={days}
+                  keyExtractor={(item) => `d-${item}`}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.dateOption,
+                        pickerDay === item && styles.dateOptionSelected,
+                      ]}
+                      onPress={() => setPickerDay(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.dateOptionText,
+                          pickerDay === item && styles.dateOptionTextSelected,
+                        ]}
+                      >
+                        {pad2(item)}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+              <View style={styles.dateColumn}>
+                <Text style={styles.dateColumnLabel}>Month</Text>
+                <FlatList
+                  data={months}
+                  keyExtractor={(item) => `m-${item}`}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.dateOption,
+                        pickerMonth === item && styles.dateOptionSelected,
+                      ]}
+                      onPress={() => setPickerMonth(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.dateOptionText,
+                          pickerMonth === item && styles.dateOptionTextSelected,
+                        ]}
+                      >
+                        {pad2(item)}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+              <View style={styles.dateColumn}>
+                <Text style={styles.dateColumnLabel}>Year</Text>
+                <FlatList
+                  data={years}
+                  keyExtractor={(item) => `y-${item}`}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.dateOption,
+                        pickerYear === item && styles.dateOptionSelected,
+                      ]}
+                      onPress={() => setPickerYear(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.dateOptionText,
+                          pickerYear === item && styles.dateOptionTextSelected,
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
+            <View style={styles.dateModalActions}>
+              <TouchableOpacity
+                style={styles.dateCancelButton}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.dateCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dateConfirmButton}
+                onPress={confirmDate}
+              >
+                <Text style={styles.dateConfirmText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -398,6 +652,46 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 8,
     paddingHorizontal: 2,
+  },
+  requiredStar: {
+    color: '#DC2626',
+    fontWeight: '700',
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 18,
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#92400E',
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  lockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 18,
+  },
+  lockedText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#1E40AF',
+    fontWeight: '600',
+    lineHeight: 18,
   },
   row: {
     flexDirection: 'row',
@@ -556,6 +850,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
   },
   saveButton: {
+    flex: 2,
     backgroundColor: '#1E40AF',
     height: 60,
     borderRadius: 16,
@@ -573,6 +868,118 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
+    fontWeight: '800',
+  },
+  footerRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    height: 60,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  cancelButtonText: {
+    color: '#6B7280',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
+  // Date picker modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  dateModalCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  dateModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  dateColumns: {
+    flexDirection: 'row',
+    height: 220,
+    gap: 8,
+  },
+  dateColumn: {
+    flex: 1,
+  },
+  dateColumnLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  dateOption: {
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  dateOptionSelected: {
+    backgroundColor: '#1E40AF',
+  },
+  dateOptionText: {
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  dateOptionTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  dateModalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  dateCancelButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateCancelText: {
+    color: '#6B7280',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  dateConfirmButton: {
+    flex: 1,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#1E40AF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateConfirmText: {
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '800',
   },
 });

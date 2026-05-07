@@ -4,10 +4,34 @@ export interface TaskProof {
   id: string;
   task_id: string;
   image_blob_id: string;
+  description?: string;
+  actor_profile_id?: string;
+  actor_address?: string;
+  reviewed_by?: string | null;
+  ai_evaluation?: string;
+  review_status?: 'Pending' | 'Approved' | 'Rejected' | string;
+  raw_submit_date?: string;
   verified?: boolean;
   created_at?: string;
+  updated_at?: string;
   [key: string]: any;
 }
+
+export interface TaskProofsListResponse {
+  data: TaskProof[];
+  amount: number;
+  page: number;
+  total_pages: number;
+}
+
+export const getTaskProofsByActor = async (
+  actorAddress: string,
+): Promise<TaskProofsListResponse> => {
+  const response = await apiService.get<TaskProofsListResponse>('/task-proofs', {
+    params: { actor_address: actorAddress },
+  });
+  return response.data;
+};
 
 export interface SubmitTaskProofParams {
   taskId: string | number;
@@ -41,11 +65,13 @@ export const submitTaskProof = async (
       throw new Error('Image blob ID is required');
     }
 
-    const url = `/task-proofs/task/${taskId}/submit?image_blob_id=${encodeURIComponent(
-      imageBlobId
-    )}`;
+    const url = `/task-proofs/task/${taskId}/submit`;
 
-    const response = await apiService.post<TaskProofResponse>(url, {});
+    console.log(`Submitting task proof for task ${taskId} with image blob ID ${imageBlobId}`);
+
+    const response = await apiService.post<TaskProofResponse>(url, {
+      image_blob_id: imageBlobId,
+    });
 
     return response.data;
   } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  TextInput,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -17,19 +16,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { uploadImageToWalrus } from '../../services/walrus.service';
 import { submitTaskProof } from '../../services/task-proofs.service';
 
-interface ChildProfile {
-  id: string;
-  name: string;
-  age: number;
-  region: string;
-  avatar: string;
-  verificationStatus: string;
-}
-
 interface UploadedImage {
   id: string;
   uri: string;
-  isQueued?: boolean;
 }
 
 const WelfareUpdateScreen = () => {
@@ -37,57 +26,12 @@ const WelfareUpdateScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
 
-  // Get task from route params (passed from UpdateScreen)
   const taskFromParams = route?.params?.child;
+  const taskId: string | undefined = taskFromParams?.id;
 
-  const [selectedChild, setSelectedChild] = useState<ChildProfile>(
-    taskFromParams || {
-      id: 'AG-4882',
-      name: 'Amani Osei',
-      age: 8,
-      region: 'South Sector',
-      avatar:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCdCs3EGDnl0wy2duHNoRuOPYDnLo4gCeBfei8kNi1tCbAwsCcbSg68HaW0F_pUpDKGrS2lsWYUVI0whPAPQK50FbodwYfRDYeY0ShMqf7n0aq4Pa654nTyiYM6jD6A8ZNykavIFaZ7IixASVuI41K90wcqMT_FgkOy-ijcqgdyPuTX1FapL5EIGdyLtNWvNj9yhmLonSV3y7pMLLz69M-5d3edbU7ZWk-MIYo-7v8qexVYUQY7mg6n6CG0q8grqVTzQCOrJ574G-ov',
-      verificationStatus: 'VERIFIED ZONE',
-    }
-  );
-
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [wellnessNotes, setWellnessNotes] = useState('');
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
-
-  const childProfiles: ChildProfile[] = [
-    {
-      id: 'AG-4882',
-      name: 'Amani Osei',
-      age: 8,
-      region: 'South Sector',
-      avatar:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCdCs3EGDnl0wy2duHNoRuOPYDnLo4gCeBfei8kNi1tCbAwsCcbSg68HaW0F_pUpDKGrS2lsWYUVI0whPAPQK50FbodwYfRDYeY0ShMqf7n0aq4Pa654nTyiYM6jD6A8ZNykavIFaZ7IixASVuI41K90wcqMT_FgkOy-ijcqgdyPuTX1FapL5EIGdyLtNWvNj9yhmLonSV3y7pMLLz69M-5d3edbU7ZWk-MIYo-7v8qexVYUQY7mg6n6CG0q8grqVTzQCOrJ574G-ov',
-      verificationStatus: 'VERIFIED ZONE',
-    },
-    {
-      id: 'AG-4883',
-      name: 'Kofi Mensah',
-      age: 10,
-      region: 'South Sector',
-      avatar:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCdCs3EGDnl0wy2duHNoRuOPYDnLo4gCeBfei8kNi1tCbAwsCcbSg68HaW0F_pUpDKGrS2lsWYUVI0whPAPQK50FbodwYfRDYeY0ShMqf7n0aq4Pa654nTyiYM6jD6A8ZNykavIFaZ7IixASVuI41K90wcqMT_FgkOy-ijcqgdyPuTX1FapL5EIGdyLtNWvNj9yhmLonSV3y7pMLLz69M-5d3edbU7ZWk-MIYo-7v8qexVYUQY7mg6n6CG0q8grqVTzQCOrJ574G-ov',
-      verificationStatus: 'VERIFIED ZONE',
-    },
-    {
-      id: 'AG-4884',
-      name: 'Zara Bello',
-      age: 7,
-      region: 'East Sector',
-      avatar:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCdCs3EGDnl0wy2duHNoRuOPYDnLo4gCeBfei8kNi1tCbAwsCcbSg68HaW0F_pUpDKGrS2lsWYUVI0whPAPQK50FbodwYfRDYeY0ShMqf7n0aq4Pa654nTyiYM6jD6A8ZNykavIFaZ7IixASVuI41K90wcqMT_FgkOy-ijcqgdyPuTX1FapL5EIGdyLtNWvNj9yhmLonSV3y7pMLLz69M-5d3edbU7ZWk-MIYo-7v8qexVYUQY7mg6n6CG0q8grqVTzQCOrJ574G-ov',
-      verificationStatus: 'VERIFIED ZONE',
-    },
-  ];
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -98,24 +42,44 @@ const WelfareUpdateScreen = () => {
     });
 
     if (!result.canceled) {
-      const newImage: UploadedImage = {
-        id: Date.now().toString(),
-        uri: result.assets[0].uri,
-      };
-      setUploadedImages([...uploadedImages, newImage]);
+      setUploadedImages((prev) => [
+        ...prev,
+        { id: Date.now().toString(), uri: result.assets[0].uri },
+      ]);
     }
   };
 
   const removeImage = (id: string) => {
-    setUploadedImages(uploadedImages.filter((img) => img.id !== id));
+    setUploadedImages((prev) => prev.filter((img) => img.id !== id));
+  };
+
+  const handleCancel = () => {
+    if (uploadedImages.length === 0) {
+      navigation.goBack();
+      return;
+    }
+    Alert.alert(
+      'Hủy tải lên',
+      'Bạn có chắc muốn hủy? Các ảnh đã chọn sẽ bị xóa.',
+      [
+        { text: 'Tiếp tục chỉnh sửa', style: 'cancel' },
+        {
+          text: 'Hủy',
+          style: 'destructive',
+          onPress: () => {
+            setUploadedImages([]);
+            navigation.goBack();
+          },
+        },
+      ],
+    );
   };
 
   const handleSubmit = async () => {
-    if (!height || !weight) {
-      Alert.alert('Validation Error', 'Please fill in height and weight');
+    if (!taskId) {
+      Alert.alert('Error', 'Missing task ID. Please reopen this screen from the task list.');
       return;
     }
-
     if (uploadedImages.length === 0) {
       Alert.alert('Validation Error', 'Please upload at least one image');
       return;
@@ -124,58 +88,42 @@ const WelfareUpdateScreen = () => {
     setIsLoading(true);
 
     try {
-      // Step 1: Upload images to Walrus and get blob IDs
       setIsUploadingImages(true);
       const walrusBlobIds: string[] = [];
-
       for (const image of uploadedImages) {
-        try {
-          const walrusBlob = await uploadImageToWalrus(image.uri);
-          walrusBlobIds.push(walrusBlob.blobId);
-        } catch (uploadError) {
-          throw new Error(
-            `Failed to upload image: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`
-          );
-        }
+        const walrusBlob = await uploadImageToWalrus(image.uri);
+        walrusBlobIds.push(walrusBlob.blobId);
       }
       setIsUploadingImages(false);
 
-      // Step 2: Submit task proofs for each image
-      const taskId = selectedChild.id;
-      const submitPromises = walrusBlobIds.map((blobId) =>
-        submitTaskProof({
-          taskId,
-          imageBlobId: blobId,
-        })
+      const responses = await Promise.all(
+        walrusBlobIds.map((blobId) =>
+          submitTaskProof({ taskId, imageBlobId: blobId }),
+        ),
       );
 
-      const responses = await Promise.all(submitPromises);
-      
-      // Check if any submission failed
       const hasErrors = responses.some(
         (res) =>
           res.success === false ||
-          (res.message && res.message.toLowerCase().includes('error'))
+          (res.message && res.message.toLowerCase().includes('error')),
       );
 
       if (hasErrors) {
-        throw new Error('Some task proofs failed to submit');
+        throw new Error('Some image uploads failed to submit');
       }
 
-      Alert.alert('Success', 'Welfare update submitted successfully!', [
+      Alert.alert('Success', 'Images uploaded successfully!', [
         {
           text: 'OK',
           onPress: () => {
-            resetForm();
+            setUploadedImages([]);
             navigation.goBack();
           },
         },
       ]);
     } catch (error) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to submit welfare update';
+        error instanceof Error ? error.message : 'Failed to upload images';
       Alert.alert('Error', errorMessage);
       console.error('Submit error:', error);
     } finally {
@@ -184,76 +132,36 @@ const WelfareUpdateScreen = () => {
     }
   };
 
-  const resetForm = () => {
-    setHeight('');
-    setWeight('');
-    setWellnessNotes('');
-    setUploadedImages([]);
-  };
-
   return (
     <ScrollView
       style={[styles.container, { paddingTop: insets.top }]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header Section */}
+      {/* Header */}
       <View style={styles.headerSection}>
         <View style={styles.headerLabel}>
-          <Ionicons name="create" size={18} color="#EA580C" />
-          <Text style={styles.headerLabelText}>Welfare Portal</Text>
+          <Ionicons name="cloud-upload" size={18} color="#1E40AF" />
+          <Text style={styles.headerLabelText}>Upload Images</Text>
         </View>
-        <Text style={styles.headerTitle}>Upload Welfare Update</Text>
+        <Text style={styles.headerTitle}>Upload Welfare Images</Text>
         <Text style={styles.headerDescription}>
-          Enter precise health metrics and visual evidence for blockchain verification. Your
-          data ensures direct transparency for sponsors.
+          Tải lên ảnh minh chứng cho công việc của bạn. Ảnh sẽ được lưu trữ và gửi đến hệ thống để xét duyệt.
         </Text>
-      </View>
-
-      {/* Child Selection Card */}
-      <View style={styles.childSelectionCard}>
-        <Text style={styles.cardLabel}>Target Profile</Text>
-
-        {/* Dropdown Selector */}
-        <View style={styles.selectorContainer}>
-          <TouchableOpacity style={styles.dropdownButton}>
-            <Text style={styles.dropdownText}>{selectedChild.name} - Region: {selectedChild.region}</Text>
-            <Ionicons name="chevron-down" size={20} color="#6B7280" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Child Info Card */}
-        <View style={styles.childInfoCard}>
-          <Image
-            source={{ uri: selectedChild.avatar }}
-            style={styles.childAvatar}
-            resizeMode="cover"
-          />
-          <View style={styles.childDetails}>
-            <Text style={styles.childName}>{selectedChild.name}</Text>
-            <Text style={styles.childMeta}>
-              ID: {selectedChild.id} • {selectedChild.age} Years Old
-            </Text>
-            <View style={styles.verificationBadge}>
-              <Text style={styles.verificationText}>{selectedChild.verificationStatus}</Text>
-            </View>
-          </View>
-        </View>
       </View>
 
       {/* Visual Evidence Section */}
       <View style={styles.visualEvidenceSection}>
         <View style={styles.sectionTitleRow}>
           <Ionicons name="camera" size={20} color="#1E40AF" />
-          <Text style={styles.sectionTitle}>Visual Evidence</Text>
+          <Text style={styles.sectionTitle}>Ảnh đã tải lên ({uploadedImages.length})</Text>
         </View>
 
-        <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
+        <TouchableOpacity style={styles.uploadBox} onPress={pickImage} disabled={isLoading}>
           <Ionicons name="image-outline" size={48} color="#6B7280" />
-          <Text style={styles.uploadBoxTitle}>Capture Meal or Check-up</Text>
-          <Text style={styles.uploadBoxSubtitle}>PNG or JPG, max 10MB</Text>
+          <Text style={styles.uploadBoxTitle}>Chọn ảnh từ thư viện</Text>
+          <Text style={styles.uploadBoxSubtitle}>PNG hoặc JPG</Text>
         </TouchableOpacity>
 
-        {/* Uploaded Images Grid */}
         {uploadedImages.length > 0 && (
           <View style={styles.imagesGrid}>
             {uploadedImages.map((image) => (
@@ -266,6 +174,7 @@ const WelfareUpdateScreen = () => {
                 <TouchableOpacity
                   style={styles.removeImageButton}
                   onPress={() => removeImage(image.id)}
+                  disabled={isLoading}
                 >
                   <Ionicons name="close" size={20} color="#FFFFFF" />
                 </TouchableOpacity>
@@ -275,89 +184,40 @@ const WelfareUpdateScreen = () => {
         )}
       </View>
 
-      {/* Biometric Metrics Section */}
-      <View style={styles.biometricsCard}>
-        <View style={styles.biometricsHeader}>
-          <View style={styles.biometricsIconContainer}>
-            <Ionicons name="heart" size={20} color="#FFFFFF" />
-          </View>
-          <Text style={styles.biometricsTitle}>Biometric Metrics</Text>
-        </View>
+      {/* Action Buttons */}
+      <View style={styles.actionRow}>
+        <TouchableOpacity
+          style={[styles.cancelButton, isLoading && styles.cancelButtonDisabled]}
+          onPress={handleCancel}
+          disabled={isLoading}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.cancelButtonText}>Hủy</Text>
+        </TouchableOpacity>
 
-        <View style={styles.biometricsGrid}>
-          <View style={styles.biometricInput}>
-            <Text style={styles.inputLabel}>Height (cm)</Text>
-            <TextInput
-              style={styles.metricInput}
-              placeholder="124"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              value={height}
-              onChangeText={setHeight}
-              keyboardType="decimal-pad"
-            />
-          </View>
-
-          <View style={styles.biometricInput}>
-            <Text style={styles.inputLabel}>Weight (kg)</Text>
-            <TextInput
-              style={styles.metricInput}
-              placeholder="24.5"
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              value={weight}
-              onChangeText={setWeight}
-              keyboardType="decimal-pad"
-            />
-          </View>
-
-          <View style={[styles.biometricInput, styles.fullWidth]}>
-            <Text style={styles.inputLabel}>Field Wellbeing Notes</Text>
-            <TextInput
-              style={[styles.metricInput, styles.notesInput]}
-              placeholder="Describe behavior, energy levels, and social interaction..."
-              placeholderTextColor="rgba(255, 255, 255, 0.4)"
-              value={wellnessNotes}
-              onChangeText={setWellnessNotes}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-        </View>
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            (isLoading || uploadedImages.length === 0) && styles.submitButtonDisabled,
+          ]}
+          onPress={handleSubmit}
+          disabled={isLoading || uploadedImages.length === 0}
+        >
+          {isLoading ? (
+            <>
+              <ActivityIndicator color="#FFFFFF" />
+              <Text style={styles.submitButtonLoadingText}>
+                {isUploadingImages ? 'Đang tải ảnh lên…' : 'Đang gửi…'}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.submitButtonText}>Gửi ảnh</Text>
+              <Ionicons name="cloud-upload" size={20} color="#FFFFFF" />
+            </>
+          )}
+        </TouchableOpacity>
       </View>
-
-      {/* Encryption Info Card */}
-      <View style={styles.encryptionCard}>
-        <View style={styles.encryptionIconContainer}>
-          <Ionicons name="shield-checkmark" size={20} color="#1E40AF" />
-        </View>
-        <View style={styles.encryptionContent}>
-          <Text style={styles.encryptionTitle}>Cryptographic Verification</Text>
-          <Text style={styles.encryptionText}>
-            Your update will be cryptographically hashed and anchored to the AgroTrust Ledger
-            for immutable proof.
-          </Text>
-        </View>
-      </View>
-
-      {/* Submit Button */}
-      <TouchableOpacity
-        style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
-        onPress={handleSubmit}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <ActivityIndicator color="#FFFFFF" />
-            <Text style={styles.submitButtonLoadingText}>
-              {isUploadingImages ? 'Uploading images...' : 'Submitting proof...'}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text style={styles.submitButtonText}>Verify on Blockchain</Text>
-            <Ionicons name="wallet" size={20} color="#FFFFFF" />
-          </>
-        )}
-      </TouchableOpacity>
 
       <View style={{ height: 40 }} />
     </ScrollView>
@@ -383,12 +243,12 @@ const styles = StyleSheet.create({
   headerLabelText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#EA580C',
+    color: '#1E40AF',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     color: '#111827',
     marginBottom: 12,
@@ -399,86 +259,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     lineHeight: 20,
     fontWeight: '400',
-  },
-  childSelectionCard: {
-    marginHorizontal: 24,
-    marginBottom: 24,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-  },
-  cardLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1E40AF',
-    marginBottom: 16,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-  },
-  selectorContainer: {
-    marginBottom: 16,
-  },
-  dropdownButton: {
-    backgroundColor: '#F8FAFF',
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dropdownText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
-    flex: 1,
-  },
-  childInfoCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  childAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 4,
-    borderColor: '#FFFFFF',
-  },
-  childDetails: {
-    flex: 1,
-  },
-  childName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  childMeta: {
-    fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  verificationBadge: {
-    backgroundColor: '#1E40AF',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  verificationText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
   visualEvidenceSection: {
     marginHorizontal: 24,
@@ -545,103 +325,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  biometricsCard: {
-    marginHorizontal: 24,
-    marginBottom: 24,
-    backgroundColor: '#1E40AF',
-    borderRadius: 16,
-    padding: 28,
-    shadowColor: '#1E40AF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  biometricsHeader: {
+  actionRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 12,
-    marginBottom: 24,
-  },
-  biometricsIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EA580C',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  biometricsTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  biometricsGrid: {
-    gap: 16,
-  },
-  biometricInput: {
-    gap: 8,
-  },
-  fullWidth: {
-    marginTop: 8,
-  },
-  inputLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#DBEAFE',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  metricInput: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  notesInput: {
-    minHeight: 80,
-    paddingTop: 12,
-  },
-  encryptionCard: {
     marginHorizontal: 24,
     marginBottom: 24,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
-    flexDirection: 'row',
-    gap: 16,
   },
-  encryptionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
+  cancelButton: {
+    flex: 1,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  encryptionContent: {
-    flex: 1,
-    justifyContent: 'center',
+  cancelButtonDisabled: {
+    opacity: 0.5,
   },
-  encryptionTitle: {
-    fontSize: 13,
+  cancelButtonText: {
+    fontSize: 17,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  encryptionText: {
-    fontSize: 11,
     color: '#6B7280',
-    lineHeight: 16,
   },
   submitButton: {
-    marginHorizontal: 24,
-    marginBottom: 24,
+    flex: 2,
     backgroundColor: '#1E40AF',
     height: 60,
     borderRadius: 16,

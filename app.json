@@ -1,5 +1,6 @@
 {
   "expo": {
+    "newArchEnabled": true,
     "name": "raise-child-mobile",
     "slug": "raise-child-mobile",
     "version": "1.0.0",
@@ -14,8 +15,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.raisechild.mobile",
+      "newArchEnabled": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow access to your camera to take photos.",
+        "NSPhotoLibraryUsageDescription": "Allow access to your photo library to select images.",
+        "NSPhotoLibraryAddUsageDescription": "Allow saving photos to your library."
       }
     },
     "android": {
@@ -26,7 +31,7 @@
       "package": "com.raisechild.mobile",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "newArchEnabled": false
+      "newArchEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,6 +42,13 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.189055599254-5546cfglttl20jv5qg0d57po8b9adl8k"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow access to your photo library to select images.",
+          "cameraPermission": "Allow access to your camera to take photos."
         }
       ]
     ],

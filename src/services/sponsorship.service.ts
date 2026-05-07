@@ -81,9 +81,30 @@ export const getMealNeedDetails = async (childId: string): Promise<{ value: numb
     return res.data;
   } catch (error) {
     console.error(`Failed to fetch meal need details for child ${childId}:`, error);
-    // Return default value if API fails (VND)
     return { value: 100000, description: 'Per Month' };
   }
+};
+
+export type MealNeedProof = {
+  id: string;
+  value: number;
+  year: number;
+  total_supported_months: number;
+  donations: string[];
+  donors: string[];
+  durations: { start_period: string; end_period: string }[];
+  provide_meal_dates: string[];
+  provide_meal_image_blob_ids: string[];
+  provide_meal_periods: string[];
+  provide_meal_staffs: string[];
+  supported_years: { year: number; supported_months: number }[];
+  withdraw_proposals: string[];
+  withdraws_for_need: string[];
+};
+
+export const getMealNeedProof = async (mealNeedId: string): Promise<MealNeedProof> => {
+  const res = await apiService.get<MealNeedProof>(`/child-needs/meal-need/${mealNeedId}`);
+  return res.data;
 };
 
 /**
@@ -105,7 +126,7 @@ export const getHealthInsuranceNeedDetails = async (childId: string): Promise<{ 
  * POST /children/books-need/{id}/support
  * Supports the books need for a child.
  */
-export type SponsorResponse = { url: string };
+export type SponsorResponse = { url: string, payment_id?: string | number, order_code?: string | number, id?: string | number };
 
 export const supportBooksNeed = async (childId: string): Promise<SponsorResponse> => {
   const res = await apiService.post(`/children/books-need/${childId}/support`, {});

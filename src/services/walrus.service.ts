@@ -113,6 +113,20 @@ export const getWalrusUrl = (blobId: string): string => {
 };
 
 /**
+ * React Native Image source for a Walrus blob.
+ *
+ * The Walrus aggregator returns raw bytes without a useful Content-Type header,
+ * which React Native's <Image> won't render. Sending `Accept: image/*` makes
+ * the aggregator respond with a proper image content type so the bytes decode.
+ */
+export const getWalrusImageSource = (blobId: string) => ({
+  uri: getWalrusUrl(blobId),
+  headers: {
+    Accept: 'image/*',
+  },
+});
+
+/**
  * Batch upload multiple images to Walrus
  * @param imageUris - Array of local file URIs
  * @returns Array of Walrus blob objects

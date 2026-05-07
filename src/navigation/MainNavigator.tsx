@@ -22,6 +22,8 @@ import PersonalInformationScreen from "../screens/profile/PersonalInformationScr
 import WelfareUpdateScreen from "../screens/volunteer/Welfareupdatescreen";
 import SettingsScreen from "../screens/settings/SettingsScreen";
 import RegistrationFormScreen from "../screens/settings/RegistrationFormScreen";
+import ChildUploadReqScreen from "../screens/profile/ChildUploadReqScreen";
+import SubmittedProofsScreen from "../screens/volunteer/SubmittedProofsScreen";
 import { VolunteerNavigator } from "./VolunteerNavigator";
 
 // Define all global/modal screens that aren't in tab navigation
@@ -33,6 +35,18 @@ export type GlobalModalParamList = {
   RegistrationForm: { region?: string } | undefined;
   SupportedRegions: undefined;
   Wallet: undefined;
+  ChildUploadReq: undefined;
+  SubmittedProofs: undefined;
+  PaymentCallbackScreen: {
+    status?: string;
+    title?: string;
+    message?: string;
+    tx_bytes?: string;
+    proposal_id?: string;
+    center_req?: string;
+    registration_req?: string;
+    upload_child_req?: string;
+  };
   // CreateNFT: undefined;
   // Add more modal screens here as needed
   // ChildHealthReport: { childId: string };
@@ -57,7 +71,7 @@ export type NFTStackParamList = {
     registration_req?: string;
     upload_child_req?: string;
   };
-  PaymentQrScreen: { paymentUrl: string; title?: string };
+  PaymentQrScreen: { paymentUrl: string; paymentId?: string | number; title?: string };
 };
 
 export type MainTabParamList = {
@@ -162,6 +176,11 @@ const TrackStack = () => {
         component={ProofScreen}
         options={{ title: "Impact Proof" }}
       />
+      <Stack.Screen
+        name="ChildDetailScreen"
+        component={ChildDetailScreen}
+        options={{ title: "Child Details" }}
+      />
     </Stack.Navigator>
   );
 };
@@ -204,16 +223,18 @@ const MainNavigator = () => {
         name="Explore"
         component={DiscoverStack}
         options={{ headerShown: false, tabBarLabel: "Khám phá" }}
-        listeners={({ navigation }) => ({
-          blur: () => {
-            navigation.dispatch(StackActions.popToTop());
-          },
-        })}
+        // listeners={({ navigation }) => ({
+        //   blur: () => {
+        //     if (navigation.canGoBack()) {
+        //       navigation.dispatch(StackActions.popToTop());
+        //     }
+        //   },
+        // })}
       />
       <Tab.Screen
         name="Regions"
         component={SupportedRegionsScreen}
-        options={{ headerShown: false, tabBarLabel: "Khu vực" }}
+        options={{ headerShown: true, tabBarLabel: "Khu vực" }}
       />
       <Tab.Screen
         name="Withdrawal"
@@ -317,6 +338,21 @@ export const RootNavigator = () => {
           name="SupportedRegions"
           component={SupportedRegionsScreen}
           options={{ title: 'Regions Needing Support', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="ChildUploadReq"
+          component={ChildUploadReqScreen}
+          options={{ title: 'Đăng ký trẻ em', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="SubmittedProofs"
+          component={SubmittedProofsScreen}
+          options={{ title: 'Submitted Proofs', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="PaymentCallbackScreen"
+          component={PaymentCallbackScreen}
+          options={{ headerShown: false }}
         />
         {/* Add more global modal screens here as needed */}
         {/* <RootStack.Screen
