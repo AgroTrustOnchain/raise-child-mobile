@@ -63,6 +63,7 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [poolTotalDonation, setPoolTotalDonation] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -93,6 +94,7 @@ const HomeScreen = () => {
 
       const response = await getTxRecords(pageNum, 10);
       const mapped = response?.data?.length > 0 ? response.data.map(mapTxRecord) : [];
+      setPoolTotalDonation(response?.pool_total_donation || 0);
 
       setTransactions(prev => (append ? [...prev, ...mapped] : mapped));
       setTotalPages(response.total_pages);
@@ -155,7 +157,7 @@ const HomeScreen = () => {
           </View>
 
           <Text style={styles.poolAmount}>
-            {formatVNDNumber(totalVND > 0 ? totalVND : 1240500)}{' '}
+            {formatVNDNumber(poolTotalDonation > 0 ? poolTotalDonation : 0)}{' '}
             <Text style={styles.poolCurrency}>VND</Text>
           </Text>
 
