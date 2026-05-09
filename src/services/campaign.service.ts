@@ -18,6 +18,7 @@ export type RegionChild = {
   last_name?: string;
   gender?: string;
   identity_code?: string;
+  avatar_blob_id?: string;
 };
 
 export type RegionDetail = {

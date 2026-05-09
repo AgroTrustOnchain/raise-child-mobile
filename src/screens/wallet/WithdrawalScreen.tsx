@@ -23,6 +23,7 @@ import {
   mapWithdrawalProposal,
 } from '../../services/withdrawal.service';
 import { useAuth } from '../../hooks/useAuth';
+import { formatVNDNumber } from '../../utils/currency';
 
 const STATUS_COLORS: Record<MappedWithdrawal['status'], string> = {
   executed: '#1E40AF',
@@ -141,12 +142,12 @@ const WithdrawalScreen = () => {
   };
 
   const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
-  const totalAmountVND = withdrawals
-    .reduce((sum, w) => {
+  const totalAmountVND = formatVNDNumber(
+    withdrawals.reduce((sum, w) => {
       const raw = parseInt(w.amount.replace(/[^0-9]/g, ''), 10);
       return sum + (isNaN(raw) ? 0 : raw);
-    }, 0)
-    .toLocaleString('vi-VN');
+    }, 0),
+  );
 
   const renderCard = ({ item }: { item: MappedWithdrawal }) => (
     <View style={styles.card}>
@@ -172,7 +173,7 @@ const WithdrawalScreen = () => {
 
       <View style={styles.amountRow}>
         <Text style={styles.amountVND}>{item.amount}</Text>
-        <Text style={styles.amountUSD}>{item.amountUSD}</Text>
+        {/* <Text style={styles.amountUSD}>{item.amountUSD}</Text> */}
       </View>
 
       <View style={styles.evidenceCard}>

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -19,7 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getChildById } from '../../services/child.service';
-import { API_BASE_URL } from '../../services/api.service';
+import WalrusImage from '../../components/WalrusImage';
 import {
   SupportType,
   submitSponsorship,
@@ -28,6 +27,7 @@ import {
   getHealthInsuranceNeedDetails,
 } from '../../services/sponsorship.service';
 import { getPaymentStatus } from '../../services/payment.service';
+import { formatVND, formatVNDNumber } from '../../utils/currency';
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLLS = 20;
@@ -36,8 +36,6 @@ const CANCELLED_STATUSES = new Set(["CANCELLED", "Cancelled", "cancelled", "CANC
 
 const { width } = Dimensions.get('window');
 
-const formatVND = (value: number): string =>
-  `${Math.round(value).toLocaleString('vi-VN')} ₫`;
 
 const ChildDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -46,13 +44,22 @@ const ChildDetailScreen = () => {
   const [beneficiary, setBeneficiary] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [bookValue, setBookValue] = useState(350000);
   const [mealValue, setMealValue] = useState(100000);
   const [healthValue, setHealthValue] = useState(0);
-  const [bookSupportedYears, setBookSupportedYears] = useState<number[]>([]);
+  const [healthFunded, setHealthFunded] = useState(false);
   const [healthSupportedYears, setHealthSupportedYears] = useState<number[]>([]);
   const [mealDurations, setMealDurations] = useState<{ start_period: string; end_period: string }[]>([]);
   const [mealSupportedMonths, setMealSupportedMonths] = useState(0);
+
+  // Books: one entry per semester (typically 2)
+  type BookSemester = {
+    needId: string;
+    value: number;
+    semester: number;
+    funded: boolean;
+  };
+  const [bookSemesters, setBookSemesters] = useState<BookSemester[]>([]);
+  const [selectedBookSemester, setSelectedBookSemester] = useState<number>(0);
   const [selectedSupport, setSelectedSupport] = useState<SupportType>('books');
   const [mealMonths, setMealMonths] = useState('3');
   const [recurringEnabled, setRecurringEnabled] = useState(true);
@@ -89,7 +96,7 @@ const ChildDetailScreen = () => {
     }
     const parts: string[] = [];
     if (typeof data.amount === 'number' && data.amount > 0) {
-      parts.push(`Khoản thanh toán ${data.amount.toLocaleString('vi-VN')}đ đã được ghi nhận.`);
+      parts.push(`Khoản thanh toán ${formatVNDNumber(data.amount)}đ đã được ghi nhận.`);
     } else {
       parts.push('Khoản thanh toán của bạn đã được ghi nhận.');
     }
@@ -141,7 +148,9 @@ const ChildDetailScreen = () => {
           return age;
         })(),
         grade: 0,
-        image: c.avatar_blob_id ? `${API_BASE_URL.replace(/\/+$/, '')}/blobs/${c.avatar_blob_id}` : undefined,
+        avatarBlobId: c.avatar_blob_id || undefined,
+        homeBlobId: c.home_blob_id || undefined,
+        birthCertBlobId: c.birth_certificate_blob_id || undefined,
         campaign: c.region || c.uploaded_by || '',
         status: 'Awaiting Sponsor',
         address: c.home_address || 'Not provided',
@@ -149,13 +158,13 @@ const ChildDetailScreen = () => {
           name: c.first_guardian.guardian_full_name || 'Not provided',
           phone: c.first_guardian.guardian_phone_number || 'Not provided',
           relation: c.first_guardian.guardian_relation || 'Not provided',
-          identityCard: c.first_guardian.identity_card_blob_id ? `${API_BASE_URL.replace(/\/+$/, '')}/blobs/${c.first_guardian.identity_card_blob_id}` : undefined,
+          identityCardBlobId: c.first_guardian.identity_card_blob_id || undefined,
         } : null,
         secondGuardian: c.second_guardian ? {
           name: c.second_guardian.guardian_full_name || 'Not provided',
           phone: c.second_guardian.guardian_phone_number || 'Not provided',
           relation: c.second_guardian.guardian_relation || 'Not provided',
-          identityCard: c.second_guardian.identity_card_blob_id ? `${API_BASE_URL.replace(/\/+$/, '')}/blobs/${c.second_guardian.identity_card_blob_id}` : undefined,
+          identityCardBlobId: c.second_guardian.identity_card_blob_id || undefined,
         } : null,
         story: c.story || 'No story provided',
         needs: {
@@ -169,30 +178,50 @@ const ChildDetailScreen = () => {
       };
       setBeneficiary(mapped);
 
-      // Fetch need values in parallel
-      const [bookRes, mealRes, healthRes] = await Promise.allSettled([
-        c.books_needs?.length > 0 ? getBookNeedDetails(c.books_needs[0]) : Promise.reject(),
-        c.meal_need ? getMealNeedDetails(c.meal_need) : Promise.reject(),
-        c.health_insurance_need ? getHealthInsuranceNeedDetails(c.health_insurance_need) : Promise.reject(),
+      // Fetch need values in parallel — books are one entry per semester
+      const bookIds: string[] = c.books_needs ?? [];
+      const [bookResults, mealRes, healthRes] = await Promise.all([
+        Promise.allSettled(bookIds.map((id) => getBookNeedDetails(id))),
+        c.meal_need ? getMealNeedDetails(c.meal_need).then(
+          (v) => ({ status: 'fulfilled' as const, value: v }),
+          (e) => ({ status: 'rejected' as const, reason: e }),
+        ) : Promise.resolve({ status: 'rejected' as const, reason: 'no meal need' }),
+        c.health_insurance_need ? getHealthInsuranceNeedDetails(c.health_insurance_need).then(
+          (v) => ({ status: 'fulfilled' as const, value: v }),
+          (e) => ({ status: 'rejected' as const, reason: e }),
+        ) : Promise.resolve({ status: 'rejected' as const, reason: 'no health need' }),
       ]);
 
-      const yr = new Date().getFullYear();
-      const bookDone = bookRes.status === 'fulfilled' && (bookRes.value.supported_years ?? []).includes(yr);
+      const semesters: BookSemester[] = bookResults
+        .map((r, i) => {
+          if (r.status !== 'fulfilled') return null;
+          return {
+            needId: bookIds[i],
+            value: r.value.value,
+            semester: r.value.semester ?? i + 1,
+            funded: (r.value.donations ?? []).length > 0,
+          };
+        })
+        .filter((s): s is BookSemester => s !== null);
+      setBookSemesters(semesters);
+
       const mealMonthsThisYear = mealRes.status === 'fulfilled'
-        ? (mealRes.value.supported_years ?? []).find((s) => s.year === yr)?.supported_months ?? 0
+        ? (mealRes.value.supported_years ?? []).find((s) => s.year === new Date().getFullYear())?.supported_months ?? 0
         : 0;
       const mealDone = mealMonthsThisYear >= 12;
-      const healthDone = healthRes.status === 'fulfilled' && (healthRes.value.supported_years ?? []).includes(yr);
+      const isHealthFunded =
+        healthRes.status === 'fulfilled' && (healthRes.value.donations ?? []).length > 0;
 
-      // Default selected support to first AVAILABLE (not yet supported) need
-      if (c.books_needs?.length > 0 && !bookDone) setSelectedSupport('books');
+      const firstAvailableSemester = semesters.findIndex((s) => !s.funded);
+      const anyBookAvailable = firstAvailableSemester >= 0;
+      setSelectedBookSemester(firstAvailableSemester >= 0 ? firstAvailableSemester : 0);
+
+      // Default selected support to first AVAILABLE need
+      if (anyBookAvailable) setSelectedSupport('books');
       else if (c.meal_need && !mealDone) setSelectedSupport('meals');
-      else if (c.health_insurance_need && !healthDone) setSelectedSupport('health');
+      else if (c.health_insurance_need && !isHealthFunded) setSelectedSupport('health');
       else setSelectedSupport(null);
-      if (bookRes.status === 'fulfilled') {
-        setBookValue(bookRes.value.value);
-        setBookSupportedYears(bookRes.value.supported_years ?? []);
-      }
+
       if (mealRes.status === 'fulfilled') {
         setMealValue(mealRes.value.value);
         setMealDurations(mealRes.value.durations ?? []);
@@ -203,6 +232,7 @@ const ChildDetailScreen = () => {
       if (healthRes.status === 'fulfilled') {
         setHealthValue(healthRes.value.value);
         setHealthSupportedYears(healthRes.value.supported_years ?? []);
+        setHealthFunded(isHealthFunded);
       }
     } catch (e) {
       console.warn('loadChild failed', e);
@@ -231,7 +261,12 @@ const ChildDetailScreen = () => {
       setIsSubmitting(true);
       let res;
       if (selectedSupport === 'books') {
-        res = await submitSponsorship({ type: 'books', childId: raw.books_needs[0] });
+        const sem = bookSemesters[selectedBookSemester];
+        if (!sem || sem.funded) {
+          Alert.alert('Lỗi', 'Học kỳ này đã được hỗ trợ.');
+          return;
+        }
+        res = await submitSponsorship({ type: 'books', childId: sem.needId });
       } else if (selectedSupport === 'meals') {
         res = await submitSponsorship({ type: 'meals', childId: raw.meal_need, months });
       } else if (selectedSupport === 'health') {
@@ -380,13 +415,12 @@ const ChildDetailScreen = () => {
   }
 
   const { raw } = beneficiary;
-  const hasBooks = raw.books_needs?.length > 0 && bookValue > 0;
+  const hasBooks = bookSemesters.some((s) => s.value > 0);
   const hasMeals = !!raw.meal_need && mealValue > 0;
   const hasHealth = !!raw.health_insurance_need && healthValue > 0;
 
   const currentYear = new Date().getFullYear();
-  const bookSupported = bookSupportedYears.includes(currentYear);
-  const healthSupported = healthSupportedYears.includes(currentYear);
+  const healthSupported = healthSupportedYears.includes(currentYear) || healthFunded;
   const mealRemainingMonths = Math.max(0, 12 - mealSupportedMonths);
   const mealSupported = mealRemainingMonths === 0;
 
@@ -424,7 +458,7 @@ const ChildDetailScreen = () => {
       >
         {/* Hero Image */}
         <View style={styles.heroContainer}>
-          <Image source={{ uri: beneficiary.image }} style={styles.heroImage} />
+          <WalrusImage blobId={beneficiary.avatarBlobId} style={styles.heroImage} resizeMode="cover" fallbackIconSize={48} />
         </View>
 
         <View style={styles.content}>
@@ -472,6 +506,12 @@ const ChildDetailScreen = () => {
                         <Text style={styles.detailValue}>{beneficiary.firstGuardian.phone}</Text>
                       </View>
                     </View>
+                    {beneficiary.firstGuardian.identityCardBlobId && (
+                      <View style={styles.idCardBlock}>
+                        <Text style={styles.idCardLabel}>CMND/CCCD</Text>
+                        <WalrusImage blobId={beneficiary.firstGuardian.identityCardBlobId} style={styles.idCardImage} resizeMode="cover" />
+                      </View>
+                    )}
                   </View>
                 )}
                 {beneficiary.secondGuardian && (
@@ -491,6 +531,12 @@ const ChildDetailScreen = () => {
                         <Text style={styles.detailValue}>{beneficiary.secondGuardian.phone}</Text>
                       </View>
                     </View>
+                    {beneficiary.secondGuardian.identityCardBlobId && (
+                      <View style={styles.idCardBlock}>
+                        <Text style={styles.idCardLabel}>CMND/CCCD</Text>
+                        <WalrusImage blobId={beneficiary.secondGuardian.identityCardBlobId} style={styles.idCardImage} resizeMode="cover" />
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -507,6 +553,19 @@ const ChildDetailScreen = () => {
                     <Text style={styles.infoValue}>{beneficiary.address}</Text>
                   </View>
                 </View>
+              </View>
+            )}
+
+            {beneficiary.homeBlobId && (
+              <View style={styles.blobImageBlock}>
+                <Text style={styles.idCardLabel}>Ảnh nơi ở</Text>
+                <WalrusImage blobId={beneficiary.homeBlobId} style={styles.blobImage} resizeMode="cover" />
+              </View>
+            )}
+            {beneficiary.birthCertBlobId && (
+              <View style={styles.blobImageBlock}>
+                <Text style={styles.idCardLabel}>Giấy khai sinh</Text>
+                <WalrusImage blobId={beneficiary.birthCertBlobId} style={styles.blobImage} resizeMode="cover" />
               </View>
             )}
           </View>
@@ -559,34 +618,42 @@ const ChildDetailScreen = () => {
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Chọn loại hỗ trợ</Text>
 
-              {hasBooks && (
-                <TouchableOpacity
-                  style={[
-                    styles.supportOption,
-                    selectedSupport === 'books' && !bookSupported && styles.supportOptionSelected,
-                    bookSupported && styles.supportOptionDisabled,
-                  ]}
-                  onPress={() => !bookSupported && setSelectedSupport('books')}
-                  disabled={bookSupported}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.supportOptionLeft}>
-                    <View style={[styles.supportIconContainer, selectedSupport === 'books' && !bookSupported && styles.supportIconContainerSelected]}>
-                      <Ionicons name="book-outline" size={22} color={selectedSupport === 'books' && !bookSupported ? '#FFFFFF' : '#1E40AF'} />
+              {hasBooks && bookSemesters.map((sem, idx) => {
+                const isSelected = selectedSupport === 'books' && selectedBookSemester === idx;
+                return (
+                  <TouchableOpacity
+                    key={sem.needId}
+                    style={[
+                      styles.supportOption,
+                      isSelected && !sem.funded && styles.supportOptionSelected,
+                      sem.funded && styles.supportOptionDisabled,
+                    ]}
+                    onPress={() => {
+                      if (sem.funded) return;
+                      setSelectedSupport('books');
+                      setSelectedBookSemester(idx);
+                    }}
+                    disabled={sem.funded}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.supportOptionLeft}>
+                      <View style={[styles.supportIconContainer, isSelected && !sem.funded && styles.supportIconContainerSelected]}>
+                        <Ionicons name="book-outline" size={22} color={isSelected && !sem.funded ? '#FFFFFF' : '#1E40AF'} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.supportOptionTitle}>Sách giáo khoa - Học kỳ {sem.semester}</Text>
+                        {sem.funded && (
+                          <Text style={styles.supportedNote}>Đã có người hỗ trợ học kỳ này</Text>
+                        )}
+                      </View>
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.supportOptionTitle}>Hỗ trợ sách giáo khoa</Text>
-                      {bookSupported && (
-                        <Text style={styles.supportedNote}>Đã hỗ trợ năm {bookSupportedYears.join(', ')}</Text>
-                      )}
+                    <View style={styles.supportOptionRight}>
+                      <Text style={styles.supportOptionPrice}>{formatVND(sem.value)}</Text>
+                      <Text style={styles.supportOptionFrequency}>Mỗi học kỳ</Text>
                     </View>
-                  </View>
-                  <View style={styles.supportOptionRight}>
-                    <Text style={styles.supportOptionPrice}>{formatVND(bookValue)}</Text>
-                    <Text style={styles.supportOptionFrequency}>Mỗi học kỳ</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
+                  </TouchableOpacity>
+                );
+              })}
 
               {hasMeals && (
                 <>
@@ -666,7 +733,11 @@ const ChildDetailScreen = () => {
                     <View style={{ flex: 1 }}>
                       <Text style={styles.supportOptionTitle}>Bảo hiểm y tế</Text>
                       {healthSupported && (
-                        <Text style={styles.supportedNote}>Đã hỗ trợ năm {healthSupportedYears.join(', ')}</Text>
+                        <Text style={styles.supportedNote}>
+                          {healthFunded
+                            ? 'Đã có người hỗ trợ — chỉ một người có thể tài trợ'
+                            : `Đã hỗ trợ năm ${healthSupportedYears.join(', ')}`}
+                        </Text>
                       )}
                     </View>
                   </View>
@@ -725,10 +796,10 @@ const ChildDetailScreen = () => {
             </>
           )}
         </TouchableOpacity>
-        <View style={styles.securedRow}>
+        {/* <View style={styles.securedRow}>
           <Ionicons name="lock-closed" size={12} color="#9CA3AF" />
           <Text style={styles.securedText}>Bảo mật bởi Giao thức Mạng Sui</Text>
-        </View>
+        </View> */}
       </View>
       )}
     </KeyboardAvoidingView>
@@ -815,6 +886,18 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2,
   },
   guardianName: { fontSize: 14, fontWeight: 'bold', color: '#111827' },
+  idCardBlock: { marginTop: 12 },
+  idCardLabel: {
+    fontSize: 11, fontWeight: '700', color: '#6B7280',
+    textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6,
+  },
+  idCardImage: {
+    width: '100%', aspectRatio: 4 / 3, borderRadius: 12, backgroundColor: '#F1F5F9',
+  },
+  blobImageBlock: { marginTop: 12 },
+  blobImage: {
+    width: '100%', aspectRatio: 4 / 3, borderRadius: 12, backgroundColor: '#F1F5F9',
+  },
   guardianDetails: { paddingLeft: 52, gap: 8 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   detailIcon: { marginTop: 2 },

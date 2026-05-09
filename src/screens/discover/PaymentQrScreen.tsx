@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getPaymentStatus } from "../../services/payment.service";
+import { formatVNDNumber } from "../../utils/currency";
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLLS = 20; // 60 seconds total
@@ -45,7 +46,7 @@ const PaymentQrScreen = () => {
   const buildSuccessMessage = (data: { amount?: number; description?: string }) => {
     const parts: string[] = [];
     if (typeof data.amount === "number" && data.amount > 0) {
-      parts.push(`Khoản thanh toán ${data.amount.toLocaleString("vi-VN")}đ đã được ghi nhận.`);
+      parts.push(`Khoản thanh toán ${formatVNDNumber(data.amount)}đ đã được ghi nhận.`);
     } else {
       parts.push("Khoản thanh toán của bạn đã được ghi nhận.");
     }

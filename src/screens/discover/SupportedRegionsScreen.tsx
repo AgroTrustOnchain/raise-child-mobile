@@ -325,7 +325,7 @@ const RegistrationsTab = () => {
                 </View>
               </View>
 
-              {canConfirm && (
+              {/* {canConfirm && (
                 <TouchableOpacity
                   style={[styles.confirmButton, isConfirming && styles.confirmButtonDisabled]}
                   onPress={() => handleConfirm(reg)}
@@ -341,7 +341,7 @@ const RegistrationsTab = () => {
                     </>
                   )}
                 </TouchableOpacity>
-              )}
+              )} */}
             </View>
           );
         })

@@ -99,14 +99,60 @@ const PersonalInformationScreen = () => {
     setShowDatePicker(false);
   };
 
+  // English picker values → values the CCCD validator understands
+  const mapGenderForValidator = (g: Gender): string | undefined => {
+    if (g === 'Male') return 'Nam';
+    if (g === 'Female') return 'Nữ';
+    return undefined;
+  };
+
+  // Vietnam citizen ID (CCCD) validator — same rules as ChildUploadReqScreen.
+  // Format: 12 digits — 3-digit province code (001–096), 1 gender/century digit,
+  // 2-digit birth year, 6 random digits. Cross-checks against DOB / gender when provided.
+  const isValidVietnamCCCD = (
+    code: string,
+    opts?: { dob?: string; gender?: string },
+  ) => {
+    if (!/^\d{12}$/.test(code)) return false;
+    const provinceCode = Number(code.slice(0, 3));
+    if (provinceCode < 1 || provinceCode > 96) return false;
+    const genderCenturyDigit = Number(code[3]);
+    const yearTwoDigits = Number(code.slice(4, 6));
+    if (Number.isNaN(yearTwoDigits)) return false;
+
+    if (opts?.dob) {
+      const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(opts.dob);
+      if (m) {
+        const birthYear = Number(m[3]);
+        const expectedYY = birthYear % 100;
+        if (expectedYY !== yearTwoDigits) return false;
+
+        const century = Math.floor(birthYear / 100);
+        const base = (century - 19) * 2;
+        const allowedDigits: number[] = [];
+        if (opts.gender === 'Nam') allowedDigits.push(base);
+        else if (opts.gender === 'Nữ') allowedDigits.push(base + 1);
+        else allowedDigits.push(base, base + 1);
+        if (!allowedDigits.includes(genderCenturyDigit)) return false;
+      }
+    }
+    return true;
+  };
+
+  const cccdValid = isValidVietnamCCCD(identityCode.trim(), {
+    dob: dateOfBirth,
+    gender: mapGenderForValidator(gender),
+  });
+  const phoneValid = /^\d{10}$/.test(phoneNumber.trim());
+
   const isFormValid =
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
     gender !== '' &&
     dateOfBirth.trim().length > 0 &&
-    phoneNumber.trim().length > 0 &&
+    phoneValid &&
     email.trim().length > 0 &&
-    identityCode.trim().length > 0;
+    cccdValid;
 
   // Profile is "locked" (already filled) if the server already has every required field.
   // After the first successful update the profile cannot be edited again.
@@ -354,14 +400,18 @@ const PersonalInformationScreen = () => {
               </View>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
-                placeholder="(555) 000-0000"
+                placeholder="0901234567"
                 placeholderTextColor="#9CA3AF"
                 value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                onChangeText={(v) => setPhoneNumber(v.replace(/\D/g, '').slice(0, 10))}
                 keyboardType="phone-pad"
+                maxLength={10}
                 editable={!isProfileLocked}
               />
             </View>
+            {phoneNumber.length > 0 && !phoneValid && (
+              <Text style={styles.cccdError}>Số điện thoại phải đủ 10 chữ số.</Text>
+            )}
           </View>
 
           {/* Email */}
@@ -391,13 +441,22 @@ const PersonalInformationScreen = () => {
             </Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your identity code"
+              placeholder="123456789012"
               placeholderTextColor="#9CA3AF"
               value={identityCode}
-              onChangeText={setIdentityCode}
+              onChangeText={(v) => setIdentityCode(v.replace(/\D/g, '').slice(0, 12))}
+              keyboardType="number-pad"
+              maxLength={12}
               autoCapitalize="none"
               editable={!isProfileLocked}
             />
+            {identityCode.length > 0 && !cccdValid && (
+              <Text style={styles.cccdError}>
+                {identityCode.length < 12
+                  ? `Cần đủ 12 chữ số (còn ${12 - identityCode.length}).`
+                  : 'Mã định danh không hợp lệ. Kiểm tra mã tỉnh, năm sinh và giới tính.'}
+              </Text>
+            )}
           </View>
 
         </View>
@@ -656,6 +715,12 @@ const styles = StyleSheet.create({
   requiredStar: {
     color: '#DC2626',
     fontWeight: '700',
+  },
+  cccdError: {
+    fontSize: 12,
+    color: '#DC2626',
+    marginTop: 6,
+    lineHeight: 16,
   },
   warningBanner: {
     flexDirection: 'row',

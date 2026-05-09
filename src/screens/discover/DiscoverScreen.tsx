@@ -12,9 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getCampaigns, CampaignItem } from '../../services/campaign.service';
-import { API_BASE_URL } from '../../services/api.service';
 import { useNavigation } from '@react-navigation/native';
-import { Image } from 'react-native';
+import WalrusImage from '../../components/WalrusImage';
 
 const PAGE_SIZE = 10;
 
@@ -102,10 +101,6 @@ const DiscoverScreen = () => {
   );
 
   const renderCenterCard = ({ item }: { item: CampaignItem }) => {
-    const imageUri = item.image_blob_id
-      ? `${API_BASE_URL}/blobs/${item.image_blob_id}`
-      : undefined;
-
     return (
       <TouchableOpacity
         style={styles.regionCard}
@@ -113,8 +108,8 @@ const DiscoverScreen = () => {
         activeOpacity={0.95}
       >
         <View style={styles.regionCardContent}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.centerImage} />
+          {item.image_blob_id ? (
+            <WalrusImage blobId={item.image_blob_id} style={styles.centerImage} resizeMode="cover" fallbackIconSize={32} />
           ) : (
             <View style={styles.regionIconContainer}>
               <Ionicons name="business" size={32} color="#1E40AF" />

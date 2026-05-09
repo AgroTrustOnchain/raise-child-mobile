@@ -36,6 +36,7 @@ export const getTaskProofsByActor = async (
 export interface SubmitTaskProofParams {
   taskId: string | number;
   imageBlobId: string;
+  imageBlobIdBase64: string;
 }
 
 export interface TaskProofResponse {
@@ -55,7 +56,7 @@ export const submitTaskProof = async (
   params: SubmitTaskProofParams
 ): Promise<TaskProofResponse> => {
   try {
-    const { taskId, imageBlobId } = params;
+    const { taskId, imageBlobId, imageBlobIdBase64 } = params;
 
     if (!taskId) {
       throw new Error('Task ID is required');
@@ -71,6 +72,7 @@ export const submitTaskProof = async (
 
     const response = await apiService.post<TaskProofResponse>(url, {
       image_blob_id: imageBlobId,
+      image_base64: imageBlobIdBase64,
     });
 
     return response.data;

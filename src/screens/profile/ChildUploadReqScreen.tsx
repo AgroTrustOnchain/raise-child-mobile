@@ -33,6 +33,7 @@ interface GuardianForm {
   phoneNumber: string;
   relation: string;
   idCardBlobId?: string;
+  idCardBase64?: string;
   idCardPreview?: string;
 }
 
@@ -41,6 +42,7 @@ const emptyGuardian = (): GuardianForm => ({
   phoneNumber: "",
   relation: "",
   idCardBlobId: undefined,
+  idCardBase64: undefined,
   idCardPreview: undefined,
 });
 
@@ -61,10 +63,13 @@ const ChildUploadReqScreen = () => {
 
   // Image fields
   const [avatarBlobId, setAvatarBlobId] = useState<string | undefined>();
+  const [avatarBase64, setAvatarBase64] = useState<string | undefined>();
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const [birthCertBlobId, setBirthCertBlobId] = useState<string | undefined>();
+  const [birthCertBase64, setBirthCertBase64] = useState<string | undefined>();
   const [birthCertPreview, setBirthCertPreview] = useState<string | undefined>();
   const [homeBlobId, setHomeBlobId] = useState<string | undefined>();
+  const [homeBase64, setHomeBase64] = useState<string | undefined>();
   const [homePreview, setHomePreview] = useState<string | undefined>();
 
   // Text fields
@@ -112,6 +117,44 @@ const ChildUploadReqScreen = () => {
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
   // Only years that keep the child under 16 (16 youngest birth years inclusive)
   const yearOptions = Array.from({ length: 16 }, (_, i) => MAX_YEAR - i);
+
+  // Vietnam citizen ID (CCCD) validator.
+  // Format: 12 digits — 3-digit province code (001–096), 1 gender/century digit (0–9),
+  // 2-digit birth year (last two digits), 6 random digits.
+  // If a DOB is supplied, the birth-year digits and gender/century digit must match it.
+  const isValidVietnamCCCD = (
+    code: string,
+    opts?: { dob?: string; gender?: string },
+  ) => {
+    if (!/^\d{12}$/.test(code)) return false;
+    const provinceCode = Number(code.slice(0, 3));
+    if (provinceCode < 1 || provinceCode > 96) return false;
+    const genderCenturyDigit = Number(code[3]);
+    const yearTwoDigits = Number(code.slice(4, 6));
+    if (Number.isNaN(yearTwoDigits)) return false;
+
+    // Cross-check with DOB / gender when available
+    if (opts?.dob) {
+      const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(opts.dob);
+      if (m) {
+        const birthYear = Number(m[3]);
+        const expectedYY = birthYear % 100;
+        if (expectedYY !== yearTwoDigits) return false;
+
+        // Century-gender mapping per Vietnamese CCCD spec:
+        // 0/1 → 1900s, 2/3 → 2000s, 4/5 → 2100s, 6/7 → 2200s, 8/9 → 2300s
+        // even = male, odd = female
+        const century = Math.floor(birthYear / 100); // 19, 20, 21…
+        const allowedDigits: number[] = [];
+        const base = (century - 19) * 2;
+        if (opts.gender === "Nam") allowedDigits.push(base);
+        else if (opts.gender === "Nữ") allowedDigits.push(base + 1);
+        else allowedDigits.push(base, base + 1);
+        if (!allowedDigits.includes(genderCenturyDigit)) return false;
+      }
+    }
+    return true;
+  };
 
   const isUnder16 = (dob: string) => {
     const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dob);
@@ -168,21 +211,24 @@ const ChildUploadReqScreen = () => {
       switch (slot) {
         case "avatar":
           setAvatarBlobId(blob.blobId);
+          setAvatarBase64(blob.base64);
           setAvatarPreview(uri);
           break;
         case "birthCertificate":
           setBirthCertBlobId(blob.blobId);
+          setBirthCertBase64(blob.base64);
           setBirthCertPreview(uri);
           break;
         case "home":
           setHomeBlobId(blob.blobId);
+          setHomeBase64(blob.base64);
           setHomePreview(uri);
           break;
         case "firstGuardianId":
-          setFirstGuardian((g) => ({ ...g, idCardBlobId: blob.blobId, idCardPreview: uri }));
+          setFirstGuardian((g) => ({ ...g, idCardBlobId: blob.blobId, idCardBase64: blob.base64, idCardPreview: uri }));
           break;
         case "secondGuardianId":
-          setSecondGuardian((g) => ({ ...g, idCardBlobId: blob.blobId, idCardPreview: uri }));
+          setSecondGuardian((g) => ({ ...g, idCardBlobId: blob.blobId, idCardBase64: blob.base64, idCardPreview: uri }));
           break;
       }
     } catch (e: any) {
@@ -223,7 +269,7 @@ const ChildUploadReqScreen = () => {
     lastName.trim().length > 0 &&
     gender !== "" &&
     isUnder16(dateOfBirth) &&
-    /^\d{12}$/.test(identityCode.trim()) &&
+    isValidVietnamCCCD(identityCode.trim(), { dob: dateOfBirth, gender }) &&
     homeAddress.trim().length > 0 &&
     region.trim().length > 0 &&
     isGuardianValid(firstGuardian) &&
@@ -231,18 +277,22 @@ const ChildUploadReqScreen = () => {
 
   const buildPayload = (): ChildUploadReqPayload => ({
     avatar_blob_id: avatarBlobId!,
+    avatar_base64: avatarBase64 ?? "",
     birth_certificate_blob_id: birthCertBlobId!,
+    birth_certificate_base64: birthCertBase64 ?? "",
     date_of_birth: dateOfBirth,
     first_guardian: {
       guardian_full_name: firstGuardian.fullName,
       guardian_phone_number: firstGuardian.phoneNumber,
       guardian_relation: firstGuardian.relation,
       identity_card_blob_id: firstGuardian.idCardBlobId!,
+      identity_card_base64: firstGuardian.idCardBase64 ?? "",
     },
     first_name: firstName,
     gender,
     home_address: homeAddress,
     home_blob_id: homeBlobId!,
+    home_base64: homeBase64 ?? "",
     identity_code: identityCode,
     last_name: lastName,
     region,
@@ -252,6 +302,7 @@ const ChildUploadReqScreen = () => {
         guardian_phone_number: secondGuardian.phoneNumber,
         guardian_relation: secondGuardian.relation,
         identity_card_blob_id: secondGuardian.idCardBlobId!,
+        identity_card_base64: secondGuardian.idCardBase64 ?? "",
       },
     }),
   });
@@ -571,6 +622,14 @@ const ChildUploadReqScreen = () => {
             keyboardType="number-pad"
             maxLength={12}
           />
+          {identityCode.length > 0 &&
+            !isValidVietnamCCCD(identityCode.trim(), { dob: dateOfBirth, gender }) && (
+              <Text style={styles.cccdError}>
+                {identityCode.length < 12
+                  ? `Cần đủ 12 chữ số (còn ${12 - identityCode.length}).`
+                  : "Mã định danh không hợp lệ. Kiểm tra mã tỉnh, năm sinh và giới tính."}
+              </Text>
+            )}
         </View>
 
         {renderImageUpload(
@@ -868,6 +927,7 @@ const styles = StyleSheet.create({
   fieldGroup: { marginBottom: 14 },
   label: { fontSize: 13, fontWeight: "700", color: "#111827", marginBottom: 6 },
   requiredStar: { color: "#DC2626", fontWeight: "700" },
+  cccdError: { fontSize: 12, color: "#DC2626", marginTop: 6, lineHeight: 16 },
 
   row: { flexDirection: "row", gap: 12 },
 

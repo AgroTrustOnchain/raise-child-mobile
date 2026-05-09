@@ -89,16 +89,16 @@ const WelfareUpdateScreen = () => {
 
     try {
       setIsUploadingImages(true);
-      const walrusBlobIds: string[] = [];
+      const walrusBlobs: { blobId: string; base64: string }[] = [];
       for (const image of uploadedImages) {
         const walrusBlob = await uploadImageToWalrus(image.uri);
-        walrusBlobIds.push(walrusBlob.blobId);
+        walrusBlobs.push({ blobId: walrusBlob.blobId, base64: walrusBlob.base64 });
       }
       setIsUploadingImages(false);
 
       const responses = await Promise.all(
-        walrusBlobIds.map((blobId) =>
-          submitTaskProof({ taskId, imageBlobId: blobId }),
+        walrusBlobs.map(({ blobId, base64 }) =>
+          submitTaskProof({ taskId, imageBlobId: blobId, imageBlobIdBase64: base64 }),
         ),
       );
 

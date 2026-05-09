@@ -19,9 +19,7 @@ import {
   WalletProfile,
   TransactionRecord,
 } from '../../services/profile.service';
-
-const formatVND = (value: number) =>
-  `${Math.round(value).toLocaleString('vi-VN')} ₫`;
+import { formatVND, formatVNDNumber } from '../../utils/currency';
 
 // ── Badge data (static) ───────────────────────────────────────────────────────
 const BADGES = [
@@ -95,7 +93,7 @@ const TransactionItem = ({ tx }: { tx: TransactionRecord }) => {
         </View>
       </View>
       <Text style={styles.txAmount}>
-        {Math.abs(amount).toLocaleString('vi-VN')}
+        {formatVNDNumber(Math.abs(amount))}
       </Text>
     </View>
   );

@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   FlatList,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -15,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../../store';
 import { getSupportedChildren } from '../../services/child.service';
-import { API_BASE_URL } from '../../services/api.service';
+import WalrusImage from '../../components/WalrusImage';
 
 const MyTrackScreen = () => {
   const navigation = useNavigation<any>();
@@ -71,9 +70,9 @@ const MyTrackScreen = () => {
   const getChildName = (c: any) =>
     `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Không có tên';
 
-  const getAvatarUri = (c: any): string | undefined => {
+  const getAvatarBlobId = (c: any): string | undefined => {
     if (!c.avatar_blob_id || c.avatar_blob_id === 'AgroTrust') return undefined;
-    return `${API_BASE_URL.replace(/\/+$/, '')}/blobs/${c.avatar_blob_id}`;
+    return c.avatar_blob_id as string;
   };
 
   const getAge = (dob: string): number | undefined => {
@@ -126,7 +125,7 @@ const MyTrackScreen = () => {
 
   const renderChildCard = ({ item: c }: { item: any }) => {
     const name = getChildName(c);
-    const avatarUri = getAvatarUri(c);
+    const avatarBlobId = getAvatarBlobId(c);
     const age = getAge(c.date_of_birth);
 
     return (
@@ -137,8 +136,8 @@ const MyTrackScreen = () => {
       >
         {/* Image */}
         <View style={styles.imageContainer}>
-          {avatarUri ? (
-            <Image source={{ uri: avatarUri }} style={styles.childImage} />
+          {avatarBlobId ? (
+            <WalrusImage blobId={avatarBlobId} style={styles.childImage} resizeMode="cover" fallbackIconSize={48} />
           ) : (
             <View style={[styles.childImage, styles.avatarPlaceholder]}>
               <Ionicons name="person" size={48} color="#BFDBFE" />

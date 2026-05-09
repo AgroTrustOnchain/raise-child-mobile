@@ -1,4 +1,5 @@
 import { apiService } from './api.service';
+import { formatVNDNumber } from '../utils/currency';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -72,7 +73,7 @@ export const mapTxRecord = (tx: TxRecord): MappedTransaction => {
     address: shortenAddress(tx.actor_address),
     time: formatRelativeTime(tx.created_at),
     type: isInflow ? 'inflow' : 'outflow',
-    amount: `${isInflow ? '+' : '-'}${tx.amount.toLocaleString('vi-VN')}`,
+    amount: `${isInflow ? '+' : '-'}${formatVNDNumber(tx.amount)}`,
     description: tx.message?.trim() || tx.action_type,
     category: poolName,
     poolName,

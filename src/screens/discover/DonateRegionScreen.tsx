@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { donateToPool, getPaymentStatus } from "../../services/payment.service";
+import { formatVNDNumber } from "../../utils/currency";
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLLS = 20;
@@ -62,7 +63,7 @@ const DonateRegionScreen = () => {
     }
     const parts: string[] = [];
     if (typeof data.amount === "number" && data.amount > 0) {
-      parts.push(`Khoản thanh toán ${data.amount.toLocaleString("vi-VN")}đ đã được ghi nhận.`);
+      parts.push(`Khoản thanh toán ${formatVNDNumber(data.amount)}đ đã được ghi nhận.`);
     } else {
       parts.push("Khoản thanh toán của bạn đã được ghi nhận.");
     }
@@ -272,11 +273,11 @@ const DonateRegionScreen = () => {
           <Text style={styles.label}>Số tiền (VND)</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g. 2000"
+            placeholder="e.g. 2.000"
             placeholderTextColor="#9CA3AF"
             keyboardType="numeric"
-            value={amount}
-            onChangeText={setAmount}
+            value={amount ? formatVNDNumber(amount) : ""}
+            onChangeText={(v) => setAmount(v.replace(/\D/g, ""))}
           />
 
           <Text style={styles.label}>Lời nhắn (không bắt buộc)</Text>

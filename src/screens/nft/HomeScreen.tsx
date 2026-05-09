@@ -19,6 +19,7 @@ import {
   getTxRecords,
   mapTxRecord,
 } from '../../services/transaction.service';
+import { formatVNDNumber } from '../../utils/currency';
 
 // ─── Static data (campaigns stay static until a campaign API is added) ────────
 
@@ -154,14 +155,8 @@ const HomeScreen = () => {
           </View>
 
           <Text style={styles.poolAmount}>
-            {totalVND > 0
-              ? totalVND.toLocaleString('vi-VN')
-              : '1,240,500'}{' '}
+            {formatVNDNumber(totalVND > 0 ? totalVND : 1240500)}{' '}
             <Text style={styles.poolCurrency}>VND</Text>
-          </Text>
-
-          <Text style={styles.poolUsd}>
-            ≈ ${Math.round((totalVND || 1240500) / 24000).toLocaleString('en-US')} USD Secured
           </Text>
 
           <View style={styles.networkBadge}>

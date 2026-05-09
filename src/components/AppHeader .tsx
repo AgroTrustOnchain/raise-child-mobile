@@ -97,14 +97,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#2E7D32",
+    backgroundColor: "#1E40AF",
     justifyContent: "center",
     alignItems: "center",
   },
   logoText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#111827",
+    color: "#1E40AF",
   },
   headerActions: {
     flexDirection: "row",

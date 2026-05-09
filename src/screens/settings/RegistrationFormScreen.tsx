@@ -26,8 +26,10 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface RegistrationFormData {
   avatarBlobId?: string;
+  avatarBase64?: string;
   avatarPreview?: string;
   identityCardBlobId?: string;
+  identityCardBase64?: string;
   identityCardPreview?: string;
   region: string;
   registerRole: string;
@@ -86,12 +88,14 @@ const RegistrationFormScreen = () => {
             setFormData((prev) => ({
               ...prev,
               avatarBlobId: walrusBlob.blobId,
+              avatarBase64: walrusBlob.base64,
               avatarPreview: uri, // Keep local URI for preview
             }));
           } else {
             setFormData((prev) => ({
               ...prev,
               identityCardBlobId: walrusBlob.blobId,
+              identityCardBase64: walrusBlob.base64,
               identityCardPreview: uri, // Keep local URI for preview
             }));
           }
@@ -163,7 +167,9 @@ const RegistrationFormScreen = () => {
 
       const payload = {
         avatar_blob_id: formData.avatarBlobId || "",
+        // avatar_base64: formData.avatarBase64 || "",
         identity_card_blob_id: formData.identityCardBlobId || "",
+        // identity_card_base64: formData.identityCardBase64 || "",
         region: formData.region,
         register_role: formData.registerRole,
       };

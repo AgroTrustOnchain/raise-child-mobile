@@ -12,6 +12,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { getChildById } from '../../services/child.service';
 import { getMealNeedProof, MealNeedProof } from '../../services/sponsorship.service';
 import WalrusImage from '../../components/WalrusImage';
+import { formatVNDNumber } from '../../utils/currency';
 
 const formatDate = (raw: string): string => {
   if (!raw) return '';
@@ -144,7 +145,7 @@ const ProofScreen = () => {
                 <View style={styles.summaryDivider} />
                 <View style={styles.summaryItem}>
                   <Text style={styles.summaryValue}>
-                    {proof.value > 0 ? proof.value.toLocaleString('vi-VN') : '—'}
+                    {proof.value > 0 ? formatVNDNumber(proof.value) : '—'}
                   </Text>
                   <Text style={styles.summaryLabel}>Giá trị (đ)</Text>
                 </View>
