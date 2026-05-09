@@ -72,7 +72,7 @@ const LoginScreen = () => {
           const currentEpoch = await getCurrentEpoch();
           const maxEpoch = currentEpoch + 2;
           const nonce = generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness);
-          console.log("Nonce:", nonce);
+          // console.log("Nonce:", nonce);
 
           const loginResponse = await dispatch(
             loginUser({ address: userAddress, sub }),

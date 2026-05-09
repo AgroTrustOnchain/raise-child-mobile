@@ -71,11 +71,25 @@ export interface SupportedRegionSuggestion {
   region: string;
   content: string;
   status: string;
+  reason?: string | null;
   created_by: string;
   reviewed_by: string | null;
   created_at: string;
   updated_at: string;
 }
+
+/**
+ * GET /regions/established
+ * Fetch regions that have been established and can accept child submissions.
+ */
+export const getEstablishedRegions = async (): Promise<string[]> => {
+  const res = await apiService.get(`/regions/established`);
+  const data = res.data;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.regions)) return data.regions;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+};
 
 /**
  * Fetch regions that need volunteer/local leader support
@@ -118,6 +132,22 @@ export const getUserRegistrations = async (
 ): Promise<UserRegistration[]> => {
   const response = await apiService.get(`/registrations/user/${address}`);
   const data = response.data;
+  if (Array.isArray(data)) return data;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  return [];
+};
+
+/**
+ * GET /regions/user/{address}/supported-suggestions
+ * Fetch suggestions submitted by a specific wallet address.
+ */
+export const getMySupportedRegionSuggestions = async (
+  address: string,
+): Promise<SupportedRegionSuggestion[]> => {
+  const res = await apiService.get(
+    `/regions/user/${address}/supported-suggestions`,
+  );
+  const data = res.data;
   if (Array.isArray(data)) return data;
   if (data?.data && Array.isArray(data.data)) return data.data;
   return [];

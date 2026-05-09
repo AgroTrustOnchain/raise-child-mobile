@@ -116,10 +116,10 @@ export type MealNeedProof = {
   donations: string[];
   donors: string[];
   durations: { start_period: string; end_period: string }[];
-  provide_meal_dates: string[];
-  provide_meal_image_blob_ids: string[];
-  provide_meal_periods: string[];
-  provide_meal_staffs: string[];
+  provide_dates: string[];
+  provide_image_blob_ids: string[];
+  provide_periods: string[];
+  provide_staffs: string[];
   supported_years: { year: number; supported_months: number }[];
   withdraw_proposals: string[];
   withdraws_for_need: string[];

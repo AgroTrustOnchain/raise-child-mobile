@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -19,11 +19,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { uploadImageToWalrus } from "../../services/walrus.service";
-import RegionPicker from "../../components/RegionPicker";
 import {
   submitChildUploadRequest,
   ChildUploadReqPayload,
 } from "../../services/child-upload.service";
+import { getEstablishedRegions } from "../../services/registration.service";
 
 type Gender = "Male" | "Female" | "Other" | "";
 type ImageSlot = "avatar" | "birthCertificate" | "home" | "firstGuardianId" | "secondGuardianId";
@@ -84,16 +84,21 @@ const ChildUploadReqScreen = () => {
   // UI state
   const [uploadingSlot, setUploadingSlot] = useState<ImageSlot | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [establishedRegions, setEstablishedRegions] = useState<string[]>([]);
+  const [loadingRegions, setLoadingRegions] = useState(false);
+  const [regionQuery, setRegionQuery] = useState("");
 
   // Modals
+  const [showRegionModal, setShowRegionModal] = useState(false);
   const [showGenderPicker, setShowGenderPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [openRelationPicker, setOpenRelationPicker] = useState<
     "first" | "second" | null
   >(null);
 
-  // Date picker state
+  // Date picker state — child must be under 16
   const today = new Date();
+  const MAX_YEAR = today.getFullYear();
   const [pickerDay, setPickerDay] = useState(1);
   const [pickerMonth, setPickerMonth] = useState(1);
   const [pickerYear, setPickerYear] = useState(today.getFullYear() - 5);
@@ -105,7 +110,45 @@ const ChildUploadReqScreen = () => {
     (_, i) => i + 1,
   );
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1);
-  const yearOptions = Array.from({ length: 30 }, (_, i) => today.getFullYear() - i);
+  // Only years that keep the child under 16 (16 youngest birth years inclusive)
+  const yearOptions = Array.from({ length: 16 }, (_, i) => MAX_YEAR - i);
+
+  const isUnder16 = (dob: string) => {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dob);
+    if (!m) return false;
+    const day = Number(m[1]);
+    const month = Number(m[2]);
+    const year = Number(m[3]);
+    const birth = new Date(year, month - 1, day);
+    if (isNaN(birth.getTime())) return false;
+    const sixteenAgo = new Date(
+      today.getFullYear() - 16,
+      today.getMonth(),
+      today.getDate(),
+    );
+    // Strictly under 16: birth must be after the date 16 years ago
+    return birth > sixteenAgo && birth <= today;
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoadingRegions(true);
+        setEstablishedRegions(await getEstablishedRegions());
+      } catch (e) {
+        console.warn("Failed to load established regions", e);
+        setEstablishedRegions([]);
+      } finally {
+        setLoadingRegions(false);
+      }
+    })();
+  }, []);
+
+  const filteredRegions = useMemo(() => {
+    const q = regionQuery.trim().toLowerCase();
+    if (!q) return establishedRegions;
+    return establishedRegions.filter((r) => r.toLowerCase().includes(q));
+  }, [establishedRegions, regionQuery]);
 
   const pickImage = async (slot: ImageSlot) => {
     try {
@@ -168,7 +211,7 @@ const ChildUploadReqScreen = () => {
 
   const isGuardianValid = (g: GuardianForm) =>
     g.fullName.trim().length > 0 &&
-    g.phoneNumber.trim().length > 0 &&
+    /^\d{10}$/.test(g.phoneNumber.trim()) &&
     g.relation.trim().length > 0 &&
     !!g.idCardBlobId;
 
@@ -179,8 +222,8 @@ const ChildUploadReqScreen = () => {
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
     gender !== "" &&
-    dateOfBirth.trim().length > 0 &&
-    identityCode.trim().length > 0 &&
+    isUnder16(dateOfBirth) &&
+    /^\d{12}$/.test(identityCode.trim()) &&
     homeAddress.trim().length > 0 &&
     region.trim().length > 0 &&
     isGuardianValid(firstGuardian) &&
@@ -316,8 +359,14 @@ const ChildUploadReqScreen = () => {
             placeholder="0901234567"
             placeholderTextColor="#9CA3AF"
             value={guardian.phoneNumber}
-            onChangeText={(v) => setGuardian({ ...guardian, phoneNumber: v })}
+            onChangeText={(v) =>
+              setGuardian({
+                ...guardian,
+                phoneNumber: v.replace(/\D/g, "").slice(0, 10),
+              })
+            }
             keyboardType="phone-pad"
+            maxLength={10}
           />
         </View>
         <View style={[styles.fieldGroup, { flex: 1 }]}>
@@ -515,10 +564,12 @@ const ChildUploadReqScreen = () => {
           </Text>
           <TextInput
             style={styles.input}
-            placeholder="123456789"
+            placeholder="123456789012"
             placeholderTextColor="#9CA3AF"
             value={identityCode}
-            onChangeText={setIdentityCode}
+            onChangeText={(v) => setIdentityCode(v.replace(/\D/g, "").slice(0, 12))}
+            keyboardType="number-pad"
+            maxLength={12}
           />
         </View>
 
@@ -550,7 +601,18 @@ const ChildUploadReqScreen = () => {
           <Text style={styles.label}>
             Khu vực <Text style={styles.requiredStar}>*</Text>
           </Text>
-          <RegionPicker value={region} onChange={setRegion} placeholder="Chọn xã/phường" />
+          <TouchableOpacity
+            style={styles.pickerButton}
+            onPress={() => setShowRegionModal(true)}
+            disabled={loadingRegions}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="location-outline" size={18} color="#1E40AF" />
+            <Text style={[styles.pickerText, !region && styles.pickerPlaceholder]}>
+              {region || (loadingRegions ? "Đang tải khu vực…" : "Chọn khu vực đã thành lập")}
+            </Text>
+            <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+          </TouchableOpacity>
         </View>
 
         {renderImageUpload("home", "Ảnh nơi ở", homeBlobId, homePreview)}
@@ -599,6 +661,101 @@ const ChildUploadReqScreen = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Region modal — established regions only */}
+      <Modal
+        visible={showRegionModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRegionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.regionSheet}>
+            <View style={styles.regionSheetHeader}>
+              <Text style={styles.modalTitle}>Chọn khu vực</Text>
+              <TouchableOpacity onPress={() => setShowRegionModal(false)}>
+                <Ionicons name="close" size={22} color="#111827" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.regionSearchWrap}>
+              <Ionicons name="search" size={16} color="#9CA3AF" />
+              <TextInput
+                style={styles.regionSearchInput}
+                placeholder="Tìm khu vực…"
+                placeholderTextColor="#9CA3AF"
+                value={regionQuery}
+                onChangeText={setRegionQuery}
+                autoCorrect={false}
+              />
+            </View>
+
+            <View style={styles.regionNoticeCard}>
+              <Ionicons name="information-circle-outline" size={18} color="#1E40AF" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.regionNoticeText}>
+                  Không tìm thấy khu vực của trẻ? Hãy đề xuất khu vực cần hỗ trợ để được xét duyệt.
+                </Text>
+                <TouchableOpacity
+                  style={styles.regionNoticeButton}
+                  onPress={() => {
+                    setShowRegionModal(false);
+                    navigation.navigate("CreateSupportedRegion");
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="add-circle-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.regionNoticeButtonText}>Đề xuất khu vực</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {loadingRegions ? (
+              <ActivityIndicator size="large" color="#1E40AF" style={{ padding: 32 }} />
+            ) : (
+              <FlatList
+                data={filteredRegions}
+                keyExtractor={(item) => item}
+                keyboardShouldPersistTaps="handled"
+                style={{ maxHeight: 420 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.regionItem,
+                      region === item && styles.regionItemSelected,
+                    ]}
+                    onPress={() => {
+                      setRegion(item);
+                      setShowRegionModal(false);
+                      setRegionQuery("");
+                    }}
+                  >
+                    <Ionicons name="location-outline" size={18} color="#1E40AF" />
+                    <Text
+                      style={[
+                        styles.regionItemText,
+                        region === item && styles.regionItemTextSelected,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                    {region === item && (
+                      <Ionicons name="checkmark" size={18} color="#1E40AF" />
+                    )}
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>
+                    {establishedRegions.length === 0
+                      ? "Chưa có khu vực nào được thành lập."
+                      : "Không tìm thấy khu vực phù hợp."}
+                  </Text>
+                }
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Date modal */}
       <Modal
@@ -855,6 +1012,53 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 12,
   },
+  regionSheet: {
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    maxHeight: "80%",
+  },
+  regionSheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  regionSearchWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 42,
+    marginBottom: 12,
+  },
+  regionSearchInput: { flex: 1, fontSize: 14, color: "#111827" },
+  regionNoticeCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    backgroundColor: "#EFF6FF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
+    padding: 12,
+    marginBottom: 12,
+  },
+  regionNoticeText: { fontSize: 12, color: "#1E40AF", lineHeight: 18, marginBottom: 8 },
+  regionNoticeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    backgroundColor: "#1E40AF",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  regionNoticeButtonText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
   regionModalCard: {
     width: "100%",
     backgroundColor: "#FFFFFF",

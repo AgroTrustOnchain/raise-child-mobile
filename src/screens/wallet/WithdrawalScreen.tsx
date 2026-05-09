@@ -22,6 +22,7 @@ import {
   voteWithdrawalProposal,
   mapWithdrawalProposal,
 } from '../../services/withdrawal.service';
+import { useAuth } from '../../hooks/useAuth';
 
 const STATUS_COLORS: Record<MappedWithdrawal['status'], string> = {
   executed: '#1E40AF',
@@ -39,6 +40,8 @@ const STATUS_LABELS: Record<MappedWithdrawal['status'], string> = {
 
 const WithdrawalScreen = () => {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const myWallet = user?.walletAddress?.toLowerCase() ?? null;
   const [withdrawals, setWithdrawals] = useState<MappedWithdrawal[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -48,6 +51,7 @@ const WithdrawalScreen = () => {
   const [showRefuseModal, setShowRefuseModal] = useState(false);
   const [refuseReason, setRefuseReason] = useState('');
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+  const [votingState, setVotingState] = useState<{ id: string; vote: 'for' | 'against' } | null>(null);
 
   const fetchWithdrawals = useCallback(async (pageNum: number, append = false) => {
     try {
@@ -57,7 +61,13 @@ const WithdrawalScreen = () => {
       const response = await getWithdrawalProposals(pageNum, 10);
       const mapped = response?.data?.length > 0 ? response.data.map(mapWithdrawalProposal) : [];
 
-      setWithdrawals(prev => (append ? [...prev, ...mapped] : mapped));
+      const sortByDateDesc = (list: MappedWithdrawal[]) =>
+        [...list].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+      setWithdrawals(prev =>
+        sortByDateDesc(append ? [...prev, ...mapped] : mapped),
+      );
       setTotalPages(response?.total_pages || 1);
       setPage(pageNum);
     } catch (err: any) {
@@ -97,18 +107,21 @@ const WithdrawalScreen = () => {
           text: 'Xác nhận',
           onPress: async () => {
             try {
+              setVotingState({ id, vote: voteType });
               await voteWithdrawalProposal(
                 id,
                 voteType === 'for' ? 'approve' : 'refuse',
                 reason
               );
               Alert.alert('Đã ghi nhận', 'Bình chọn của bạn đã được gửi thành công.');
-              fetchWithdrawals(0);
+              await fetchWithdrawals(0);
             } catch (error: any) {
               Alert.alert(
                 'Lỗi',
                 error.message || 'Không thể gửi bình chọn. Vui lòng thử lại.'
               );
+            } finally {
+              setVotingState(null);
             }
           },
         },
@@ -182,7 +195,7 @@ const WithdrawalScreen = () => {
 
       {item.status === 'pending' && (
         <View style={styles.voteSection}>
-          <View style={styles.voteLabels}>
+          {/* <View style={styles.voteLabels}>
             <Text style={styles.voteForLabel}>{item.voteForPct}% ĐỒNG Ý</Text>
             <Text style={styles.voteAgainstLabel}>{item.voteAgainstPct}% PHẢN ĐỐI</Text>
           </View>
@@ -193,24 +206,64 @@ const WithdrawalScreen = () => {
           <View style={styles.quorumRow}>
             <MaterialIcons name="groups" size={12} color="#64748b" />
             <Text style={styles.quorumText}>Đại diện tối thiểu: 50%</Text>
-          </View>
+          </View> */}
           <View style={styles.voteButtons}>
-            <TouchableOpacity
-              style={styles.btnFor}
-              onPress={() => handleVote(item.id, 'for')}
-              activeOpacity={0.85}
-            >
-              <MaterialIcons name="thumb-up" size={16} color="white" />
-              <Text style={styles.btnText}>Đồng ý</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.btnAgainst}
-              onPress={() => handleVote(item.id, 'against')}
-              activeOpacity={0.85}
-            >
-              <MaterialIcons name="thumb-down" size={16} color="white" />
-              <Text style={styles.btnText}>Phản đối</Text>
-            </TouchableOpacity>
+            {(() => {
+              const isVotingThis = votingState?.id === item.id;
+              const isAnyVoting = votingState !== null;
+              const isVotingFor = isVotingThis && votingState?.vote === 'for';
+              const isVotingAgainst = isVotingThis && votingState?.vote === 'against';
+              const alreadyApproved = !!myWallet && item.approvers.some((a) => a.toLowerCase() === myWallet);
+              const alreadyRefused = !!myWallet && item.refusers.some((a) => a.toLowerCase() === myWallet);
+              const alreadyVoted = alreadyApproved || alreadyRefused;
+              const disableAll = isAnyVoting || alreadyVoted;
+              return (
+                <>
+                  <TouchableOpacity
+                    style={[styles.btnFor, disableAll && styles.btnDisabled]}
+                    onPress={() => handleVote(item.id, 'for')}
+                    activeOpacity={0.85}
+                    disabled={disableAll}
+                  >
+                    {isVotingFor ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <>
+                        <MaterialIcons
+                          name={alreadyApproved ? 'check' : 'thumb-up'}
+                          size={16}
+                          color="white"
+                        />
+                        <Text style={styles.btnText}>
+                          {alreadyApproved ? 'Đã đồng ý' : 'Đồng ý'}
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.btnAgainst, disableAll && styles.btnDisabled]}
+                    onPress={() => handleVote(item.id, 'against')}
+                    activeOpacity={0.85}
+                    disabled={disableAll}
+                  >
+                    {isVotingAgainst ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <>
+                        <MaterialIcons
+                          name={alreadyRefused ? 'check' : 'thumb-down'}
+                          size={16}
+                          color="white"
+                        />
+                        <Text style={styles.btnText}>
+                          {alreadyRefused ? 'Đã phản đối' : 'Phản đối'}
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </>
+              );
+            })()}
           </View>
         </View>
       )}
@@ -498,6 +551,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#dc2626', paddingVertical: 13, borderRadius: 12, gap: 6,
   },
   btnText: { fontSize: 15, fontWeight: '700', color: 'white' },
+  btnDisabled: { opacity: 0.6 },
   loadMoreBtn: {
     alignItems: 'center', justifyContent: 'center', paddingVertical: 14,
     marginBottom: 8, borderRadius: 12, borderWidth: 1.5, borderColor: '#1e40af', gap: 2,

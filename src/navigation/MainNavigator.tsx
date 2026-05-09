@@ -16,6 +16,7 @@ import ChildProofScreen from "../screens/discover/ChildProofScreen";
 import DonateRegionScreen from "../screens/discover/DonateRegionScreen";
 import SupportedRegionsScreen from "../screens/discover/SupportedRegionsScreen";
 import CreateSupportedRegionScreen from "../screens/discover/CreateSupportedRegionScreen";
+import MySupportedRegionsScreen from "../screens/discover/MySupportedRegionsScreen";
 import PaymentCallbackScreen from "../screens/discover/PaymentCallbackScreen";
 import PaymentQrScreen from "../screens/discover/PaymentQrScreen";
 import WalletScreen from "../screens/wallet/WalletScreen";
@@ -36,6 +37,7 @@ export type GlobalModalParamList = {
   RegistrationForm: { region?: string } | undefined;
   SupportedRegions: undefined;
   CreateSupportedRegion: undefined;
+  MySupportedRegions: undefined;
   Wallet: undefined;
   ChildUploadReq: undefined;
   SubmittedProofs: undefined;
@@ -62,7 +64,7 @@ export type NFTStackParamList = {
   CampaignDetail: { nftId: string };
   ChildDetailScreen: { childId: string };
   MyTrackScreen: undefined;
-  ProofScreen: { childId: string };
+  ProofScreen: { childId: string; hideValue?: boolean };
   ChildProofScreen: { childId: string; childName: string };
   SupportedRegionsScreen: undefined;
   DonateRegionScreen: { pool_id: string; region: string };
@@ -135,6 +137,11 @@ const DiscoverStack = () => {
       <Stack.Screen
         name="ChildProofScreen"
         component={ChildProofScreen}
+        options={{ title: 'Impact Proof' }}
+      />
+      <Stack.Screen
+        name="ProofScreen"
+        component={ProofScreen}
         options={{ title: 'Impact Proof' }}
       />
       <Stack.Screen
@@ -345,6 +352,11 @@ export const RootNavigator = () => {
           name="CreateSupportedRegion"
           component={CreateSupportedRegionScreen}
           options={{ title: 'Đề xuất vùng', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="MySupportedRegions"
+          component={MySupportedRegionsScreen}
+          options={{ title: 'Đề xuất của tôi', headerShown: false }}
         />
         <RootStack.Screen
           name="ChildUploadReq"

@@ -301,7 +301,7 @@ const ChildDetailScreen = () => {
   };
 
   const handleProof = () => {
-    navigation.navigate('ChildProofScreen', { childId: beneficiary.id, childName: beneficiary.name });
+    navigation.navigate('ProofScreen', { childId: beneficiary.id, hideValue: true });
   };
 
   const handleShare = async () => {
@@ -380,9 +380,9 @@ const ChildDetailScreen = () => {
   }
 
   const { raw } = beneficiary;
-  const hasBooks = raw.books_needs?.length > 0;
-  const hasMeals = !!raw.meal_need;
-  const hasHealth = !!raw.health_insurance_need;
+  const hasBooks = raw.books_needs?.length > 0 && bookValue > 0;
+  const hasMeals = !!raw.meal_need && mealValue > 0;
+  const hasHealth = !!raw.health_insurance_need && healthValue > 0;
 
   const currentYear = new Date().getFullYear();
   const bookSupported = bookSupportedYears.includes(currentYear);
@@ -545,6 +545,16 @@ const ChildDetailScreen = () => {
           </TouchableOpacity>
 
           {/* ── Support Type Selection ───────────────────────────────────────── */}
+          {!(hasBooks || hasMeals || hasHealth) && (
+            <View style={styles.card}>
+              <View style={styles.noNeedsRow}>
+                <Ionicons name="checkmark-circle-outline" size={20} color="#16A34A" />
+                <Text style={styles.noNeedsText}>
+                  Trẻ này hiện chưa có nhu cầu hỗ trợ đang mở.
+                </Text>
+              </View>
+            </View>
+          )}
           {(hasBooks || hasMeals || hasHealth) && (
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Chọn loại hỗ trợ</Text>
@@ -698,6 +708,7 @@ const ChildDetailScreen = () => {
       </ScrollView>
 
       {/* Fixed Footer */}
+      {(hasBooks || hasMeals || hasHealth) && (
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.authorizeButton, isSubmitting && styles.buttonDisabled]}
@@ -719,6 +730,7 @@ const ChildDetailScreen = () => {
           <Text style={styles.securedText}>Bảo mật bởi Giao thức Mạng Sui</Text>
         </View>
       </View>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -756,6 +768,8 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 12 },
+  noNeedsRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  noNeedsText: { flex: 1, fontSize: 13, color: '#374151', lineHeight: 20 },
   regionCardContent: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   regionIconContainer: {
     width: 46, height: 46, borderRadius: 23,
