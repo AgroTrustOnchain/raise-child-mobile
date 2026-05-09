@@ -139,6 +139,21 @@ export const getStaffTasks = async (walletAddress: string): Promise<TaskItem[]> 
 };
 
 /**
+ * GET /tasks/region/staff/{walletAddress}
+ * Fetch tasks for the staff member's region (open tasks they could claim).
+ */
+export const getRegionStaffTasks = async (
+  walletAddress: string,
+): Promise<TaskItem[]> => {
+  const response = await apiService.get<TaskItem[] | TasksListResponse>(
+    `/tasks/region/staff/${walletAddress}`,
+  );
+  const d = response.data;
+  if (Array.isArray(d)) return d;
+  return extractTasksFromResponse(d as TasksListResponse);
+};
+
+/**
  * Assign a task to the current volunteer profile
  * POST /tasks/{taskId}/assign
  */

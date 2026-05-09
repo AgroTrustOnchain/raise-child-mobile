@@ -25,6 +25,8 @@ interface WalrusUploadResponse {
 interface WalrusBlob {
   blobId: string;
   url: string;
+  /** Raw base64 of the uploaded image (no `data:` prefix). */
+  base64: string;
 }
 
 // Walrus Configuration
@@ -44,6 +46,12 @@ export const uploadImageToWalrus = async (imageUri: string): Promise<WalrusBlob>
     // Read file from local URI
     const fileData = await fetch(imageUri);
     const blob = await fileData.blob();
+
+    // Read raw base64 from the same local URI so we can ship it alongside
+    // the blobId (BE expects `<field>_base64` siblings for every blob field).
+    const base64 = await FileSystem.readAsStringAsync(imageUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
 
     // Convert base64 to blob
     // const binaryData = Uint8Array.from(atob(fileData), (c) => c.charCodeAt(0));
@@ -94,6 +102,7 @@ export const uploadImageToWalrus = async (imageUri: string): Promise<WalrusBlob>
     return {
       blobId,
       url: blobUrl,
+      base64,
     };
   } catch (error) {
     console.error('Walrus upload error:', error);

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -12,9 +11,18 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getEstablishedRegion, RegionChild } from "../../services/campaign.service";
-import { API_BASE_URL } from "../../services/api.service";
+import { formatVNDLower } from "../../utils/currency";
+import WalrusImage from "../../components/WalrusImage";
 
 const PAGE_SIZE = 10;
+
+const formatGender = (g?: string | null): string => {
+  if (!g) return "—";
+  const v = g.trim().toLowerCase();
+  if (v === "male" || v === "m" || v === "nam") return "Nam";
+  if (v === "female" || v === "f" || v === "nữ" || v === "nu") return "Nữ";
+  return "Khác";
+};
 
 type RegionInfo = {
   pool_id: string;
@@ -50,12 +58,13 @@ const CampaignDetail = () => {
             center_image_blob_id: data.center_image_blob_id,
             total_donated: data.total_donated,
           });
-          setChildren(data.children.data);
+          setChildren(data.children?.data ?? []);
         } else {
+          const incoming = data.children?.data ?? [];
           setChildren((prev) => {
             const seen = new Set(prev.map((c) => c.id));
             const next = [...prev];
-            for (const c of data.children.data) {
+            for (const c of incoming) {
               if (!seen.has(c.id)) {
                 next.push(c);
                 seen.add(c.id);
@@ -64,7 +73,7 @@ const CampaignDetail = () => {
             return next;
           });
         }
-        setTotalPages(data.children.total_pages);
+        setTotalPages(data.children?.total_pages ?? 0);
         setPage(pageNum);
       } catch (e) {
         console.warn("Failed to load region data", e);
@@ -94,9 +103,7 @@ const CampaignDetail = () => {
     setLoadingMore(false);
   };
 
-  const imageUri = regionInfo?.center_image_blob_id
-    ? `${API_BASE_URL}/blobs/${regionInfo.center_image_blob_id}`
-    : undefined;
+  const centerBlobId = regionInfo?.center_image_blob_id;
 
   const renderChild = useCallback(
     ({ item }: { item: RegionChild }) => (
@@ -105,21 +112,23 @@ const CampaignDetail = () => {
         onPress={() => navigation.navigate("ChildDetailScreen", { childId: item.id })}
         activeOpacity={0.9}
       >
-        <View style={styles.childAvatar}>
-          <Ionicons
-            name={item.gender === "female" ? "person" : "person-outline"}
-            size={28}
-            color="#1E40AF"
-          />
-        </View>
+        {item.avatar_blob_id ? (
+          <WalrusImage blobId={item.avatar_blob_id} style={styles.childAvatar} resizeMode="cover" fallbackIconSize={28} />
+        ) : (
+          <View style={styles.childAvatar}>
+            <Ionicons
+              name={item.gender === "female" ? "person" : "person-outline"}
+              size={28}
+              color="#1E40AF"
+            />
+          </View>
+        )}
         <View style={styles.childInfo}>
           <Text style={styles.childName}>
             {`${item.first_name || ""} ${item.last_name || ""}`.trim() || "Unknown"}
           </Text>
           <Text style={styles.childMeta}>
-            {item.gender
-              ? item.gender.charAt(0).toUpperCase() + item.gender.slice(1)
-              : "—"}
+            {formatGender(item.gender)}
             {item.identity_code ? `  •  ${item.identity_code}` : ""}
           </Text>
         </View>
@@ -169,8 +178,8 @@ const CampaignDetail = () => {
         <>
           {regionInfo && (
             <View style={styles.infoCard}>
-              {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.centerImage} />
+              {centerBlobId ? (
+                <WalrusImage blobId={centerBlobId} style={styles.centerImage} resizeMode="cover" fallbackIconSize={48} />
               ) : (
                 <View style={styles.centerImagePlaceholder}>
                   <Ionicons name="business" size={48} color="#1E40AF" />
@@ -181,7 +190,7 @@ const CampaignDetail = () => {
                 <View style={styles.donatedTextWrap}>
                   <Text style={styles.donatedLabel}>Tổng đã quyên góp</Text>
                   <Text style={styles.donatedAmount}>
-                    {regionInfo.total_donated.toLocaleString()} đ
+                    {formatVNDLower(regionInfo.total_donated)}
                   </Text>
                 </View>
                 <TouchableOpacity

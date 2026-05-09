@@ -10,7 +10,6 @@ import {
   ScrollView,
   Alert,
   Switch,
-  Image,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,6 +23,8 @@ import {
   getMealNeedDetails,
   getHealthInsuranceNeedDetails,
 } from "../../services/sponsorship.service";
+import { formatVND } from "../../utils/currency";
+import WalrusImage from "../../components/WalrusImage";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -31,15 +32,6 @@ const calcAge = (dob: string): number => {
   const diff = Date.now() - new Date(dob).getTime();
   return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
 };
-
-const buildAvatarUrl = (blobId: string, apiBase: string) =>
-  `${apiBase.replace(/\/+$/, '')}/blobs/${blobId}`;
-
-const formatVND = (value: number): string => {
-  return `${Math.round(value).toLocaleString('vi-VN')} ₫`;
-};
-
-const API_BASE = 'https://agrotrust-server-production.onrender.com';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -175,7 +167,6 @@ const SponsorshipScreen = () => {
     );
   }
 
-  const avatarUri = buildAvatarUrl(child.avatar_blob_id, API_BASE);
   const fullName = `${child.first_name} ${child.last_name}`;
   const age = calcAge(child.date_of_birth);
 
@@ -204,7 +195,7 @@ const SponsorshipScreen = () => {
         {/* ── Profile Section ────────────────────────────────────────────── */}
         <View style={styles.profileSection}>
           <View style={styles.avatarWrapper}>
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            <WalrusImage blobId={child.avatar_blob_id} style={styles.avatar} resizeMode="cover" fallbackIconSize={32} />
             <View style={styles.verifiedBadge}>
               <Ionicons name="checkmark" size={12} color="#FFFFFF" />
             </View>

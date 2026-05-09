@@ -19,6 +19,7 @@ import {
   getTxRecords,
   mapTxRecord,
 } from '../../services/transaction.service';
+import { formatVNDNumber } from '../../utils/currency';
 
 // ─── Static data (campaigns stay static until a campaign API is added) ────────
 
@@ -62,6 +63,7 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [poolTotalDonation, setPoolTotalDonation] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -92,6 +94,7 @@ const HomeScreen = () => {
 
       const response = await getTxRecords(pageNum, 10);
       const mapped = response?.data?.length > 0 ? response.data.map(mapTxRecord) : [];
+      setPoolTotalDonation(response?.pool_total_donation || 0);
 
       setTransactions(prev => (append ? [...prev, ...mapped] : mapped));
       setTotalPages(response.total_pages);
@@ -154,14 +157,8 @@ const HomeScreen = () => {
           </View>
 
           <Text style={styles.poolAmount}>
-            {totalVND > 0
-              ? totalVND.toLocaleString('vi-VN')
-              : '1,240,500'}{' '}
+            {formatVNDNumber(poolTotalDonation > 0 ? poolTotalDonation : 0)}{' '}
             <Text style={styles.poolCurrency}>VND</Text>
-          </Text>
-
-          <Text style={styles.poolUsd}>
-            ≈ ${Math.round((totalVND || 1240500) / 24000).toLocaleString('en-US')} USD Secured
           </Text>
 
           <View style={styles.networkBadge}>

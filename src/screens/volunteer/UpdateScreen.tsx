@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getStaffTasks, TaskItem } from '../../services/tasks.service';
 import { useWallet } from '../../context/WalletContext';
+import WalrusImage from '../../components/WalrusImage';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -120,9 +120,11 @@ function UpdateScreen() {
               <View style={styles.childInfoContainer}>
                 {/* Avatar or Icon */}
                 {task.image_blob_id ? (
-                  <Image
-                    source={{ uri: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${task.image_blob_id}` }}
+                  <WalrusImage
+                    blobId={task.image_blob_id}
                     style={styles.childImage}
+                    resizeMode="cover"
+                    fallbackIconSize={32}
                   />
                 ) : (
                   <View style={[styles.childImage, styles.placeholderImage]}>

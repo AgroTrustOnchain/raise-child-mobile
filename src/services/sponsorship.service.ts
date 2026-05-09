@@ -62,6 +62,8 @@ export type BookNeedDetail = {
   semester?: number;
   year?: number;
   supported_years?: number[];
+  donations?: string[];
+  donations_by_semester?: Record<string, string[]>;
 };
 
 export type MealNeedDetail = {
@@ -77,6 +79,7 @@ export type HealthInsuranceNeedDetail = {
   semester?: number;
   year?: number;
   supported_years?: number[];
+  donations?: string[];
 };
 
 /**

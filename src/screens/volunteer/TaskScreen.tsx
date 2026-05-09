@@ -13,13 +13,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  getTasks,
+  getRegionStaffTasks,
   assignTask,
   TaskItem,
-  extractTasksFromResponse,
 } from '../../services/tasks.service';
-
-const PAGE_SIZE = 10;
+import { useAuth } from '../../hooks/useAuth';
 
 function formatDate(iso?: string) {
   if (!iso) return '';
@@ -48,13 +46,13 @@ function getTaskStatus(task: TaskItem): { label: string; type: 'overdue' | 'toda
 
 export default function TaskScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const walletAddress = user?.walletAddress ?? '';
+
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [assigningId, setAssigningId] = useState<string | null>(null);
 
@@ -64,62 +62,40 @@ export default function TaskScreen() {
     return () => clearTimeout(handle);
   }, [keyword]);
 
-  const fetchPage = useCallback(
-    async (pageToFetch: number, kw: string, append: boolean) => {
-      if (append) setLoadingMore(true);
-      else if (!refreshing) setLoading(true);
-      try {
-        const res = await getTasks({
-          keyword: kw,
-          page: pageToFetch,
-          pageSize: PAGE_SIZE,
-        });
-        const list = extractTasksFromResponse(res);
-        console.log(list)
-        const tp = typeof res.total_pages === 'number' ? res.total_pages : 1;
-        setTotalPages(tp);
-        setPage(pageToFetch);
-        setTasks((prev) => {
-          if (!append) return list;
-          const seen = new Set(prev.map((t) => t.id));
-          const merged = [...prev];
-          for (const t of list) {
-            if (!seen.has(t.id)) {
-              merged.push(t);
-              seen.add(t.id);
-            }
-          }
-          return merged;
-        });
-      } catch (e) {
-        console.warn('Failed to load tasks', e);
-        if (!append) setTasks([]);
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [refreshing]
-  );
+  const fetchTasks = useCallback(async () => {
+    if (!walletAddress) {
+      setTasks([]);
+      return;
+    }
+    if (!refreshing) setLoading(true);
+    try {
+      const list = await getRegionStaffTasks(walletAddress);
+      setTasks(list);
+    } catch (e) {
+      console.warn('Failed to load tasks', e);
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [walletAddress, refreshing]);
 
-  // Reset + fetch when keyword changes
   useEffect(() => {
-    fetchPage(0, debouncedKeyword, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedKeyword]);
+    fetchTasks();
+  }, [fetchTasks]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchPage(0, debouncedKeyword, false);
+    await fetchTasks();
     setRefreshing(false);
-  }, [debouncedKeyword, fetchPage]);
+  }, [fetchTasks]);
 
-  const onEndReached = useCallback(() => {
-    if (loadingMore || loading || refreshing) return;
-    const nextPage = page + 1;
-    if (nextPage >= totalPages) return;
-    fetchPage(nextPage, debouncedKeyword, true);
-  }, [loadingMore, loading, refreshing, page, totalPages, debouncedKeyword, fetchPage]);
+  // Client-side keyword filter (endpoint returns full region/staff list).
+  const visibleTasks = debouncedKeyword
+    ? tasks.filter((t) => {
+        const hay = `${t.title ?? ''} ${t.description ?? ''} ${t.region ?? ''}`.toLowerCase();
+        return hay.includes(debouncedKeyword.toLowerCase());
+      })
+    : tasks;
 
   const handleAssign = useCallback(async (task: TaskItem) => {
     if (task.assigned_profile_id) {
@@ -249,15 +225,13 @@ export default function TaskScreen() {
       </View>
 
       <FlatList
-        data={tasks}
+        data={visibleTasks}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.4}
         ListEmptyComponent={
           loading ? null : (
             <View style={styles.emptyContainer}>
@@ -265,13 +239,6 @@ export default function TaskScreen() {
               <Text style={styles.emptyText}>No tasks found</Text>
             </View>
           )
-        }
-        ListFooterComponent={
-          loadingMore ? (
-            <View style={styles.footerLoader}>
-              <ActivityIndicator size="small" color="#1E40AF" />
-            </View>
-          ) : null
         }
       />
 

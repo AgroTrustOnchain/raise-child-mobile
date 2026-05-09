@@ -1,4 +1,5 @@
 import { apiService } from './api.service';
+import { formatVNDNumber } from '../utils/currency';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,7 +94,7 @@ export const mapWithdrawalProposal = (proposal: WithdrawalProposal): MappedWithd
   return {
     id: proposal.id,
     title: proposal.description,
-    amount: `${proposal.withdraw_amount.toLocaleString('vi-VN')} VND`,
+    amount: `${formatVNDNumber(proposal.withdraw_amount)} VND`,
     amountUSD: `≈ $${amountUSD.toLocaleString('en-US')} USD`,
     timeRemaining: calcTimeRemaining(proposal.closed_at),
     voteForPct,
