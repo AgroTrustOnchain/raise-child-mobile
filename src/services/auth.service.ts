@@ -39,7 +39,7 @@ class AuthService {
       const response = await apiService.post<{ token: string }>('/auth/login', credentials);
       token = response.data.token;
       decoded = parseJWT(token);
-      console.log(`Login attempt ${attempt}:`, decoded);
+      // console.log(`Login attempt ${attempt}:`, decoded);
 
       if (decoded.roles) break;
 

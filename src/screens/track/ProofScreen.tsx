@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -12,11 +11,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getChildById } from '../../services/child.service';
 import { getMealNeedProof, MealNeedProof } from '../../services/sponsorship.service';
-import { API_BASE_URL } from '../../services/api.service';
+import WalrusImage from '../../components/WalrusImage';
 
 const formatDate = (raw: string): string => {
   if (!raw) return '';
+  // Already in dd/MM/yyyy format
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) return raw;
   const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const formatPeriod = (raw: string): string => {
+  if (!raw) return '';
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return raw;
+  // Period values come back as epoch milliseconds
+  const d = new Date(n);
   if (isNaN(d.getTime())) return raw;
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
@@ -24,7 +35,7 @@ const formatDate = (raw: string): string => {
 const ProofScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { childId } = (route.params ?? {}) as { childId?: string };
+  const { childId, hideValue } = (route.params ?? {}) as { childId?: string; hideValue?: boolean };
 
   const [childName, setChildName] = useState('');
   const [proof, setProof] = useState<MealNeedProof | null>(null);
@@ -94,11 +105,11 @@ const ProofScreen = () => {
   }
 
   // ── Build timeline entries from 1-to-1 mapping of dates ↔ images ────────────
-  const entries = proof.provide_meal_dates.map((date, i) => ({
+  const entries = (proof.provide_dates ?? []).map((date, i) => ({
     date,
-    imageId: proof.provide_meal_image_blob_ids[i] ?? null,
-    period: proof.provide_meal_periods[i] ?? null,
-    staff: proof.provide_meal_staffs[i] ?? null,
+    imageId: proof.provide_image_blob_ids?.[i] ?? null,
+    period: proof.provide_periods?.[i] ?? null,
+    staff: proof.provide_staffs?.[i] ?? null,
   }));
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -128,15 +139,37 @@ const ProofScreen = () => {
               <Text style={styles.summaryValue}>{entries.length}</Text>
               <Text style={styles.summaryLabel}>Bữa ăn đã cung cấp</Text>
             </View>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryValue}>
-                {proof.value > 0 ? proof.value.toLocaleString('vi-VN') : '—'}
-              </Text>
-              <Text style={styles.summaryLabel}>Giá trị (đ)</Text>
-            </View>
+            {!hideValue && (
+              <>
+                <View style={styles.summaryDivider} />
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryValue}>
+                    {proof.value > 0 ? proof.value.toLocaleString('vi-VN') : '—'}
+                  </Text>
+                  <Text style={styles.summaryLabel}>Giá trị (đ)</Text>
+                </View>
+              </>
+            )}
           </View>
         </View>
+
+        {/* Donation durations */}
+        {proof.durations && proof.durations.length > 0 && (
+          <View style={styles.durationsCard}>
+            <View style={styles.durationsHeader}>
+              <Ionicons name="calendar-outline" size={16} color="#1E40AF" />
+              <Text style={styles.durationsTitle}>Khoảng thời gian được tài trợ</Text>
+            </View>
+            {proof.durations.map((d, i) => (
+              <View key={i} style={styles.durationRow}>
+                <View style={styles.durationDot} />
+                <Text style={styles.durationText}>
+                  {formatDate(d.start_period)} → {formatDate(d.end_period)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Section title */}
         <View style={styles.titleSection}>
@@ -157,9 +190,6 @@ const ProofScreen = () => {
             <View style={styles.timelineLine} />
             {entries.map((entry, index) => {
               const isFirst = index === 0;
-              const imageUri = entry.imageId
-                ? `${API_BASE_URL.replace(/\/+$/, '')}/blobs/${entry.imageId}`
-                : null;
               return (
                 <View key={index} style={styles.timelineItem}>
                   <View style={styles.dateHeader}>
@@ -169,7 +199,7 @@ const ProofScreen = () => {
                     </Text>
                     {!!entry.period && (
                       <View style={styles.periodBadge}>
-                        <Text style={styles.periodText}>{entry.period}</Text>
+                        <Text style={styles.periodText}>{formatPeriod(entry.period)}</Text>
                       </View>
                     )}
                   </View>
@@ -177,8 +207,13 @@ const ProofScreen = () => {
                   <View style={styles.eventCard}>
                     {/* Image */}
                     <View style={styles.eventImageContainer}>
-                      {imageUri ? (
-                        <Image source={{ uri: imageUri }} style={styles.eventImage} resizeMode="cover" />
+                      {entry.imageId ? (
+                        <WalrusImage
+                          blobId={entry.imageId}
+                          style={styles.eventImage}
+                          resizeMode="cover"
+                          fallbackIconSize={36}
+                        />
                       ) : (
                         <View style={[styles.eventImage, styles.imagePlaceholder]}>
                           <Ionicons name="image-outline" size={36} color="#BFDBFE" />
@@ -198,7 +233,11 @@ const ProofScreen = () => {
                       {!!entry.staff && (
                         <View style={styles.infoRow}>
                           <Ionicons name="person-outline" size={13} color="#6B7280" />
-                          <Text style={styles.infoText}>{entry.staff}</Text>
+                          <Text style={styles.infoText} numberOfLines={1}>
+                            {entry.staff.length > 20
+                              ? `${entry.staff.slice(0, 10)}…${entry.staff.slice(-6)}`
+                              : entry.staff}
+                          </Text>
                         </View>
                       )}
 
@@ -269,6 +308,19 @@ const styles = StyleSheet.create({
   summaryValue: { fontSize: 22, fontWeight: '800', color: '#FFFFFF', marginBottom: 4 },
   summaryLabel: { fontSize: 10, fontWeight: '500', color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
   summaryDivider: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,0.2)' },
+
+  durationsCard: {
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14,
+    borderWidth: 1, borderColor: '#DBEAFE',
+  },
+  durationsHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
+  durationsTitle: { fontSize: 13, fontWeight: '700', color: '#111827' },
+  durationRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  durationDot: {
+    width: 8, height: 8, borderRadius: 4, backgroundColor: '#1E40AF',
+  },
+  durationText: { fontSize: 13, color: '#374151', fontWeight: '500' },
 
   titleSection: { paddingHorizontal: 16, paddingBottom: 8 },
   title: { fontSize: 20, fontWeight: '800', color: '#111827' },

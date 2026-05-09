@@ -49,6 +49,10 @@ const ChildDetailScreen = () => {
   const [bookValue, setBookValue] = useState(350000);
   const [mealValue, setMealValue] = useState(100000);
   const [healthValue, setHealthValue] = useState(0);
+  const [bookSupportedYears, setBookSupportedYears] = useState<number[]>([]);
+  const [healthSupportedYears, setHealthSupportedYears] = useState<number[]>([]);
+  const [mealDurations, setMealDurations] = useState<{ start_period: string; end_period: string }[]>([]);
+  const [mealSupportedMonths, setMealSupportedMonths] = useState(0);
   const [selectedSupport, setSelectedSupport] = useState<SupportType>('books');
   const [mealMonths, setMealMonths] = useState('3');
   const [recurringEnabled, setRecurringEnabled] = useState(true);
@@ -165,20 +169,41 @@ const ChildDetailScreen = () => {
       };
       setBeneficiary(mapped);
 
-      // Default selected support to first available need
-      if (c.books_needs?.length > 0) setSelectedSupport('books');
-      else if (c.meal_need) setSelectedSupport('meals');
-      else if (c.health_insurance_need) setSelectedSupport('health');
-
       // Fetch need values in parallel
       const [bookRes, mealRes, healthRes] = await Promise.allSettled([
         c.books_needs?.length > 0 ? getBookNeedDetails(c.books_needs[0]) : Promise.reject(),
         c.meal_need ? getMealNeedDetails(c.meal_need) : Promise.reject(),
         c.health_insurance_need ? getHealthInsuranceNeedDetails(c.health_insurance_need) : Promise.reject(),
       ]);
-      if (bookRes.status === 'fulfilled') setBookValue(bookRes.value.value);
-      if (mealRes.status === 'fulfilled') setMealValue(mealRes.value.value);
-      if (healthRes.status === 'fulfilled') setHealthValue(healthRes.value.value);
+
+      const yr = new Date().getFullYear();
+      const bookDone = bookRes.status === 'fulfilled' && (bookRes.value.supported_years ?? []).includes(yr);
+      const mealMonthsThisYear = mealRes.status === 'fulfilled'
+        ? (mealRes.value.supported_years ?? []).find((s) => s.year === yr)?.supported_months ?? 0
+        : 0;
+      const mealDone = mealMonthsThisYear >= 12;
+      const healthDone = healthRes.status === 'fulfilled' && (healthRes.value.supported_years ?? []).includes(yr);
+
+      // Default selected support to first AVAILABLE (not yet supported) need
+      if (c.books_needs?.length > 0 && !bookDone) setSelectedSupport('books');
+      else if (c.meal_need && !mealDone) setSelectedSupport('meals');
+      else if (c.health_insurance_need && !healthDone) setSelectedSupport('health');
+      else setSelectedSupport(null);
+      if (bookRes.status === 'fulfilled') {
+        setBookValue(bookRes.value.value);
+        setBookSupportedYears(bookRes.value.supported_years ?? []);
+      }
+      if (mealRes.status === 'fulfilled') {
+        setMealValue(mealRes.value.value);
+        setMealDurations(mealRes.value.durations ?? []);
+        setMealSupportedMonths(mealMonthsThisYear);
+        const remaining = Math.max(0, 12 - mealMonthsThisYear);
+        if (remaining > 0) setMealMonths(String(Math.min(3, remaining)));
+      }
+      if (healthRes.status === 'fulfilled') {
+        setHealthValue(healthRes.value.value);
+        setHealthSupportedYears(healthRes.value.supported_years ?? []);
+      }
     } catch (e) {
       console.warn('loadChild failed', e);
     } finally {
@@ -198,6 +223,10 @@ const ChildDetailScreen = () => {
       Alert.alert('Lỗi', 'Vui lòng nhập số tháng hợp lệ');
       return;
     }
+    if (selectedSupport === 'meals' && months > mealRemainingMonths) {
+      Alert.alert('Lỗi', `Chỉ còn ${mealRemainingMonths} tháng có thể hỗ trợ trong năm nay (tối đa 12 tháng/năm).`);
+      return;
+    }
     try {
       setIsSubmitting(true);
       let res;
@@ -208,6 +237,7 @@ const ChildDetailScreen = () => {
       } else if (selectedSupport === 'health') {
         res = await submitSponsorship({ type: 'health', childId: raw.health_insurance_need });
       }
+      console.log(res)
       if (res?.url) {
         const supported = await Linking.canOpenURL(res.url);
         if (supported) await Linking.openURL(res.url);
@@ -271,7 +301,7 @@ const ChildDetailScreen = () => {
   };
 
   const handleProof = () => {
-    navigation.navigate('ChildProofScreen', { childId: beneficiary.id, childName: beneficiary.name });
+    navigation.navigate('ProofScreen', { childId: beneficiary.id, hideValue: true });
   };
 
   const handleShare = async () => {
@@ -350,9 +380,25 @@ const ChildDetailScreen = () => {
   }
 
   const { raw } = beneficiary;
-  const hasBooks = raw.books_needs?.length > 0;
-  const hasMeals = !!raw.meal_need;
-  const hasHealth = !!raw.health_insurance_need;
+  const hasBooks = raw.books_needs?.length > 0 && bookValue > 0;
+  const hasMeals = !!raw.meal_need && mealValue > 0;
+  const hasHealth = !!raw.health_insurance_need && healthValue > 0;
+
+  const currentYear = new Date().getFullYear();
+  const bookSupported = bookSupportedYears.includes(currentYear);
+  const healthSupported = healthSupportedYears.includes(currentYear);
+  const mealRemainingMonths = Math.max(0, 12 - mealSupportedMonths);
+  const mealSupported = mealRemainingMonths === 0;
+
+  const formatPeriod = (p: string) => {
+    if (!p) return '';
+    const d = new Date(p);
+    if (isNaN(d.getTime())) return p;
+    return d.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' });
+  };
+  const mealDurationLabel = mealDurations
+    .map((d) => `${formatPeriod(d.start_period)} – ${formatPeriod(d.end_period)}`)
+    .join(', ');
 
   return (
     <KeyboardAvoidingView
@@ -499,21 +545,41 @@ const ChildDetailScreen = () => {
           </TouchableOpacity>
 
           {/* ── Support Type Selection ───────────────────────────────────────── */}
+          {!(hasBooks || hasMeals || hasHealth) && (
+            <View style={styles.card}>
+              <View style={styles.noNeedsRow}>
+                <Ionicons name="checkmark-circle-outline" size={20} color="#16A34A" />
+                <Text style={styles.noNeedsText}>
+                  Trẻ này hiện chưa có nhu cầu hỗ trợ đang mở.
+                </Text>
+              </View>
+            </View>
+          )}
           {(hasBooks || hasMeals || hasHealth) && (
             <View style={styles.card}>
               <Text style={styles.sectionTitle}>Chọn loại hỗ trợ</Text>
 
               {hasBooks && (
                 <TouchableOpacity
-                  style={[styles.supportOption, selectedSupport === 'books' && styles.supportOptionSelected]}
-                  onPress={() => setSelectedSupport('books')}
+                  style={[
+                    styles.supportOption,
+                    selectedSupport === 'books' && !bookSupported && styles.supportOptionSelected,
+                    bookSupported && styles.supportOptionDisabled,
+                  ]}
+                  onPress={() => !bookSupported && setSelectedSupport('books')}
+                  disabled={bookSupported}
                   activeOpacity={0.8}
                 >
                   <View style={styles.supportOptionLeft}>
-                    <View style={[styles.supportIconContainer, selectedSupport === 'books' && styles.supportIconContainerSelected]}>
-                      <Ionicons name="book-outline" size={22} color={selectedSupport === 'books' ? '#FFFFFF' : '#1E40AF'} />
+                    <View style={[styles.supportIconContainer, selectedSupport === 'books' && !bookSupported && styles.supportIconContainerSelected]}>
+                      <Ionicons name="book-outline" size={22} color={selectedSupport === 'books' && !bookSupported ? '#FFFFFF' : '#1E40AF'} />
                     </View>
-                    <Text style={styles.supportOptionTitle}>Hỗ trợ sách giáo khoa</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.supportOptionTitle}>Hỗ trợ sách giáo khoa</Text>
+                      {bookSupported && (
+                        <Text style={styles.supportedNote}>Đã hỗ trợ năm {bookSupportedYears.join(', ')}</Text>
+                      )}
+                    </View>
                   </View>
                   <View style={styles.supportOptionRight}>
                     <Text style={styles.supportOptionPrice}>{formatVND(bookValue)}</Text>
@@ -525,36 +591,55 @@ const ChildDetailScreen = () => {
               {hasMeals && (
                 <>
                   <TouchableOpacity
-                    style={[styles.supportOption, selectedSupport === 'meals' && styles.supportOptionSelected]}
-                    onPress={() => setSelectedSupport('meals')}
+                    style={[
+                      styles.supportOption,
+                      selectedSupport === 'meals' && !mealSupported && styles.supportOptionSelected,
+                      mealSupported && styles.supportOptionDisabled,
+                    ]}
+                    onPress={() => !mealSupported && setSelectedSupport('meals')}
+                    disabled={mealSupported}
                     activeOpacity={0.8}
                   >
                     <View style={styles.supportOptionLeft}>
-                      <View style={[styles.supportIconContainer, selectedSupport === 'meals' && styles.supportIconContainerSelected]}>
-                        <Ionicons name="restaurant-outline" size={22} color={selectedSupport === 'meals' ? '#FFFFFF' : '#1E40AF'} />
+                      <View style={[styles.supportIconContainer, selectedSupport === 'meals' && !mealSupported && styles.supportIconContainerSelected]}>
+                        <Ionicons name="restaurant-outline" size={22} color={selectedSupport === 'meals' && !mealSupported ? '#FFFFFF' : '#1E40AF'} />
                       </View>
-                      <Text style={styles.supportOptionTitle}>Bữa ăn hàng tháng</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.supportOptionTitle}>Bữa ăn hàng tháng</Text>
+                        {mealSupported ? (
+                          <Text style={styles.supportedNote}>Đã đủ 12 tháng năm {currentYear}{mealDurationLabel ? ` (${mealDurationLabel})` : ''}</Text>
+                        ) : mealSupportedMonths > 0 ? (
+                          <Text style={styles.supportedNote}>Đã hỗ trợ {mealSupportedMonths}/12 tháng — còn lại {mealRemainingMonths} tháng</Text>
+                        ) : null}
+                      </View>
                     </View>
                     <View style={styles.supportOptionRight}>
                       <Text style={styles.supportOptionPrice}>{formatVND(mealValue * parseInt(mealMonths || '1'))}</Text>
                       <Text style={styles.supportOptionFrequency}>{formatVND(mealValue)}/month</Text>
                     </View>
                   </TouchableOpacity>
-                  {selectedSupport === 'meals' && (
-                    <View style={styles.monthsInputContainer}>
-                      <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-                      <Text style={styles.monthsLabel}>Số tháng</Text>
-                      <TextInput
-                        style={styles.monthsInput}
-                        value={mealMonths}
-                        onChangeText={setMealMonths}
-                        keyboardType="numeric"
-                        maxLength={2}
-                        placeholder="3"
-                        placeholderTextColor="#9CA3AF"
-                      />
-                      <Text style={styles.monthsUnit}>tháng</Text>
-                    </View>
+                  {selectedSupport === 'meals' && !mealSupported && (
+                    <>
+                      <View style={styles.monthsInputContainer}>
+                        <Ionicons name="calendar-outline" size={16} color="#6B7280" />
+                        <Text style={styles.monthsLabel}>Số tháng (tối đa {mealRemainingMonths})</Text>
+                        <TextInput
+                          style={styles.monthsInput}
+                          value={mealMonths}
+                          onChangeText={(t) => {
+                            const cleaned = t.replace(/[^0-9]/g, '');
+                            if (!cleaned) { setMealMonths(''); return; }
+                            const n = Math.min(parseInt(cleaned, 10), mealRemainingMonths);
+                            setMealMonths(String(n));
+                          }}
+                          keyboardType="numeric"
+                          maxLength={2}
+                          placeholder={String(Math.min(3, mealRemainingMonths))}
+                          placeholderTextColor="#9CA3AF"
+                        />
+                        <Text style={styles.monthsUnit}>tháng</Text>
+                      </View>
+                    </>
                   )}
                 </>
               )}
@@ -564,19 +649,26 @@ const ChildDetailScreen = () => {
                   style={[
                     styles.supportOption,
                     styles.urgentOption,
-                    selectedSupport === 'health' && styles.urgentOptionSelected,
+                    selectedSupport === 'health' && !healthSupported && styles.urgentOptionSelected,
+                    healthSupported && styles.supportOptionDisabled,
                   ]}
-                  onPress={() => setSelectedSupport('health')}
+                  onPress={() => !healthSupported && setSelectedSupport('health')}
+                  disabled={healthSupported}
                   activeOpacity={0.8}
                 >
                   <View style={styles.supportOptionLeft}>
                     <View style={[
                       styles.supportIconContainer,
-                      { backgroundColor: selectedSupport === 'health' ? '#EA580C' : '#FFEDD5' },
+                      { backgroundColor: selectedSupport === 'health' && !healthSupported ? '#EA580C' : '#FFEDD5' },
                     ]}>
-                      <Ionicons name="medkit-outline" size={22} color={selectedSupport === 'health' ? '#FFFFFF' : '#EA580C'} />
+                      <Ionicons name="medkit-outline" size={22} color={selectedSupport === 'health' && !healthSupported ? '#FFFFFF' : '#EA580C'} />
                     </View>
-                    <Text style={styles.supportOptionTitle}>Bảo hiểm y tế</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.supportOptionTitle}>Bảo hiểm y tế</Text>
+                      {healthSupported && (
+                        <Text style={styles.supportedNote}>Đã hỗ trợ năm {healthSupportedYears.join(', ')}</Text>
+                      )}
+                    </View>
                   </View>
                   <View style={styles.supportOptionRight}>
                     <Text style={[styles.supportOptionPrice, { color: '#EA580C' }]}>
@@ -616,6 +708,7 @@ const ChildDetailScreen = () => {
       </ScrollView>
 
       {/* Fixed Footer */}
+      {(hasBooks || hasMeals || hasHealth) && (
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.authorizeButton, isSubmitting && styles.buttonDisabled]}
@@ -637,6 +730,7 @@ const ChildDetailScreen = () => {
           <Text style={styles.securedText}>Bảo mật bởi Giao thức Mạng Sui</Text>
         </View>
       </View>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -674,6 +768,8 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
   },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 12 },
+  noNeedsRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  noNeedsText: { flex: 1, fontSize: 13, color: '#374151', lineHeight: 20 },
   regionCardContent: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   regionIconContainer: {
     width: 46, height: 46, borderRadius: 23,
@@ -740,6 +836,8 @@ const styles = StyleSheet.create({
   },
   urgentOption: { borderColor: '#FED7AA', backgroundColor: 'rgba(255,247,237,0.5)' },
   supportOptionSelected: { borderColor: '#1E40AF', borderWidth: 2 },
+  supportOptionDisabled: { opacity: 0.55, backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' },
+  supportedNote: { fontSize: 11, color: '#6B7280', marginTop: 2, fontStyle: 'italic' },
   urgentOptionSelected: { borderColor: '#EA580C', borderWidth: 2 },
   supportOptionLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
   supportIconContainer: {

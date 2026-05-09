@@ -43,6 +43,9 @@ export type MappedWithdrawal = {
   description: string;
   status: 'pending' | 'approved' | 'rejected' | 'executed';
   refuseReasons: string[];
+  approvers: string[];
+  refusers: string[];
+  createdAt: string;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -101,6 +104,9 @@ export const mapWithdrawalProposal = (proposal: WithdrawalProposal): MappedWithd
     description: `${proposal.pool_name} — ${proposal.creator}`,
     status: deriveStatus(proposal),
     refuseReasons: proposal.refuse_reasons,
+    approvers: proposal.approvers ?? [],
+    refusers: proposal.refusers ?? [],
+    createdAt: proposal.created_at,
   };
 };
 

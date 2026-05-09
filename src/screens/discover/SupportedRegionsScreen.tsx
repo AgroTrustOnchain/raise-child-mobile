@@ -114,6 +114,25 @@ const RegionsTab = () => {
         </View>
       </View>
 
+      <View style={styles.suggestionRow}>
+        <TouchableOpacity
+          style={[styles.createSuggestionButton, { flex: 1 }]}
+          onPress={() => navigation.navigate('CreateSupportedRegion')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="add-circle-outline" size={18} color="#1E40AF" />
+          <Text style={styles.createSuggestionText}>Đề xuất vùng</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.createSuggestionButton, { flex: 1 }]}
+          onPress={() => navigation.navigate('MySupportedRegions')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="document-text-outline" size={18} color="#1E40AF" />
+          <Text style={styles.createSuggestionText}>Đề xuất của tôi</Text>
+        </TouchableOpacity>
+      </View>
+
       {suggestions.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="map-outline" size={52} color="#D1D5DB" />
@@ -288,7 +307,7 @@ const RegistrationsTab = () => {
       ) : (
         registrations.map((reg) => {
           const sc = getStatusConfig(REG_STATUS_CONFIG, reg.status);
-          const canConfirm = reg.status.toLowerCase() === 'approved';
+          const canConfirm = reg.approvers != null;
           const isConfirming = confirming === reg.id;
           return (
             <View key={reg.id} style={styles.card}>
@@ -461,6 +480,14 @@ const styles = StyleSheet.create({
   bannerTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 4 },
   bannerSubtitle: { fontSize: 13, color: '#6B7280', lineHeight: 19 },
 
+  suggestionRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  createSuggestionButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#FFFFFF', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12,
+    borderWidth: 1, borderColor: '#DBEAFE',
+  },
+  createSuggestionText: { fontSize: 13, fontWeight: '700', color: '#1E40AF' },
+
   emptyContainer: { alignItems: 'center', paddingVertical: 60, gap: 8 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#374151' },
   emptySubtitle: { fontSize: 13, color: '#9CA3AF', textAlign: 'center' },
@@ -501,10 +528,10 @@ const styles = StyleSheet.create({
   },
   registerButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   confirmButton: {
-    backgroundColor: '#16A34A', height: 50, borderRadius: 14,
+    backgroundColor: '#1E40AF', height: 50, borderRadius: 14,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     marginTop: 4,
-    shadowColor: '#16A34A', shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#1E40AF', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25, shadowRadius: 8, elevation: 3,
   },
   confirmButtonDisabled: { opacity: 0.6 },

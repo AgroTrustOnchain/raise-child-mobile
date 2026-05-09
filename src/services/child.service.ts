@@ -62,32 +62,6 @@ export const mapChildToBeneficiary = (c: ChildItem) => ({
 
 type ChildrenQuery = { campaignId?: string; region?: string };
 
-// Get available regions with pagination
-export const getRegions = async (
-  page: number = 1,
-  pageSize: number = 10
-): Promise<{ items: string[]; hasMore: boolean }> => {
-  try {
-    const res = await apiService.get(
-      `/children/regions?page=${page}&page_size=${pageSize}`
-    );
-    const regions = Array.isArray(res.data)
-      ? res.data
-      : res.data?.data || [];
-    const totalPages = res.data?.total_pages;
-    const hasMore =
-      typeof totalPages === 'number'
-        ? page < totalPages
-        : (regions as string[]).length >= pageSize;
-    return { items: regions as string[], hasMore };
-  } catch (e) {
-    // Fallback to mock regions if endpoint not available
-    console.warn("getRegions failed, using default regions", e);
-    const fallback = ['AgroTrust', 'North', 'South', 'Central'];
-    return { items: page === 1 ? fallback : [], hasMore: false };
-  }
-};
-
 // Get children by region with pagination
 export const getChildrenByRegion = async (
   region: string,

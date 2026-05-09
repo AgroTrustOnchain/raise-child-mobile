@@ -71,11 +71,25 @@ export interface SupportedRegionSuggestion {
   region: string;
   content: string;
   status: string;
+  reason?: string | null;
   created_by: string;
   reviewed_by: string | null;
   created_at: string;
   updated_at: string;
 }
+
+/**
+ * GET /regions/established
+ * Fetch regions that have been established and can accept child submissions.
+ */
+export const getEstablishedRegions = async (): Promise<string[]> => {
+  const res = await apiService.get(`/regions/established`);
+  const data = res.data;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.regions)) return data.regions;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+};
 
 /**
  * Fetch regions that need volunteer/local leader support
@@ -105,6 +119,7 @@ export interface UserRegistration {
   region: string;
   register_role: string;
   status: string;
+  approvers: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -120,6 +135,35 @@ export const getUserRegistrations = async (
   if (Array.isArray(data)) return data;
   if (data?.data && Array.isArray(data.data)) return data.data;
   return [];
+};
+
+/**
+ * GET /regions/user/{address}/supported-suggestions
+ * Fetch suggestions submitted by a specific wallet address.
+ */
+export const getMySupportedRegionSuggestions = async (
+  address: string,
+): Promise<SupportedRegionSuggestion[]> => {
+  const res = await apiService.get(
+    `/regions/user/${address}/supported-suggestions`,
+  );
+  const data = res.data;
+  if (Array.isArray(data)) return data;
+  if (data?.data && Array.isArray(data.data)) return data.data;
+  return [];
+};
+
+/**
+ * POST /regions/supported-suggestions
+ * Submit a new region that needs support.
+ */
+export const createSupportedRegionSuggestion = async (
+  payload: { region: string; content: string },
+): Promise<SupportedRegionSuggestion> => {
+  const res = await apiService.post(`/regions/supported-suggestions`, payload, {
+    headers: { "Content-Type": "application/json" },
+  });
+  return res.data;
 };
 
 /**
@@ -139,40 +183,3 @@ export const confirmRegistration = async (
   }
 };
 
-/**
- * Fetch all available regions
- */
-export const getRegions = async (): Promise<string[]> => {
-  try {
-    const response = await fetch(
-      "https://agrotrust-server-production.onrender.com/regions",
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch regions");
-    }
-
-    const data = await response.json();
-
-    // Handle different response formats
-    let regions: string[] = [];
-    if (Array.isArray(data)) {
-      regions = data;
-    } else if (data.regions && Array.isArray(data.regions)) {
-      regions = data.regions;
-    } else if (data.data && Array.isArray(data.data)) {
-      regions = data.data;
-    }
-
-    return regions;
-  } catch (error) {
-    console.error("Failed to fetch regions:", error);
-    throw error;
-  }
-};
