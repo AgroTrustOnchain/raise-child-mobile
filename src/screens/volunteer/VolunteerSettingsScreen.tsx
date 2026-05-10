@@ -30,12 +30,12 @@ const VolunteerSettingsScreen = () => {
 
   const handleSwitchRole = () => {
     Alert.alert(
-      'Switch to User',
-      'Would you like to switch your account role from Volunteer to User? You can always switch back later.',
+      'Chuyển sang người dùng',
+      'Bạn có muốn chuyển vai trò tài khoản từ Tình nguyện viên sang Người dùng không? Bạn có thể chuyển lại bất cứ lúc nào.',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Hủy', style: 'cancel' },
         {
-          text: 'Switch',
+          text: 'Chuyển',
           onPress: () => {
             dispatch(setRole('User'));
           },
@@ -46,12 +46,12 @@ const VolunteerSettingsScreen = () => {
 
   const handleLogout = () => {
     Alert.alert(
-      'Log Out',
-      'Are you sure you want to log out?',
+      'Đăng xuất',
+      'Bạn có chắc muốn đăng xuất không?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Hủy', style: 'cancel' },
         {
-          text: 'Log Out',
+          text: 'Đăng xuất',
           style: 'destructive',
           onPress: () => {
             dispatch(logout());
@@ -108,42 +108,42 @@ const VolunteerSettingsScreen = () => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Settings</Text>
-          <Text style={styles.subtitle}>Manage your volunteer account preferences</Text>
+          <Text style={styles.title}>Cài đặt</Text>
+          <Text style={styles.subtitle}>Quản lý tùy chọn tài khoản tình nguyện viên</Text>
         </View>
 
         {/* Account Section */}
-        <SettingSection title="Account">
+        <SettingSection title="Tài khoản">
           <SettingItem
             icon="person"
-            label="Edit Profile"
-            subtitle="Update your information"
+            label="Chỉnh sửa hồ sơ"
+            subtitle="Cập nhật thông tin của bạn"
             onPress={() => navigation.navigate('PersonalInformationScreen')}
           />
           <View style={styles.divider} />
           <SettingItem
             icon="lock"
-            label="Change Password"
-            subtitle="Update your security settings"
+            label="Đổi mật khẩu"
+            subtitle="Cập nhật cài đặt bảo mật"
             onPress={() => {
-              Alert.alert('Change Password', 'Password change feature coming soon');
+              Alert.alert('Đổi mật khẩu', 'Tính năng đổi mật khẩu sắp ra mắt');
             }}
           />
           <View style={styles.divider} />
           <SettingItem
             icon="document-text"
-            label="View Profile"
-            subtitle="See your public volunteer profile"
+            label="Xem hồ sơ"
+            subtitle="Xem hồ sơ tình nguyện viên của bạn"
             onPress={() => navigation.navigate('PersonalInformationScreen')}
           />
         </SettingSection>
 
         {/* Notifications Section */}
-        <SettingSection title="Notifications">
+        <SettingSection title="Thông báo">
           <SettingItem
             icon="notifications"
-            label="Push Notifications"
-            subtitle="Receive task and update alerts"
+            label="Thông báo đẩy"
+            subtitle="Nhận cảnh báo về nhiệm vụ và cập nhật"
             rightElement={
               <Switch
                 value={notifications}
@@ -156,8 +156,8 @@ const VolunteerSettingsScreen = () => {
           <View style={styles.divider} />
           <SettingItem
             icon="mail"
-            label="Email Updates"
-            subtitle="Get weekly summary emails"
+            label="Cập nhật qua email"
+            subtitle="Nhận email tóm tắt hàng tuần"
             rightElement={
               <Switch
                 value={emailUpdates}
@@ -170,11 +170,11 @@ const VolunteerSettingsScreen = () => {
         </SettingSection>
 
         {/* Privacy Section */}
-        <SettingSection title="Privacy">
+        <SettingSection title="Quyền riêng tư">
           <SettingItem
             icon="shield"
-            label="Private Profile"
-            subtitle="Hide your profile from other users"
+            label="Hồ sơ riêng tư"
+            subtitle="Ẩn hồ sơ của bạn khỏi người dùng khác"
             rightElement={
               <Switch
                 value={privateProfile}
@@ -187,20 +187,20 @@ const VolunteerSettingsScreen = () => {
           <View style={styles.divider} />
           <SettingItem
             icon="alert-circle"
-            label="Data & Privacy"
-            subtitle="View and manage your data"
+            label="Dữ liệu & Quyền riêng tư"
+            subtitle="Xem và quản lý dữ liệu của bạn"
             onPress={() => {
-              Alert.alert('Data & Privacy', 'Privacy policy and data management coming soon');
+              Alert.alert('Dữ liệu & Quyền riêng tư', 'Chính sách quyền riêng tư sắp ra mắt');
             }}
           />
         </SettingSection>
 
         {/* Role Section */}
-        <SettingSection title="Account Role">
+        <SettingSection title="Vai trò tài khoản">
           <View style={styles.roleSwitchContainer}>
             <View style={styles.roleInfo}>
-              <Text style={styles.roleLabel}>Current Role</Text>
-              <Text style={styles.roleBadge}>Volunteer</Text>
+              <Text style={styles.roleLabel}>Vai trò hiện tại</Text>
+              <Text style={styles.roleBadge}>Tình nguyện viên</Text>
             </View>
             <TouchableOpacity
               style={[styles.switchRoleButton, !hasDonorRole && styles.switchRoleButtonDisabled]}
@@ -208,37 +208,37 @@ const VolunteerSettingsScreen = () => {
               disabled={!hasDonorRole}
             >
               <MaterialIcons name="swap-horiz" size={18} color="#fff" />
-              <Text style={styles.switchRoleButtonText}>Switch to User</Text>
+              <Text style={styles.switchRoleButtonText}>Chuyển sang người dùng</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.roleSwitchInfo}>
-            Donors can support children through direct financial contributions
+            Nhà tài trợ có thể hỗ trợ trẻ em thông qua đóng góp tài chính trực tiếp
           </Text>
         </SettingSection>
 
         {/* About Section */}
-        <SettingSection title="About">
+        <SettingSection title="Thông tin">
           <SettingItem
             icon="information-circle"
-            label="App Version"
-            subtitle="Version 1.0.0"
+            label="Phiên bản ứng dụng"
+            subtitle="Phiên bản 1.0.0"
           />
           <View style={styles.divider} />
           <SettingItem
             icon="help-circle"
-            label="Help & Support"
-            subtitle="Get help and report issues"
+            label="Trợ giúp & Hỗ trợ"
+            subtitle="Nhận trợ giúp và báo cáo sự cố"
             onPress={() => {
-              Alert.alert('Help & Support', 'Support page coming soon');
+              Alert.alert('Trợ giúp & Hỗ trợ', 'Trang hỗ trợ sắp ra mắt');
             }}
           />
           <View style={styles.divider} />
           <SettingItem
             icon="document"
-            label="Terms & Conditions"
-            subtitle="Review our terms of service"
+            label="Điều khoản & Điều kiện"
+            subtitle="Xem điều khoản dịch vụ của chúng tôi"
             onPress={() => {
-              Alert.alert('Terms & Conditions', 'Terms page coming soon');
+              Alert.alert('Điều khoản & Điều kiện', 'Trang điều khoản sắp ra mắt');
             }}
           />
         </SettingSection>
@@ -250,7 +250,7 @@ const VolunteerSettingsScreen = () => {
             onPress={handleLogout}
           >
             <MaterialIcons name="logout" size={18} color="#DC2626" />
-            <Text style={styles.logoutButtonText}>Log Out</Text>
+            <Text style={styles.logoutButtonText}>Đăng xuất</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

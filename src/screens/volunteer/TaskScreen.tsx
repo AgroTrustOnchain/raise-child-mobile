@@ -37,16 +37,16 @@ function formatDate(iso?: string) {
 
 function getTaskStatus(task: TaskItem): { label: string; type: 'overdue' | 'today' | 'upcoming' | 'assigned' } {
   if (task.assigned_profile_id) {
-    return { label: 'Assigned', type: 'assigned' };
+    return { label: 'Đã nhận', type: 'assigned' };
   }
-  if (!task.end_period) return { label: 'Open', type: 'upcoming' };
+  if (!task.end_period) return { label: 'Mở', type: 'upcoming' };
   const end = new Date(task.end_period);
   const now = new Date();
   const diffMs = end.getTime() - now.getTime();
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return { label: `Overdue: ${Math.abs(diffDays)}d`, type: 'overdue' };
-  if (diffDays === 0) return { label: 'Due Today', type: 'today' };
-  return { label: `Due in ${diffDays}d`, type: 'upcoming' };
+  if (diffDays < 0) return { label: `Quá hạn: ${Math.abs(diffDays)}n`, type: 'overdue' };
+  if (diffDays === 0) return { label: 'Hôm nay', type: 'today' };
+  return { label: `Còn ${diffDays} ngày`, type: 'upcoming' };
 }
 
 export default function TaskScreen() {
@@ -105,16 +105,16 @@ export default function TaskScreen() {
 
   const handleAssign = useCallback(async (task: TaskItem) => {
     if (task.assigned_profile_id) {
-      Alert.alert('Already assigned', 'This task is already assigned.');
+      Alert.alert('Đã được nhận', 'Nhiệm vụ này đã được nhận rồi.');
       return;
     }
     Alert.alert(
-      'Assign task',
-      'Do you want to take on this task?',
+      'Nhận nhiệm vụ',
+      'Bạn có muốn nhận nhiệm vụ này không?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Hủy', style: 'cancel' },
         {
-          text: 'Assign to me',
+          text: 'Nhận nhiệm vụ',
           onPress: async () => {
             try {
               setAssigningId(task.id);
@@ -124,13 +124,13 @@ export default function TaskScreen() {
                   t.id === task.id ? { ...t, assigned_profile_id: 'me' } : t
                 )
               );
-              Alert.alert('Success', 'Task assigned to you.');
+              Alert.alert('Thành công', 'Nhiệm vụ đã được giao cho bạn.');
             } catch (e: any) {
               const msg =
                 e?.response?.data?.message ||
                 e?.message ||
-                'Failed to assign task';
-              Alert.alert('Error', msg);
+                'Không thể nhận nhiệm vụ';
+              Alert.alert('Lỗi', msg);
             } finally {
               setAssigningId(null);
             }
@@ -153,7 +153,7 @@ export default function TaskScreen() {
         <View style={styles.cardHeader}>
           <View style={styles.regionPill}>
             <Ionicons name="location-outline" size={12} color="#1E40AF" />
-            <Text style={styles.regionPillText}>{item.region || 'Unknown'}</Text>
+            <Text style={styles.regionPillText}>{item.region || 'Không xác định'}</Text>
           </View>
           <View
             style={[
@@ -169,7 +169,7 @@ export default function TaskScreen() {
         </View>
 
         <Text style={styles.description} numberOfLines={2}>
-          {item.description || 'No description provided.'}
+          {item.description || 'Không có mô tả.'}
         </Text>
 
         <View style={styles.cardFooter}>
@@ -202,7 +202,7 @@ export default function TaskScreen() {
                   color="#fff"
                 />
                 <Text style={styles.assignButtonText}>
-                  {isAssigned ? 'Assigned' : 'Nhận'}
+                  {isAssigned ? 'Đã nhận' : 'Nhận'}
                 </Text>
               </>
             )}
@@ -215,15 +215,15 @@ export default function TaskScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.headerSection}>
-        <Text style={styles.title}>Welfare Tasks</Text>
+        <Text style={styles.title}>Nhiệm vụ phúc lợi</Text>
         <Text style={styles.subtitle}>
-          Browse open tasks and assign them to yourself.
+          Xem các nhiệm vụ đang mở và nhận nhiệm vụ cho bản thân.
         </Text>
 
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
           <TextInput
-            placeholder="Search by keyword or region..."
+            placeholder="Tìm theo từ khóa hoặc vùng..."
             placeholderTextColor="#9CA3AF"
             style={styles.searchInput}
             value={keyword}
@@ -250,7 +250,7 @@ export default function TaskScreen() {
           loading ? null : (
             <View style={styles.emptyContainer}>
               <Ionicons name="clipboard-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>No tasks found</Text>
+              <Text style={styles.emptyText}>Không tìm thấy nhiệm vụ</Text>
             </View>
           )
         }

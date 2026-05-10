@@ -382,11 +382,11 @@ const CenterReqScreen = () => {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Center Requests</Text>
+          <Text style={styles.headerTitle}>Yêu cầu trung tâm</Text>
         </View>
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#1E40AF" />
-          <Text style={styles.loadingText}>Loading requests…</Text>
+          <Text style={styles.loadingText}>Đang tải yêu cầu…</Text>
         </View>
       </View>
     );
@@ -396,13 +396,13 @@ const CenterReqScreen = () => {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Center Requests</Text>
+          <Text style={styles.headerTitle}>Yêu cầu trung tâm</Text>
         </View>
         <View style={styles.centered}>
           <Ionicons name="alert-circle-outline" size={52} color="#DC2626" />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={() => loadData()}>
-            <Text style={styles.retryBtnText}>Try Again</Text>
+            <Text style={styles.retryBtnText}>Thử lại</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -412,7 +412,7 @@ const CenterReqScreen = () => {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Center Requests</Text>
+        <Text style={styles.headerTitle}>Yêu cầu trung tâm</Text>
       </View>
 
       <FlatList
@@ -431,8 +431,8 @@ const CenterReqScreen = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="document-outline" size={52} color="#D1D5DB" />
-            <Text style={styles.emptyTitle}>No requests found</Text>
-            <Text style={styles.emptySubtitle}>Pull down to refresh.</Text>
+            <Text style={styles.emptyTitle}>Không có yêu cầu nào</Text>
+            <Text style={styles.emptySubtitle}>Kéo xuống để làm mới.</Text>
           </View>
         }
       />

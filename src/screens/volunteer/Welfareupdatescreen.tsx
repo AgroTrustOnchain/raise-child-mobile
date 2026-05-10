@@ -77,11 +77,11 @@ const WelfareUpdateScreen = () => {
 
   const handleSubmit = async () => {
     if (!taskId) {
-      Alert.alert('Error', 'Missing task ID. Please reopen this screen from the task list.');
+      Alert.alert('Lỗi', 'Không tìm thấy ID nhiệm vụ. Vui lòng mở lại màn hình này từ danh sách nhiệm vụ.');
       return;
     }
     if (uploadedImages.length === 0) {
-      Alert.alert('Validation Error', 'Please upload at least one image');
+      Alert.alert('Lỗi xác thực', 'Vui lòng tải lên ít nhất một ảnh');
       return;
     }
 
@@ -109,10 +109,10 @@ const WelfareUpdateScreen = () => {
       );
 
       if (hasErrors) {
-        throw new Error('Some image uploads failed to submit');
+        throw new Error('Một số ảnh tải lên thất bại');
       }
 
-      Alert.alert('Success', 'Images uploaded successfully!', [
+      Alert.alert('Thành công', 'Ảnh đã được tải lên thành công!', [
         {
           text: 'OK',
           onPress: () => {
@@ -124,7 +124,7 @@ const WelfareUpdateScreen = () => {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to upload images';
-      Alert.alert('Error', errorMessage);
+      Alert.alert('Lỗi', errorMessage);
       console.error('Submit error:', error);
     } finally {
       setIsLoading(false);
@@ -141,9 +141,9 @@ const WelfareUpdateScreen = () => {
       <View style={styles.headerSection}>
         <View style={styles.headerLabel}>
           <Ionicons name="cloud-upload" size={18} color="#1E40AF" />
-          <Text style={styles.headerLabelText}>Upload Images</Text>
+          <Text style={styles.headerLabelText}>Tải lên ảnh</Text>
         </View>
-        <Text style={styles.headerTitle}>Upload Welfare Images</Text>
+        <Text style={styles.headerTitle}>Tải lên ảnh phúc lợi</Text>
         <Text style={styles.headerDescription}>
           Tải lên ảnh minh chứng cho công việc của bạn. Ảnh sẽ được lưu trữ và gửi đến hệ thống để xét duyệt.
         </Text>

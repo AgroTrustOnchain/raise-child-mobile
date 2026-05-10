@@ -394,10 +394,10 @@ const PersonalInformationScreen = () => {
               Phone Number <Text style={styles.requiredStar}>*</Text>
             </Text>
             <View style={styles.phoneRow}>
-              <View style={styles.countryCodeBox}>
+              {/* <View style={styles.countryCodeBox}>
                 <Text style={styles.countryCodeText}>+1</Text>
                 <Ionicons name="chevron-down" size={14} color="#9CA3AF" />
-              </View>
+              </View> */}
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="0901234567"

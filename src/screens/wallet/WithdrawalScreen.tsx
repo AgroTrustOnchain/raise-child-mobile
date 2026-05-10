@@ -194,7 +194,7 @@ const WithdrawalScreen = () => {
         </View>
       )}
 
-      {item.status === 'pending' && (
+      {item.uiStatus === 'Đang bỏ phiếu' && (
         <View style={styles.voteSection}>
           {/* <View style={styles.voteLabels}>
             <Text style={styles.voteForLabel}>{item.voteForPct}% ĐỒNG Ý</Text>

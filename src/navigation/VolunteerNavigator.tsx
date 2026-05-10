@@ -1,11 +1,16 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 
 import ChildrenScreen from '../screens/volunteer/TaskScreen';
 import UpdateScreen from '../screens/volunteer/UpdateScreen';
 import VolunteerSettingsScreen from '../screens/volunteer/VolunteerSettingsScreen';
 import CenterReqScreen from '../screens/volunteer/CenterReqScreen';
+import WelfareUpdateScreen from '../screens/volunteer/Welfareupdatescreen';
+import SubmittedProofsScreen from '../screens/volunteer/SubmittedProofsScreen';
+import TaskDetailScreen from '../screens/volunteer/TaskDetailScreen';
+import PersonalInformationScreen from '../screens/profile/PersonalInformationScreen';
 
 export type VolunteerTabParamList = {
   Children: undefined;
@@ -14,9 +19,18 @@ export type VolunteerTabParamList = {
   VolunteerSettings: undefined;
 };
 
-const Tab = createBottomTabNavigator<VolunteerTabParamList>();
+export type VolunteerStackParamList = {
+  VolunteerTabs: undefined;
+  WelfareUpdateDetail: { child: any };
+  SubmittedProofs: undefined;
+  TaskDetail: { taskId: string };
+  PersonalInformationScreen: undefined;
+};
 
-export const VolunteerNavigator = () => {
+const Tab = createBottomTabNavigator<VolunteerTabParamList>();
+const Stack = createNativeStackNavigator<VolunteerStackParamList>();
+
+const VolunteerTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -67,5 +81,30 @@ export const VolunteerNavigator = () => {
         }}
       />
     </Tab.Navigator>
+  );
+};
+
+export const VolunteerNavigator = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="VolunteerTabs" component={VolunteerTabs} />
+      <Stack.Screen
+        name="WelfareUpdateDetail"
+        component={WelfareUpdateScreen}
+        options={{ presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="SubmittedProofs"
+        component={SubmittedProofsScreen}
+      />
+      <Stack.Screen
+        name="TaskDetail"
+        component={TaskDetailScreen}
+      />
+      <Stack.Screen
+        name="PersonalInformationScreen"
+        component={PersonalInformationScreen}
+      />
+    </Stack.Navigator>
   );
 };

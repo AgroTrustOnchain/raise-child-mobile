@@ -20,15 +20,22 @@ import WalrusImage from '../../components/WalrusImage';
 
 type FilterType = 'all' | 'pending' | 'approved' | 'rejected';
 
+const normalizeStatus = (raw?: string): string => (raw || '').toLowerCase().trim();
+
+const isRejected = (raw?: string) => {
+  const s = normalizeStatus(raw);
+  return s === 'rejected' || s === 'refused';
+};
+
 const statusStyle = (raw?: string) => {
-  const s = (raw || '').toLowerCase();
+  const s = normalizeStatus(raw);
   if (s === 'approved') {
-    return { color: '#059669', bg: '#ECFDF5', border: '#A7F3D0', label: 'Approved' };
+    return { color: '#059669', bg: '#ECFDF5', border: '#A7F3D0', label: 'Đã duyệt' };
   }
-  if (s === 'rejected') {
-    return { color: '#DC2626', bg: '#FEE2E2', border: '#FECACA', label: 'Rejected' };
+  if (isRejected(raw)) {
+    return { color: '#DC2626', bg: '#FEE2E2', border: '#FECACA', label: 'Từ chối' };
   }
-  return { color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', label: 'Pending' };
+  return { color: '#D97706', bg: '#FFFBEB', border: '#FDE68A', label: 'Chờ duyệt' };
 };
 
 const formatDateTime = (iso?: string): string => {
@@ -85,14 +92,15 @@ const SubmittedProofsScreen = () => {
 
   const filtered = proofs.filter((p) => {
     if (filter === 'all') return true;
-    return (p.review_status || '').toLowerCase() === filter;
+    if (filter === 'rejected') return isRejected(p.review_status);
+    return normalizeStatus(p.review_status) === filter;
   });
 
   const counts = {
     all: proofs.length,
-    pending: proofs.filter((p) => (p.review_status || '').toLowerCase() === 'pending').length,
-    approved: proofs.filter((p) => (p.review_status || '').toLowerCase() === 'approved').length,
-    rejected: proofs.filter((p) => (p.review_status || '').toLowerCase() === 'rejected').length,
+    pending: proofs.filter((p) => normalizeStatus(p.review_status) === 'pending').length,
+    approved: proofs.filter((p) => normalizeStatus(p.review_status) === 'approved').length,
+    rejected: proofs.filter((p) => isRejected(p.review_status)).length,
   };
 
   const renderItem = ({ item }: { item: TaskProof }) => {
@@ -163,29 +171,29 @@ const SubmittedProofsScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
           <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Submitted Proofs</Text>
+        <Text style={styles.headerTitle}>Minh chứng đã nộp</Text>
         <View style={styles.headerBtn} />
       </View>
 
       <View style={styles.filtersWrap}>
-        {renderFilterChip('all', 'All', counts.all)}
-        {renderFilterChip('pending', 'Pending', counts.pending)}
-        {renderFilterChip('approved', 'Approved', counts.approved)}
-        {renderFilterChip('rejected', 'Rejected', counts.rejected)}
+        {renderFilterChip('all', 'Tất cả', counts.all)}
+        {renderFilterChip('pending', 'Chờ duyệt', counts.pending)}
+        {renderFilterChip('approved', 'Đã duyệt', counts.approved)}
+        {renderFilterChip('rejected', 'Từ chối', counts.rejected)}
       </View>
 
       {loading ? (
         <View style={styles.loadingState}>
           <ActivityIndicator size="large" color="#1E40AF" />
-          <Text style={styles.loadingText}>Loading submitted proofs…</Text>
+          <Text style={styles.loadingText}>Đang tải minh chứng…</Text>
         </View>
       ) : error ? (
         <View style={styles.emptyState}>
           <Ionicons name="alert-circle" size={56} color="#DC2626" />
-          <Text style={styles.emptyTitle}>Could not load proofs</Text>
+          <Text style={styles.emptyTitle}>Không thể tải minh chứng</Text>
           <Text style={styles.emptyText}>{error}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={fetchProofs}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>Thử lại</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -205,9 +213,9 @@ const SubmittedProofsScreen = () => {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="document-text-outline" size={56} color="#D1D5DB" />
-              <Text style={styles.emptyTitle}>No proofs yet</Text>
+              <Text style={styles.emptyTitle}>Chưa có minh chứng</Text>
               <Text style={styles.emptyText}>
-                Submitted welfare updates will appear here.
+                Các cập nhật phúc lợi đã nộp sẽ xuất hiện tại đây.
               </Text>
             </View>
           }
