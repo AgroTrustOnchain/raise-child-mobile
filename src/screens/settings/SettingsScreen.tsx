@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,50 +21,26 @@ const SettingsScreen = () => {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
-  const { user, profile } = useAppSelector((state) => state.auth);
+  const { user, profile, allRoles } = useAppSelector((state) => state.auth);
   const displayName =
     [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim() ||
     user?.name ||
     'N/A';
   const displayEmail = profile?.email || user?.email || 'N/A';
-  const [isChangingRole, setIsChangingRole] = useState(false);
 
-  const roles: string[] = Array.isArray(user?.role)
-    ? user.role
-    : user?.role
-    ? [user.role]
-    : [];
-  const hasVolunteerRole = roles.some((r) => r.toLowerCase() === 'volunteer');
+  const hasVolunteerRole = allRoles.some((r) => r.toLowerCase() === 'volunteer');
 
   const handleChangeRoleToVolunteer = async () => {
     Alert.alert(
       'Đổi vai trò',
       'Bạn có chắc muốn đổi vai trò thành Tình nguyện viên không?',
       [
-        {
-          text: 'Hủy',
-          onPress: () => {},
-          style: 'cancel',
-        },
+        { text: 'Hủy', style: 'cancel' },
         {
           text: 'Xác nhận',
-          onPress: async () => {
-            try {
-              setIsChangingRole(true);
-              // Update the user role in the state
-              dispatch(setRole('volunteer'));
-              
-              // Navigate to Volunteer screen
-              setTimeout(() => {
-                navigation.navigate('Volunteer');
-                setIsChangingRole(false);
-              }, 500);
-            } catch (error) {
-              Alert.alert('Lỗi', 'Không thể đổi vai trò. Vui lòng thử lại.');
-              setIsChangingRole(false);
-            }
+          onPress: () => {
+            dispatch(setRole('Volunteer'));
           },
-          style: 'destructive',
         },
       ]
     );
@@ -120,22 +95,15 @@ const SettingsScreen = () => {
             style={[
               styles.roleButton,
               !hasVolunteerRole && styles.roleButtonDisabled,
-              isChangingRole && styles.roleButtonDisabled,
             ]}
             onPress={handleChangeRoleToVolunteer}
-            disabled={isChangingRole || !hasVolunteerRole}
+            disabled={!hasVolunteerRole}
             activeOpacity={0.7}
           >
-            {isChangingRole ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Ionicons name="person-add" size={20} color="#fff" />
-                <Text style={styles.roleButtonText}>
-                  Chuyển sang Tình nguyện viên
-                </Text>
-              </>
-            )}
+            <Ionicons name="person-add" size={20} color="#fff" />
+            <Text style={styles.roleButtonText}>
+              Chuyển sang Tình nguyện viên
+            </Text>
           </TouchableOpacity>
 
           {!hasVolunteerRole && (

@@ -33,6 +33,15 @@ export const getTaskProofsByActor = async (
   return response.data;
 };
 
+export const getRegionTaskProofs = async (
+  region: string,
+): Promise<TaskProof[]> => {
+  const response = await apiService.get<TaskProofsListResponse>('/task-proofs', {
+    params: { region, is_child_task: false },
+  });
+  return response.data?.data ?? [];
+};
+
 export interface SubmitTaskProofParams {
   taskId: string | number;
   imageBlobId: string;
@@ -69,6 +78,8 @@ export const submitTaskProof = async (
     const url = `/task-proofs/task/${taskId}/submit`;
 
     console.log(`Submitting task proof for task ${taskId} with image blob ID ${imageBlobId}`);
+
+    console.log(imageBlobIdBase64)
 
     const response = await apiService.post<TaskProofResponse>(url, {
       image_blob_id: imageBlobId,

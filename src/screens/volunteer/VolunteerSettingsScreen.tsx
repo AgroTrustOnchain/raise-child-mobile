@@ -12,25 +12,33 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store';
+import { logout, setRole } from '../../store/authSlice';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
 const VolunteerSettingsScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const dispatch = useDispatch<AppDispatch>();
+  const allRoles = useSelector((state: RootState) => state.auth.allRoles);
+  const hasDonorRole = allRoles.some((r) => r.toLowerCase() === 'user');
   const [notifications, setNotifications] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [privateProfile, setPrivateProfile] = useState(false);
 
   const handleSwitchRole = () => {
     Alert.alert(
-      'Switch to Donor',
-      'Would you like to switch your account role from Volunteer to Donor? You can always switch back later.',
+      'Switch to User',
+      'Would you like to switch your account role from Volunteer to User? You can always switch back later.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Switch',
-          onPress: () => navigation.navigate('Main'),
+          onPress: () => {
+            dispatch(setRole('User'));
+          },
         },
       ]
     );
@@ -46,10 +54,7 @@ const VolunteerSettingsScreen = () => {
           text: 'Log Out',
           style: 'destructive',
           onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'AuthNavigator' }],
-            });
+            dispatch(logout());
           },
         },
       ]
@@ -198,11 +203,12 @@ const VolunteerSettingsScreen = () => {
               <Text style={styles.roleBadge}>Volunteer</Text>
             </View>
             <TouchableOpacity
-              style={styles.switchRoleButton}
+              style={[styles.switchRoleButton, !hasDonorRole && styles.switchRoleButtonDisabled]}
               onPress={handleSwitchRole}
+              disabled={!hasDonorRole}
             >
               <MaterialIcons name="swap-horiz" size={18} color="#fff" />
-              <Text style={styles.switchRoleButtonText}>Switch to Donor</Text>
+              <Text style={styles.switchRoleButtonText}>Switch to User</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.roleSwitchInfo}>

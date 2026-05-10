@@ -15,6 +15,7 @@ interface AuthState {
     role: string;
     walletAddress?: string;
   } | null;
+  allRoles: string[];
   profile: Profile | null;
   isProfileLoading: boolean;
   isAuthenticated: boolean;
@@ -24,6 +25,7 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
+  allRoles: [],
   profile: null,
   isProfileLoading: false,
   isAuthenticated: false,
@@ -130,11 +132,14 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action: PayloadAction<AuthResponse>) => {
       state.user = action.payload.user;
+      const rolesRaw = action.payload.user.role;
+      state.allRoles = Array.isArray(rolesRaw) ? rolesRaw : rolesRaw ? [rolesRaw] : [];
       state.isAuthenticated = true;
       state.error = null;
     },
     clearAuth: (state) => {
       state.user = null;
+      state.allRoles = [];
       state.profile = null;
       state.isAuthenticated = false;
       state.error = null;
@@ -144,6 +149,7 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.user = null;
+      state.allRoles = [];
       state.profile = null;
       state.isAuthenticated = false;
       state.error = null;
@@ -163,6 +169,8 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
+        const rolesRaw = action.payload.user.role;
+        state.allRoles = Array.isArray(rolesRaw) ? rolesRaw : rolesRaw ? [rolesRaw] : [];
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -177,6 +185,8 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
+        const rolesRaw = action.payload.user.role;
+        state.allRoles = Array.isArray(rolesRaw) ? rolesRaw : rolesRaw ? [rolesRaw] : [];
         state.isAuthenticated = true;
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -185,6 +195,7 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+        state.allRoles = [];
         state.profile = null;
         state.isAuthenticated = false;
       })

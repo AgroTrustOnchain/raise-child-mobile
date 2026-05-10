@@ -183,8 +183,8 @@ const RegistrationFormScreen = () => {
 
       Alert.alert("Thành công", "Đã gửi đăng ký thành công!");
       navigation.goBack();
-    } catch (error) {
-      console.error("Registration submission error:", error);
+    } catch (error : any) {
+      console.error("Registration submission error:", error.response ?? error);
       Alert.alert(
         "Lỗi",
         error instanceof Error ? error.message : "Không thể gửi mẫu đăng ký",

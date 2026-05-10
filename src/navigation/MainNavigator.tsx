@@ -17,6 +17,7 @@ import DonateRegionScreen from "../screens/discover/DonateRegionScreen";
 import SupportedRegionsScreen from "../screens/discover/SupportedRegionsScreen";
 import CreateSupportedRegionScreen from "../screens/discover/CreateSupportedRegionScreen";
 import MySupportedRegionsScreen from "../screens/discover/MySupportedRegionsScreen";
+import TaskDetailScreen from "../screens/volunteer/TaskDetailScreen";
 import PaymentCallbackScreen from "../screens/discover/PaymentCallbackScreen";
 import PaymentQrScreen from "../screens/discover/PaymentQrScreen";
 import WalletScreen from "../screens/wallet/WalletScreen";
@@ -26,6 +27,7 @@ import SettingsScreen from "../screens/settings/SettingsScreen";
 import RegistrationFormScreen from "../screens/settings/RegistrationFormScreen";
 import ChildUploadReqScreen from "../screens/profile/ChildUploadReqScreen";
 import SubmittedProofsScreen from "../screens/volunteer/SubmittedProofsScreen";
+import RegionProofScreen from "../screens/discover/RegionProofScreen";
 import { VolunteerNavigator } from "./VolunteerNavigator";
 
 // Define all global/modal screens that aren't in tab navigation
@@ -38,9 +40,11 @@ export type GlobalModalParamList = {
   SupportedRegions: undefined;
   CreateSupportedRegion: undefined;
   MySupportedRegions: undefined;
+  TaskDetail: { taskId: string };
   Wallet: undefined;
   ChildUploadReq: undefined;
   SubmittedProofs: undefined;
+  RegionProof: { region: string };
   PaymentCallbackScreen: {
     status?: string;
     title?: string;
@@ -359,6 +363,11 @@ export const RootNavigator = () => {
           options={{ title: 'Đề xuất của tôi', headerShown: false }}
         />
         <RootStack.Screen
+          name="TaskDetail"
+          component={TaskDetailScreen}
+          options={{ title: 'Chi tiết nhiệm vụ', headerShown: false }}
+        />
+        <RootStack.Screen
           name="ChildUploadReq"
           component={ChildUploadReqScreen}
           options={{ title: 'Đăng ký trẻ em', headerShown: false }}
@@ -367,6 +376,11 @@ export const RootNavigator = () => {
           name="SubmittedProofs"
           component={SubmittedProofsScreen}
           options={{ title: 'Submitted Proofs', headerShown: false }}
+        />
+        <RootStack.Screen
+          name="RegionProof"
+          component={RegionProofScreen}
+          options={{ title: 'Region Proof', headerShown: false }}
         />
         <RootStack.Screen
           name="PaymentCallbackScreen"

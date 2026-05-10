@@ -18,6 +18,11 @@ import {
   TaskItem,
 } from '../../services/tasks.service';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/MainNavigator';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 function formatDate(iso?: string) {
   if (!iso) return '';
@@ -46,6 +51,7 @@ function getTaskStatus(task: TaskItem): { label: string; type: 'overdue' | 'toda
 
 export default function TaskScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
   const walletAddress = user?.walletAddress ?? '';
 
@@ -139,7 +145,11 @@ export default function TaskScreen() {
     const isAssigning = assigningId === item.id;
     const isAssigned = !!item.assigned_profile_id;
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('TaskDetail', { taskId: item.id })}
+        activeOpacity={0.85}
+      >
         <View style={styles.cardHeader}>
           <View style={styles.regionPill}>
             <Ionicons name="location-outline" size={12} color="#1E40AF" />
@@ -158,43 +168,47 @@ export default function TaskScreen() {
           </View>
         </View>
 
-        <Text style={styles.description} numberOfLines={3}>
+        <Text style={styles.description} numberOfLines={2}>
           {item.description || 'No description provided.'}
         </Text>
 
-        <View style={styles.metaRow}>
+        <View style={styles.cardFooter}>
           <View style={styles.metaItem}>
-            <Ionicons name="calendar-outline" size={14} color="#6b7280" />
+            <Ionicons name="calendar-outline" size={13} color="#6b7280" />
             <Text style={styles.metaText}>
               {formatDate(item.start_period)} — {formatDate(item.end_period)}
             </Text>
           </View>
-        </View>
 
-        <TouchableOpacity
-          style={[
-            styles.button,
-            (isAssigned || isAssigning) && styles.buttonDisabled,
-          ]}
-          onPress={() => handleAssign(item)}
-          disabled={isAssigned || isAssigning}
-        >
-          {isAssigning ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Ionicons
-                name={isAssigned ? 'checkmark-circle' : 'person-add-outline'}
-                size={16}
-                color="#fff"
-              />
-              <Text style={styles.buttonText}>
-                {isAssigned ? 'Assigned' : 'Assign to me'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[
+              styles.assignButton,
+              (isAssigned || isAssigning) && styles.buttonDisabled,
+            ]}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleAssign(item);
+            }}
+            disabled={isAssigned || isAssigning}
+            activeOpacity={0.85}
+          >
+            {isAssigning ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Ionicons
+                  name={isAssigned ? 'checkmark-circle' : 'person-add-outline'}
+                  size={14}
+                  color="#fff"
+                />
+                <Text style={styles.assignButtonText}>
+                  {isAssigned ? 'Assigned' : 'Nhận'}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -381,6 +395,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 17,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 8,
+  },
+  assignButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E40AF',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 5,
+    minWidth: 76,
+  },
+  assignButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
   },
   emptyContainer: {
     flex: 1,

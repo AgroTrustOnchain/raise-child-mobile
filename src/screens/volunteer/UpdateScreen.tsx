@@ -115,7 +115,12 @@ function UpdateScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           {tasks.map((task) => (
-            <View key={task.id} style={styles.childCard}>
+            <TouchableOpacity
+              key={task.id}
+              style={styles.childCard}
+              onPress={() => navigation.navigate('TaskDetail', { taskId: task.id })}
+              activeOpacity={0.85}
+            >
               {/* Task Info */}
               <View style={styles.childInfoContainer}>
                 {/* Avatar or Icon */}
@@ -159,7 +164,10 @@ function UpdateScreen() {
               {/* Action Button */}
               <TouchableOpacity
                 style={[styles.uploadButton, task.is_submitted && styles.uploadButtonDisabled]}
-                onPress={() => handleUploadUpdate(task)}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleUploadUpdate(task);
+                }}
                 disabled={task.is_submitted}
                 activeOpacity={0.7}
               >
@@ -175,7 +183,7 @@ function UpdateScreen() {
                   <Ionicons name="chevron-forward" size={18} color="#fff" />
                 )}
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           ))}
 
           {/* Info Card */}

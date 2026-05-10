@@ -254,7 +254,12 @@ const DonateRegionScreen = () => {
         <Text style={styles.navTitle} numberOfLines={1}>
           Quyên góp cho {params.region}
         </Text>
-        <View style={styles.navButton} />
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('RegionProof' as any, { region: params.region })}
+        >
+          <Ionicons name="document-text-outline" size={22} color="#1E40AF" />
+        </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView
