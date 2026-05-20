@@ -170,7 +170,7 @@ const HomeScreen = () => {
       </View>
 
       {/* Sub-Campaign Pools */}
-      <View style={styles.campaignsSection}>
+      {/* <View style={styles.campaignsSection}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Quỹ phụ chiến dịch</Text>
           <TouchableOpacity style={styles.viewAllButton}>
@@ -211,7 +211,7 @@ const HomeScreen = () => {
             </View>
           ))}
         </ScrollView>
-      </View>
+      </View> */}
 
       {/* Ledger Header */}
       <View style={styles.ledgerHeader}>

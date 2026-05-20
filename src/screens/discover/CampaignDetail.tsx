@@ -106,35 +106,42 @@ const CampaignDetail = () => {
   const centerBlobId = regionInfo?.center_image_blob_id;
 
   const renderChild = useCallback(
-    ({ item }: { item: RegionChild }) => (
-      <TouchableOpacity
-        style={styles.childCard}
-        onPress={() => navigation.navigate("ChildDetailScreen", { childId: item.id })}
-        activeOpacity={0.9}
-      >
-        {item.avatar_blob_id ? (
-          <WalrusImage blobId={item.avatar_blob_id} style={styles.childAvatar} resizeMode="cover" fallbackIconSize={28} />
-        ) : (
-          <View style={styles.childAvatar}>
-            <Ionicons
-              name={item.gender === "female" ? "person" : "person-outline"}
-              size={28}
-              color="#1E40AF"
+    ({ item }: { item: RegionChild }) => {
+      const isFemale = formatGender(item.gender) === "Nữ";
+      const fullName = `${item.first_name || ""} ${item.last_name || ""}`.trim() || "Chưa có tên";
+      return (
+        <TouchableOpacity
+          style={styles.childCard}
+          onPress={() => navigation.navigate("ChildDetailScreen", { childId: item.id })}
+          activeOpacity={0.9}
+        >
+          {item.avatar_blob_id ? (
+            <WalrusImage
+              blobId={item.avatar_blob_id}
+              style={styles.childAvatar}
+              resizeMode="cover"
+              fallbackIconSize={32}
             />
+          ) : (
+            <View style={styles.childAvatarPlaceholder}>
+              <Ionicons
+                name={isFemale ? "person" : "person-outline"}
+                size={32}
+                color="#1E40AF"
+              />
+            </View>
+          )}
+          <View style={styles.childInfo}>
+            <Text style={styles.childName} numberOfLines={1}>{fullName}</Text>
+            <Text style={styles.childMeta}>
+              {formatGender(item.gender)}
+              {item.identity_code ? `  •  ${item.identity_code}` : ""}
+            </Text>
           </View>
-        )}
-        <View style={styles.childInfo}>
-          <Text style={styles.childName}>
-            {`${item.first_name || ""} ${item.last_name || ""}`.trim() || "Unknown"}
-          </Text>
-          <Text style={styles.childMeta}>
-            {formatGender(item.gender)}
-            {item.identity_code ? `  •  ${item.identity_code}` : ""}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-      </TouchableOpacity>
-    ),
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+      );
+    },
     [navigation]
   );
 
@@ -362,9 +369,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   childAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginRight: 12,
+    overflow: "hidden",
+    backgroundColor: "#EFF6FF",
+  },
+  childAvatarPlaceholder: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",

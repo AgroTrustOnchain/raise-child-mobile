@@ -57,28 +57,22 @@ const VolunteerTabs = () => {
       <Tab.Screen
         name="Children"
         component={ChildrenScreen}
-        options={{
-          title: 'Children',
-        }}
+        options={{ title: 'Nhiệm vụ' }}
       />
       <Tab.Screen
         name="CenterReqs"
         component={CenterReqScreen}
-        options={{ title: 'Center Reqs' }}
+        options={{ title: 'Yêu cầu' }}
       />
       <Tab.Screen
         name="Update"
         component={UpdateScreen}
-        options={{
-          title: 'Update',
-        }}
+        options={{ title: 'Cập nhật' }}
       />
       <Tab.Screen
         name="VolunteerSettings"
         component={VolunteerSettingsScreen}
-        options={{
-          title: 'Settings',
-        }}
+        options={{ title: 'Cài đặt' }}
       />
     </Tab.Navigator>
   );
