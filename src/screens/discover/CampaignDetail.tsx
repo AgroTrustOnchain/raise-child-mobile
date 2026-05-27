@@ -106,53 +106,125 @@ const CampaignDetail = () => {
   const centerBlobId = regionInfo?.center_image_blob_id;
 
   const renderChild = useCallback(
-    ({ item }: { item: RegionChild }) => (
-      <TouchableOpacity
-        style={styles.childCard}
-        onPress={() => navigation.navigate("ChildDetailScreen", { childId: item.id })}
-        activeOpacity={0.9}
-      >
-        {item.avatar_blob_id ? (
-          <WalrusImage blobId={item.avatar_blob_id} style={styles.childAvatar} resizeMode="cover" fallbackIconSize={28} />
-        ) : (
-          <View style={styles.childAvatar}>
-            <Ionicons
-              name={item.gender === "female" ? "person" : "person-outline"}
-              size={28}
-              color="#1E40AF"
+    ({ item }: { item: RegionChild }) => {
+      const isFemale = formatGender(item.gender) === "Nữ";
+      const fullName = `${item.first_name || ""} ${item.last_name || ""}`.trim() || "Chưa có tên";
+      return (
+        <TouchableOpacity
+          style={styles.childCard}
+          onPress={() => navigation.navigate("ChildDetailScreen", { childId: item.id })}
+          activeOpacity={0.85}
+        >
+          {item.avatar_blob_id ? (
+            <WalrusImage
+              blobId={item.avatar_blob_id}
+              style={styles.childAvatar}
+              resizeMode="cover"
+              fallbackIconSize={28}
             />
+          ) : (
+            <View style={styles.childAvatarPlaceholder}>
+              <Ionicons
+                name={isFemale ? "person" : "person-outline"}
+                size={28}
+                color="#1E40AF"
+              />
+            </View>
+          )}
+          <View style={styles.childInfo}>
+            <Text style={styles.childName} numberOfLines={1}>{fullName}</Text>
+            <Text style={styles.childMeta}>
+              {formatGender(item.gender)}
+              {item.identity_code ? `  •  ID: ${item.identity_code}` : ""}
+            </Text>
           </View>
-        )}
-        <View style={styles.childInfo}>
-          <Text style={styles.childName}>
-            {`${item.first_name || ""} ${item.last_name || ""}`.trim() || "Unknown"}
-          </Text>
-          <Text style={styles.childMeta}>
-            {formatGender(item.gender)}
-            {item.identity_code ? `  •  ${item.identity_code}` : ""}
-          </Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-      </TouchableOpacity>
-    ),
+          <Ionicons name="chevron-forward" size={18} color="#C7D2FE" />
+        </TouchableOpacity>
+      );
+    },
     [navigation]
   );
 
   const ListHeader = (
     <View>
+      {/* Center image / icon */}
+      <View style={styles.heroContainer}>
+        {centerBlobId ? (
+          <WalrusImage
+            blobId={centerBlobId}
+            style={styles.heroImage}
+            resizeMode="cover"
+            fallbackIconSize={64}
+          />
+        ) : (
+          <View style={styles.heroPlaceholder}>
+            <View style={styles.heroIconWrap}>
+              <Ionicons name="business" size={56} color="#1E40AF" />
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Total raised + Donate */}
+      <View style={styles.raisedSection}>
+        <Text style={styles.raisedLabel}>TOTAL RAISED</Text>
+        <Text style={styles.raisedAmount}>
+          {formatVNDLower(regionInfo?.total_donated ?? 0)}{" "}
+          <Text style={styles.raisedCurrency}>SUI</Text>
+        </Text>
+        <TouchableOpacity
+          style={styles.donateButton}
+          onPress={() =>
+            navigation.navigate("DonateRegionScreen", {
+              pool_id: regionInfo?.pool_id,
+              region,
+            })
+          }
+          activeOpacity={0.85}
+        >
+          <Ionicons name="heart" size={18} color="#fff" />
+          <Text style={styles.donateButtonText}>Donate</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Details */}
       <View style={styles.detailsSection}>
         <View style={styles.detailRow}>
-          <Ionicons name="location" size={18} color="#1E40AF" />
-          <Text style={styles.detailText}>{regionInfo?.center_address || "—"}</Text>
+          <View style={styles.detailIconWrap}>
+            <Ionicons name="location-outline" size={18} color="#1E40AF" />
+          </View>
+          <View style={styles.detailContent}>
+            <Text style={styles.detailLabel}>Headquarters</Text>
+            <Text style={styles.detailValue} numberOfLines={2}>
+              {regionInfo?.center_address || "—"}
+            </Text>
+          </View>
         </View>
+
+        <View style={styles.detailDivider} />
+
         <View style={styles.detailRow}>
-          <Ionicons name="call" size={18} color="#1E40AF" />
-          <Text style={styles.detailText}>{regionInfo?.center_phone_number || "—"}</Text>
+          <View style={styles.detailIconWrap}>
+            <Ionicons name="call-outline" size={18} color="#1E40AF" />
+          </View>
+          <View style={styles.detailContent}>
+            <Text style={styles.detailLabel}>Verified Phone</Text>
+            <Text style={styles.detailValue}>
+              {regionInfo?.center_phone_number || "—"}
+            </Text>
+          </View>
         </View>
       </View>
+
+      {/* Children section header */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Trẻ em</Text>
-        <Text style={styles.sectionCount}>{children.length} hồ sơ</Text>
+        <View>
+          <Text style={styles.sectionTitle}>Children</Text>
+          <Text style={styles.sectionSubtitle}>Community Beneficiaries</Text>
+        </View>
+        <View style={styles.countBadge}>
+          <Text style={styles.countBadgeText}>{children.length} profiles</Text>
+        </View>
       </View>
     </View>
   );
@@ -162,12 +234,15 @@ const CampaignDetail = () => {
       {/* Top Nav */}
       <View style={styles.topNav}>
         <TouchableOpacity style={styles.navButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={22} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.navTitle} numberOfLines={1}>
           {region}
         </Text>
-        <View style={styles.navButton} />
+        <View style={styles.verifiedBadge}>
+          <View style={styles.verifiedDot} />
+          <Text style={styles.verifiedText}>BLOCKCHAIN VERIFIED</Text>
+        </View>
       </View>
 
       {loading ? (
@@ -175,204 +250,288 @@ const CampaignDetail = () => {
           <ActivityIndicator size="large" color="#1E40AF" />
         </View>
       ) : (
-        <>
-          {regionInfo && (
-            <View style={styles.infoCard}>
-              {centerBlobId ? (
-                <WalrusImage blobId={centerBlobId} style={styles.centerImage} resizeMode="cover" fallbackIconSize={48} />
-              ) : (
-                <View style={styles.centerImagePlaceholder}>
-                  <Ionicons name="business" size={48} color="#1E40AF" />
-                </View>
-              )}
-
-              <View style={styles.donatedCard}>
-                <View style={styles.donatedTextWrap}>
-                  <Text style={styles.donatedLabel}>Tổng đã quyên góp</Text>
-                  <Text style={styles.donatedAmount}>
-                    {formatVNDLower(regionInfo.total_donated)}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.donateButton}
-                  onPress={() =>
-                    navigation.navigate("DonateRegionScreen", {
-                      pool_id: regionInfo.pool_id,
-                      region,
-                    })
-                  }
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="heart" size={16} color="#fff" />
-                  <Text style={styles.donateButtonText}>Quyên góp</Text>
-                </TouchableOpacity>
+        <FlatList
+          data={children}
+          renderItem={renderChild}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={ListHeader}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1E40AF" />}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color="#1E40AF" />
               </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="people-outline" size={48} color="#D1D5DB" />
+              <Text style={styles.emptyText}>Không tìm thấy trẻ em nào</Text>
             </View>
-          )}
-
-          <FlatList
-            data={children}
-            renderItem={renderChild}
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={ListHeader}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={
-              loadingMore ? (
-                <View style={styles.footerLoader}>
-                  <ActivityIndicator size="small" color="#1E40AF" />
-                </View>
-              ) : null
-            }
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Ionicons name="people-outline" size={48} color="#D1D5DB" />
-                <Text style={styles.emptyText}>Không tìm thấy trẻ em nào</Text>
-              </View>
-            }
-          />
-        </>
+          }
+        />
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  container: { flex: 1, backgroundColor: "#F0F4FF" },
   listContent: { paddingBottom: 40 },
 
+  // Top nav
   topNav: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: "rgba(248, 250, 252, 0.85)",
+    paddingVertical: 14,
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(226, 232, 240, 0.5)",
+    borderBottomColor: "#EEF2FF",
   },
   navButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F3F4F6",
   },
   navTitle: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "700",
     color: "#111827",
     textAlign: "center",
     paddingHorizontal: 8,
   },
+  verifiedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+  },
+  verifiedDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#16A34A",
+  },
+  verifiedText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: "#16A34A",
+    letterSpacing: 0.5,
+  },
 
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
 
-  infoCard: {
+  // Hero image / placeholder
+  heroContainer: {
     marginHorizontal: 16,
-    marginTop: 8,
+    marginTop: 16,
     marginBottom: 4,
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 20,
+    overflow: "hidden",
+    backgroundColor: "#E0E7FF",
   },
-  centerImage: {
+  heroImage: {
     width: "100%",
-    height: 180,
-    borderRadius: 16,
-    marginBottom: 16,
+    height: 200,
   },
-  centerImagePlaceholder: {
-    width: "100%",
-    height: 120,
-    borderRadius: 16,
-    backgroundColor: "#EFF6FF",
+  heroPlaceholder: {
+    height: 200,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    backgroundColor: "#E0E7FF",
   },
-
-  detailsSection: { gap: 10, marginBottom: 16, paddingHorizontal: 16, paddingTop: 12 },
-  detailRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  detailText: { flex: 1, fontSize: 14, color: "#6B7280", fontWeight: "500" },
-
-  donatedCard: {
-    flexDirection: "row",
+  heroIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 20,
+    backgroundColor: "#C7D2FE",
+    justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
-    borderRadius: 14,
-    padding: 14,
-    gap: 12,
   },
-  donatedTextWrap: { flex: 1 },
-  donatedLabel: { fontSize: 12, color: "#6B7280", fontWeight: "500" },
-  donatedAmount: { fontSize: 20, fontWeight: "800", color: "#111827", marginTop: 2 },
+
+  // Total raised + donate
+  raisedSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  raisedLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#9CA3AF",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    marginBottom: 6,
+  },
+  raisedAmount: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#1E40AF",
+    marginBottom: 18,
+  },
+  raisedCurrency: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#6366F1",
+  },
   donateButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: "#1E40AF",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    shadowColor: "#1E40AF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#F97316",
+    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 14,
   },
-  donateButtonText: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
+  donateButtonText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.3,
+  },
 
+  // Details
+  detailsSection: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    gap: 12,
+  },
+  detailDivider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginLeft: 46,
+  },
+  detailIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  detailContent: { flex: 1 },
+  detailLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#9CA3AF",
+    marginBottom: 3,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
+    lineHeight: 20,
+  },
+
+  // Section header
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingTop: 20,
+    paddingBottom: 12,
   },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  sectionCount: { fontSize: 13, color: "#9CA3AF" },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#111827",
+    marginBottom: 2,
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    fontWeight: "500",
+  },
+  countBadge: {
+    backgroundColor: "#EEF2FF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  countBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4F46E5",
+  },
 
+  // Child card
   childCard: {
     backgroundColor: "#FFFFFF",
     marginHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: 8,
     paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   childAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#EFF6FF",
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    marginRight: 12,
+    overflow: "hidden",
+    backgroundColor: "#EEF2FF",
+  },
+  childAvatarPlaceholder: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "#EEF2FF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
   childInfo: { flex: 1 },
   childName: { fontSize: 15, fontWeight: "700", color: "#111827", marginBottom: 3 },
-  childMeta: { fontSize: 12, color: "#9CA3AF" },
+  childMeta: { fontSize: 12, color: "#9CA3AF", fontWeight: "500" },
 
   footerLoader: { paddingVertical: 16, alignItems: "center" },
   emptyContainer: { alignItems: "center", paddingVertical: 48 },

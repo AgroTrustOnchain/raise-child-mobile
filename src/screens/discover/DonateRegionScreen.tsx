@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Linking,
 } from "react-native";
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { donateToPool, getPaymentStatus } from "../../services/payment.service";
@@ -26,6 +26,7 @@ const DonateRegionScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const params = route.params as { pool_id: string; region: string };
+  const modal = useModal();
 
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
@@ -104,7 +105,7 @@ const DonateRegionScreen = () => {
   const handleDonate = async () => {
     const numAmount = Number(amount);
     if (!numAmount || numAmount <= 0) {
-      Alert.alert("Số tiền không hợp lệ", "Vui lòng nhập số tiền quyên góp hợp lệ.");
+      modal.warning("Số tiền không hợp lệ", "Vui lòng nhập số tiền quyên góp hợp lệ.");
       return;
     }
     try {
@@ -119,7 +120,7 @@ const DonateRegionScreen = () => {
         // Open payment URL in browser
         const supported = await Linking.canOpenURL(res.url);
         if (supported) await Linking.openURL(res.url);
-        else Alert.alert("Lỗi", "Không thể mở liên kết thanh toán.");
+        else modal.error("Lỗi", "Không thể mở liên kết thanh toán.");
 
         // Start polling on this screen
         const pid = res.payment_id ?? res.order_code ?? res.id ?? null;
@@ -132,13 +133,11 @@ const DonateRegionScreen = () => {
           pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
         }
       } else {
-        Alert.alert("Thành công", "Đã gửi quyên góp!", [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
+        modal.success("Thành công", "Đã gửi quyên góp!", () => navigation.goBack());
       }
     } catch (e: any) {
       const msg = e?.response?.data?.message || "Donation failed. Please try again.";
-      Alert.alert("Error", msg);
+      modal.error("Lỗi", msg);
     } finally {
       setDonating(false);
     }
@@ -158,14 +157,14 @@ const DonateRegionScreen = () => {
       } else if (CANCELLED_STATUSES.has(status)) {
         navigateToResult("cancelled", data);
       } else {
-        Alert.alert(
+        modal.alert(
           "Chưa xác nhận",
           `Trạng thái: ${status || "Đang xử lý"}. Vui lòng thử lại sau vài giây.`
         );
         pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
       }
     } catch {
-      Alert.alert("Lỗi", "Không thể kiểm tra trạng thái. Vui lòng thử lại.");
+      modal.error("Lỗi", "Không thể kiểm tra trạng thái. Vui lòng thử lại.");
       pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
     } finally {
       setChecking(false);
@@ -254,7 +253,12 @@ const DonateRegionScreen = () => {
         <Text style={styles.navTitle} numberOfLines={1}>
           Quyên góp cho {params.region}
         </Text>
-        <View style={styles.navButton} />
+        <TouchableOpacity
+          style={styles.navButton}
+          onPress={() => navigation.navigate('RegionProof' as any, { region: params.region })}
+        >
+          <Ionicons name="document-text-outline" size={22} color="#1E40AF" />
+        </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView

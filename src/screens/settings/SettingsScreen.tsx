@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +13,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { RootStackParamList } from '../../navigation/MainNavigator';
 import { setRole } from '../../store/authSlice';
+import { useModal } from '../../context/ModalContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -22,52 +21,21 @@ const SettingsScreen = () => {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<NavigationProp>();
-  const { user, profile } = useAppSelector((state) => state.auth);
+  const { user, profile, allRoles } = useAppSelector((state) => state.auth);
   const displayName =
     [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim() ||
     user?.name ||
     'N/A';
   const displayEmail = profile?.email || user?.email || 'N/A';
-  const [isChangingRole, setIsChangingRole] = useState(false);
 
-  const roles: string[] = Array.isArray(user?.role)
-    ? user.role
-    : user?.role
-    ? [user.role]
-    : [];
-  const hasVolunteerRole = roles.some((r) => r.toLowerCase() === 'volunteer');
+  const hasVolunteerRole = allRoles.some((r) => r.toLowerCase() === 'volunteer');
+  const modal = useModal();
 
   const handleChangeRoleToVolunteer = async () => {
-    Alert.alert(
+    modal.confirm(
       'Đổi vai trò',
       'Bạn có chắc muốn đổi vai trò thành Tình nguyện viên không?',
-      [
-        {
-          text: 'Hủy',
-          onPress: () => {},
-          style: 'cancel',
-        },
-        {
-          text: 'Xác nhận',
-          onPress: async () => {
-            try {
-              setIsChangingRole(true);
-              // Update the user role in the state
-              dispatch(setRole('volunteer'));
-              
-              // Navigate to Volunteer screen
-              setTimeout(() => {
-                navigation.navigate('Volunteer');
-                setIsChangingRole(false);
-              }, 500);
-            } catch (error) {
-              Alert.alert('Lỗi', 'Không thể đổi vai trò. Vui lòng thử lại.');
-              setIsChangingRole(false);
-            }
-          },
-          style: 'destructive',
-        },
-      ]
+      () => dispatch(setRole('Volunteer')),
     );
   };
 
@@ -120,22 +88,15 @@ const SettingsScreen = () => {
             style={[
               styles.roleButton,
               !hasVolunteerRole && styles.roleButtonDisabled,
-              isChangingRole && styles.roleButtonDisabled,
             ]}
             onPress={handleChangeRoleToVolunteer}
-            disabled={isChangingRole || !hasVolunteerRole}
+            disabled={!hasVolunteerRole}
             activeOpacity={0.7}
           >
-            {isChangingRole ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Ionicons name="person-add" size={20} color="#fff" />
-                <Text style={styles.roleButtonText}>
-                  Chuyển sang Tình nguyện viên
-                </Text>
-              </>
-            )}
+            <Ionicons name="person-add" size={20} color="#fff" />
+            <Text style={styles.roleButtonText}>
+              Chuyển sang Tình nguyện viên
+            </Text>
           </TouchableOpacity>
 
           {!hasVolunteerRole && (
@@ -241,7 +202,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   title: {
     fontSize: 28,
@@ -249,19 +210,20 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#9CA3AF',
-    marginBottom: 12,
+    color: '#6B7280',
+    marginBottom: 14,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 18,
+    padding: 18,
     borderWidth: 1,
     borderColor: '#F1F5F9',
     shadowColor: '#000',
@@ -274,12 +236,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   infoLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#4B5563',
   },
   infoValue: {
     fontSize: 14,
@@ -288,24 +250,24 @@ const styles = StyleSheet.create({
   },
   roleBadge: {
     backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
   },
   roleText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: '#1E40AF',
   },
   divider: {
     height: 1,
     backgroundColor: '#F1F5F9',
-    marginVertical: 8,
+    marginVertical: 4,
   },
   roleButton: {
     backgroundColor: '#1E40AF',
-    height: 60,
-    borderRadius: 16,
+    height: 64,
+    borderRadius: 18,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -350,8 +312,8 @@ const styles = StyleSheet.create({
   },
   infoMessage: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingVertical: 14,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -360,17 +322,18 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   infoMessageText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '500',
-    color: '#6B7280',
+    color: '#4B5563',
     flex: 1,
+    lineHeight: 22,
   },
   settingItem: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -385,7 +348,7 @@ const styles = StyleSheet.create({
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   settingText: {
     fontSize: 16,
@@ -394,10 +357,10 @@ const styles = StyleSheet.create({
   },
   registrationButton: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -414,18 +377,18 @@ const styles = StyleSheet.create({
   registrationLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     flex: 1,
   },
   registrationTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   registrationSubtitle: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
 });
 

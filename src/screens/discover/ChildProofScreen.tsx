@@ -7,8 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   Linking,
-  Alert,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -64,21 +64,18 @@ const ChildProofScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const childName: string = route.params?.childName ?? 'Child';
+  const modal = useModal();
 
   const handleViewProof = (event: ImpactEvent) => {
-    Alert.alert(
+    modal.alert(
       'Bằng chứng Blockchain',
       `Giao dịch: ${event.walletAddress}\nSố tiền: ${event.amount} SUI\nSự kiện: ${event.title}`,
-      [
-        { text: 'Đóng', style: 'cancel' },
-        { text: 'Xem trên Explorer', onPress: handleViewExplorer },
-      ],
     );
   };
 
   const handleViewExplorer = () => {
     Linking.openURL('https://explorer.sui.io').catch(() => {
-      Alert.alert('Lỗi', 'Không thể mở blockchain explorer');
+      modal.error('Lỗi', 'Không thể mở blockchain explorer');
     });
   };
 

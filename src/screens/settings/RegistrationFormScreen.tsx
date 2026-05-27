@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Image,
   Modal,
@@ -19,8 +18,9 @@ import { RootStackParamList } from "../../navigation/MainNavigator";
 import { useAppSelector } from "../../store";
 import { submitRegistration } from "../../services/registration.service";
 import RegionPicker from "../../components/RegionPicker";
-import { uploadImageToWalrus } from "../../services/walrus.service";
+import { uploadImageToCloudinary, uploadImageToWalrus } from "../../services/walrus.service";
 import * as FileSystem from "expo-file-system/legacy";
+import { useModal } from "../../context/ModalContext";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -47,6 +47,8 @@ const RegistrationFormScreen = () => {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadCCCD, setIsUploadCCCD] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
+
+  const modal = useModal();
 
   const [formData, setFormData] = useState<RegistrationFormData>({
     avatarBlobId: undefined,
@@ -80,8 +82,9 @@ const RegistrationFormScreen = () => {
         }
 
         try {
-          // Upload image to Walrus storage
-          const walrusBlob = await uploadImageToWalrus(uri);
+          const walrusBlob = imageType === "avatar"
+            ? await uploadImageToWalrus(uri)
+            : await uploadImageToCloudinary(uri);
 
           // Store both the blob ID (for server) and preview URI (for UI)
           if (imageType === "avatar") {
@@ -100,16 +103,16 @@ const RegistrationFormScreen = () => {
             }));
           }
 
-          Alert.alert(
+          modal.success(
             "Thành công",
             `${imageType === "avatar" ? "Ảnh đại diện" : "CMND/CCCD"} đã được tải lên thành công!`,
           );
         } catch (uploadError) {
-          Alert.alert(
-            "Upload Error",
+          modal.error(
+            "Lỗi tải lên",
             uploadError instanceof Error
               ? uploadError.message
-              : "Failed to upload image to Walrus",
+              : "Failed to upload image",
           );
           console.error("Walrus upload error:", uploadError);
         } finally {
@@ -118,7 +121,7 @@ const RegistrationFormScreen = () => {
         }
       }
     } catch (error) {
-      Alert.alert("Lỗi", "Không thể chọn ảnh");
+      modal.error("Lỗi", "Không thể chọn ảnh");
       console.error("Image picker error:", error);
     }
   };
@@ -133,19 +136,19 @@ const RegistrationFormScreen = () => {
 
   const validateForm = () => {
     if (!formData.avatarBlobId) {
-      Alert.alert("Lỗi xác thực", "Vui lòng tải lên ảnh đại diện");
+      modal.warning("Lỗi xác thực", "Vui lòng tải lên ảnh đại diện");
       return false;
     }
     if (!formData.identityCardBlobId) {
-      Alert.alert("Lỗi xác thực", "Vui lòng tải lên ảnh CMND/CCCD");
+      modal.warning("Lỗi xác thực", "Vui lòng tải lên ảnh CMND/CCCD");
       return false;
     }
     if (!formData.region) {
-      Alert.alert("Lỗi xác thực", "Vui lòng chọn vùng");
+      modal.warning("Lỗi xác thực", "Vui lòng chọn vùng");
       return false;
     }
     if (!formData.registerRole) {
-      Alert.alert("Lỗi xác thực", "Vui lòng chọn vai trò");
+      modal.warning("Lỗi xác thực", "Vui lòng chọn vai trò");
       return false;
     }
     return true;
@@ -161,15 +164,13 @@ const RegistrationFormScreen = () => {
 
       // Check if user token exists
       if (!user) {
-        Alert.alert("Lỗi", "Bạn phải đăng nhập để đăng ký");
+        modal.error("Lỗi", "Bạn phải đăng nhập để đăng ký");
         return;
       }
 
       const payload = {
         avatar_blob_id: formData.avatarBlobId || "",
-        // avatar_base64: formData.avatarBase64 || "",
-        identity_card_blob_id: formData.identityCardBlobId || "",
-        // identity_card_base64: formData.identityCardBase64 || "",
+        identity_card_cloudinary_id: formData.identityCardBlobId || "",
         region: formData.region,
         register_role: formData.registerRole,
       };
@@ -181,11 +182,10 @@ const RegistrationFormScreen = () => {
 
       console.log(response);
 
-      Alert.alert("Thành công", "Đã gửi đăng ký thành công!");
-      navigation.goBack();
-    } catch (error) {
-      console.error("Registration submission error:", error);
-      Alert.alert(
+      modal.success("Thành công", "Đã gửi đăng ký thành công!", () => navigation.goBack());
+    } catch (error : any) {
+      console.error("Registration submission error:", error.response ?? error);
+      modal.error(
         "Lỗi",
         error instanceof Error ? error.message : "Không thể gửi mẫu đăng ký",
       );

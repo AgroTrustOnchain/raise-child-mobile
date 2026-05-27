@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from '../store';
 import LoadingScreen from '../screens/LoadingScreen';
 import MainNavigator from './MainNavigator';
 import AuthNavigator from './AuthNavigator';
+import { VolunteerNavigator } from './VolunteerNavigator';
 import PersonalInformationScreen from '../screens/profile/PersonalInformationScreen';
 import { useWallet } from '../context/WalletContext';
 import { fetchProfile } from '../store/authSlice';
@@ -58,7 +59,7 @@ const linking: LinkingOptions<any> = {
 
 const AppNavigator = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated, isLoading, profile, isProfileLoading } = useSelector(
+  const { isAuthenticated, isLoading, profile, isProfileLoading, user } = useSelector(
     (state: RootState) => state.auth,
   );
   const { wallet } = useWallet();
@@ -85,12 +86,16 @@ const AppNavigator = () => {
   const needsProfile =
     isAuthenticated && profile && !isProfileComplete(profile);
 
+  const isVolunteer = user?.role.includes('Volunteer');
+
   return (
     <NavigationContainer linking={linking}>
       {!isAuthenticated ? (
         <AuthNavigator />
       ) : needsProfile ? (
         <ProfileGateNavigator />
+      ) : isVolunteer ? (
+        <VolunteerNavigator />
       ) : (
         <MainNavigator />
       )}

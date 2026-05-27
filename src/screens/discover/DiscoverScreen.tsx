@@ -105,22 +105,39 @@ const DiscoverScreen = () => {
       <TouchableOpacity
         style={styles.regionCard}
         onPress={() => handleCenterPress(item)}
-        activeOpacity={0.95}
+        activeOpacity={0.92}
       >
-        <View style={styles.regionCardContent}>
-          {item.image_blob_id ? (
-            <WalrusImage blobId={item.image_blob_id} style={styles.centerImage} resizeMode="cover" fallbackIconSize={32} />
-          ) : (
-            <View style={styles.regionIconContainer}>
-              <Ionicons name="business" size={32} color="#1E40AF" />
-            </View>
-          )}
-          <View style={styles.regionInfo}>
-            <Text style={styles.regionName}>{item.region || 'Unknown Center'}</Text>
-            <Text style={styles.regionSubtitle}>{item.address || 'Xem trẻ em'}</Text>
+        {/* Cover image */}
+        {item.image_blob_id ? (
+          <WalrusImage
+            blobId={item.image_blob_id}
+            style={styles.coverImage}
+            resizeMode="cover"
+            fallbackIconSize={40}
+          />
+        ) : (
+          <View style={styles.coverPlaceholder}>
+            <Ionicons name="business" size={40} color="#1E40AF" />
           </View>
+        )}
+
+        {/* Info row */}
+        <View style={styles.regionCardContent}>
+          <View style={styles.regionInfo}>
+            <Text style={styles.regionName} numberOfLines={1}>
+              {item.region || 'Unknown Center'}
+            </Text>
+            {!!item.address && (
+              <View style={styles.addressRow}>
+                <Ionicons name="location-outline" size={12} color="#6B7280" />
+                <Text style={styles.regionSubtitle} numberOfLines={1}>
+                  {item.address}
+                </Text>
+              </View>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
         </View>
-        <Ionicons name="chevron-forward" size={24} color="#9CA3AF" />
       </TouchableOpacity>
     );
   };
@@ -227,13 +244,9 @@ const styles = StyleSheet.create({
   regionCard: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    marginBottom: 14,
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#F1F5F9',
     shadowColor: '#000',
@@ -242,38 +255,42 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  regionCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  coverImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: '#EFF6FF',
   },
-  centerImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginRight: 12,
-  },
-  regionIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  coverPlaceholder: {
+    width: '100%',
+    height: 160,
     backgroundColor: '#EFF6FF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+  },
+  regionCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
   regionInfo: {
     flex: 1,
   },
   regionName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#111827',
     marginBottom: 4,
   },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   regionSubtitle: {
     fontSize: 12,
     color: '#6B7280',
+    flex: 1,
   },
   footerLoader: {
     paddingVertical: 16,

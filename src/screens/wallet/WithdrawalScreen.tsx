@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-  Alert,
   ActivityIndicator,
   Modal,
   TextInput,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -42,6 +42,7 @@ const STATUS_LABELS: Record<MappedWithdrawal['status'], string> = {
 const WithdrawalScreen = () => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const modal = useModal();
   const myWallet = user?.walletAddress?.toLowerCase() ?? null;
   const [withdrawals, setWithdrawals] = useState<MappedWithdrawal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,40 +100,34 @@ const WithdrawalScreen = () => {
       return;
     }
 
-    Alert.alert(
+    modal.confirm(
       'Xác nhận bình chọn',
       `Bình chọn ${voteType === 'for' ? 'ĐỒNG Ý' : 'PHẢN ĐỐI'} đề xuất này?`,
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Xác nhận',
-          onPress: async () => {
-            try {
-              setVotingState({ id, vote: voteType });
-              await voteWithdrawalProposal(
-                id,
-                voteType === 'for' ? 'approve' : 'refuse',
-                reason
-              );
-              Alert.alert('Đã ghi nhận', 'Bình chọn của bạn đã được gửi thành công.');
-              await fetchWithdrawals(0);
-            } catch (error: any) {
-              Alert.alert(
-                'Lỗi',
-                error.message || 'Không thể gửi bình chọn. Vui lòng thử lại.'
-              );
-            } finally {
-              setVotingState(null);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setVotingState({ id, vote: voteType });
+          await voteWithdrawalProposal(
+            id,
+            voteType === 'for' ? 'approve' : 'refuse',
+            reason
+          );
+          modal.success('Đã ghi nhận', 'Bình chọn của bạn đã được gửi thành công.');
+          await fetchWithdrawals(0);
+        } catch (error: any) {
+          modal.error(
+            'Lỗi',
+            error.message || 'Không thể gửi bình chọn. Vui lòng thử lại.'
+          );
+        } finally {
+          setVotingState(null);
+        }
+      },
     );
   };
 
   const handleSubmitRefuseReason = () => {
     if (!refuseReason.trim()) {
-      Alert.alert('Bắt buộc', 'Vui lòng cung cấp lý do phản đối.');
+      modal.warning('Bắt buộc', 'Vui lòng cung cấp lý do phản đối.');
       return;
     }
     setShowRefuseModal(false);
@@ -194,7 +189,7 @@ const WithdrawalScreen = () => {
         </View>
       )}
 
-      {item.status === 'pending' && (
+      {item.uiStatus === 'Đang bỏ phiếu' && (
         <View style={styles.voteSection}>
           {/* <View style={styles.voteLabels}>
             <Text style={styles.voteForLabel}>{item.voteForPct}% ĐỒNG Ý</Text>

@@ -6,14 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadImageToWalrus } from '../../services/walrus.service';
+import { uploadImageToCloudinary } from '../../services/walrus.service';
+import { useModal } from '../../context/ModalContext';
 import { submitTaskProof } from '../../services/task-proofs.service';
 
 interface UploadedImage {
@@ -32,6 +32,7 @@ const WelfareUpdateScreen = () => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const modal = useModal();
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -58,30 +59,20 @@ const WelfareUpdateScreen = () => {
       navigation.goBack();
       return;
     }
-    Alert.alert(
+    modal.confirm(
       'Hủy tải lên',
       'Bạn có chắc muốn hủy? Các ảnh đã chọn sẽ bị xóa.',
-      [
-        { text: 'Tiếp tục chỉnh sửa', style: 'cancel' },
-        {
-          text: 'Hủy',
-          style: 'destructive',
-          onPress: () => {
-            setUploadedImages([]);
-            navigation.goBack();
-          },
-        },
-      ],
+      () => { setUploadedImages([]); navigation.goBack(); },
     );
   };
 
   const handleSubmit = async () => {
     if (!taskId) {
-      Alert.alert('Error', 'Missing task ID. Please reopen this screen from the task list.');
+      modal.error('Lỗi', 'Không tìm thấy ID nhiệm vụ. Vui lòng mở lại màn hình này từ danh sách nhiệm vụ.');
       return;
     }
     if (uploadedImages.length === 0) {
-      Alert.alert('Validation Error', 'Please upload at least one image');
+      modal.warning('Lỗi xác thực', 'Vui lòng tải lên ít nhất một ảnh');
       return;
     }
 
@@ -89,18 +80,20 @@ const WelfareUpdateScreen = () => {
 
     try {
       setIsUploadingImages(true);
-      const walrusBlobs: { blobId: string; base64: string }[] = [];
+      const uploaded: { blobId: string; url: string }[] = [];
       for (const image of uploadedImages) {
-        const walrusBlob = await uploadImageToWalrus(image.uri);
-        walrusBlobs.push({ blobId: walrusBlob.blobId, base64: walrusBlob.base64 });
+        const blob = await uploadImageToCloudinary(image.uri);
+        uploaded.push({ blobId: blob.blobId, url: blob.url });
       }
       setIsUploadingImages(false);
 
       const responses = await Promise.all(
-        walrusBlobs.map(({ blobId, base64 }) =>
-          submitTaskProof({ taskId, imageBlobId: blobId, imageBlobIdBase64: base64 }),
+        uploaded.map(({ blobId, url }) =>
+          submitTaskProof({ taskId, imageCloudinaryBlobId: blobId, imageUrl: url }),
         ),
       );
+
+      console.log('Submit responses:', responses);
 
       const hasErrors = responses.some(
         (res) =>
@@ -109,22 +102,17 @@ const WelfareUpdateScreen = () => {
       );
 
       if (hasErrors) {
-        throw new Error('Some image uploads failed to submit');
+        throw new Error('Một số ảnh tải lên thất bại');
       }
 
-      Alert.alert('Success', 'Images uploaded successfully!', [
-        {
-          text: 'OK',
-          onPress: () => {
-            setUploadedImages([]);
-            navigation.goBack();
-          },
-        },
-      ]);
+      modal.success('Thành công', 'Ảnh đã được tải lên thành công!', () => {
+        setUploadedImages([]);
+        navigation.goBack();
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to upload images';
-      Alert.alert('Error', errorMessage);
+      modal.error('Lỗi', errorMessage);
       console.error('Submit error:', error);
     } finally {
       setIsLoading(false);
@@ -141,9 +129,9 @@ const WelfareUpdateScreen = () => {
       <View style={styles.headerSection}>
         <View style={styles.headerLabel}>
           <Ionicons name="cloud-upload" size={18} color="#1E40AF" />
-          <Text style={styles.headerLabelText}>Upload Images</Text>
+          <Text style={styles.headerLabelText}>Tải lên ảnh</Text>
         </View>
-        <Text style={styles.headerTitle}>Upload Welfare Images</Text>
+        <Text style={styles.headerTitle}>Tải lên ảnh phúc lợi</Text>
         <Text style={styles.headerDescription}>
           Tải lên ảnh minh chứng cho công việc của bạn. Ảnh sẽ được lưu trữ và gửi đến hệ thống để xét duyệt.
         </Text>

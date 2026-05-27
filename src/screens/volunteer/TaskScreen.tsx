@@ -8,7 +8,6 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +17,12 @@ import {
   TaskItem,
 } from '../../services/tasks.service';
 import { useAuth } from '../../hooks/useAuth';
+import { useModal } from '../../context/ModalContext';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/MainNavigator';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 function formatDate(iso?: string) {
   if (!iso) return '';
@@ -32,20 +37,21 @@ function formatDate(iso?: string) {
 
 function getTaskStatus(task: TaskItem): { label: string; type: 'overdue' | 'today' | 'upcoming' | 'assigned' } {
   if (task.assigned_profile_id) {
-    return { label: 'Assigned', type: 'assigned' };
+    return { label: 'Đã nhận', type: 'assigned' };
   }
-  if (!task.end_period) return { label: 'Open', type: 'upcoming' };
+  if (!task.end_period) return { label: 'Mở', type: 'upcoming' };
   const end = new Date(task.end_period);
   const now = new Date();
   const diffMs = end.getTime() - now.getTime();
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return { label: `Overdue: ${Math.abs(diffDays)}d`, type: 'overdue' };
-  if (diffDays === 0) return { label: 'Due Today', type: 'today' };
-  return { label: `Due in ${diffDays}d`, type: 'upcoming' };
+  if (diffDays < 0) return { label: `Quá hạn: ${Math.abs(diffDays)}n`, type: 'overdue' };
+  if (diffDays === 0) return { label: 'Hôm nay', type: 'today' };
+  return { label: `Còn ${diffDays} ngày`, type: 'upcoming' };
 }
 
 export default function TaskScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
   const walletAddress = user?.walletAddress ?? '';
 
@@ -97,53 +103,53 @@ export default function TaskScreen() {
       })
     : tasks;
 
+  const modal = useModal();
+
   const handleAssign = useCallback(async (task: TaskItem) => {
     if (task.assigned_profile_id) {
-      Alert.alert('Already assigned', 'This task is already assigned.');
+      modal.alert('Đã được nhận', 'Nhiệm vụ này đã được nhận rồi.');
       return;
     }
-    Alert.alert(
-      'Assign task',
-      'Do you want to take on this task?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Assign to me',
-          onPress: async () => {
-            try {
-              setAssigningId(task.id);
-              await assignTask(task.id);
-              setTasks((prev) =>
-                prev.map((t) =>
-                  t.id === task.id ? { ...t, assigned_profile_id: 'me' } : t
-                )
-              );
-              Alert.alert('Success', 'Task assigned to you.');
-            } catch (e: any) {
-              const msg =
-                e?.response?.data?.message ||
-                e?.message ||
-                'Failed to assign task';
-              Alert.alert('Error', msg);
-            } finally {
-              setAssigningId(null);
-            }
-          },
-        },
-      ]
+    modal.confirm(
+      'Nhận nhiệm vụ',
+      'Bạn có muốn nhận nhiệm vụ này không?',
+      async () => {
+        try {
+          setAssigningId(task.id);
+          await assignTask(task.id);
+          setTasks((prev) =>
+            prev.map((t) =>
+              t.id === task.id ? { ...t, assigned_profile_id: 'me' } : t
+            )
+          );
+          modal.success('Thành công', 'Nhiệm vụ đã được giao cho bạn.');
+        } catch (e: any) {
+          const msg =
+            e?.response?.data?.message ||
+            e?.message ||
+            'Không thể nhận nhiệm vụ';
+          modal.error('Lỗi', msg);
+        } finally {
+          setAssigningId(null);
+        }
+      },
     );
-  }, []);
+  }, [modal]);
 
   const renderItem = ({ item }: { item: TaskItem }) => {
     const status = getTaskStatus(item);
     const isAssigning = assigningId === item.id;
     const isAssigned = !!item.assigned_profile_id;
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('TaskDetail', { taskId: item.id })}
+        activeOpacity={0.85}
+      >
         <View style={styles.cardHeader}>
           <View style={styles.regionPill}>
             <Ionicons name="location-outline" size={12} color="#1E40AF" />
-            <Text style={styles.regionPillText}>{item.region || 'Unknown'}</Text>
+            <Text style={styles.regionPillText}>{item.region || 'Không xác định'}</Text>
           </View>
           <View
             style={[
@@ -158,58 +164,62 @@ export default function TaskScreen() {
           </View>
         </View>
 
-        <Text style={styles.description} numberOfLines={3}>
-          {item.description || 'No description provided.'}
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description || 'Không có mô tả.'}
         </Text>
 
-        <View style={styles.metaRow}>
+        <View style={styles.cardFooter}>
           <View style={styles.metaItem}>
-            <Ionicons name="calendar-outline" size={14} color="#6b7280" />
+            <Ionicons name="calendar-outline" size={13} color="#6b7280" />
             <Text style={styles.metaText}>
               {formatDate(item.start_period)} — {formatDate(item.end_period)}
             </Text>
           </View>
-        </View>
 
-        <TouchableOpacity
-          style={[
-            styles.button,
-            (isAssigned || isAssigning) && styles.buttonDisabled,
-          ]}
-          onPress={() => handleAssign(item)}
-          disabled={isAssigned || isAssigning}
-        >
-          {isAssigning ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <Ionicons
-                name={isAssigned ? 'checkmark-circle' : 'person-add-outline'}
-                size={16}
-                color="#fff"
-              />
-              <Text style={styles.buttonText}>
-                {isAssigned ? 'Assigned' : 'Assign to me'}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[
+              styles.assignButton,
+              (isAssigned || isAssigning) && styles.buttonDisabled,
+            ]}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleAssign(item);
+            }}
+            disabled={isAssigned || isAssigning}
+            activeOpacity={0.85}
+          >
+            {isAssigning ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Ionicons
+                  name={isAssigned ? 'checkmark-circle' : 'person-add-outline'}
+                  size={14}
+                  color="#fff"
+                />
+                <Text style={styles.assignButtonText}>
+                  {isAssigned ? 'Đã nhận' : 'Nhận'}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.headerSection}>
-        <Text style={styles.title}>Welfare Tasks</Text>
+        <Text style={styles.title}>Nhiệm vụ phúc lợi</Text>
         <Text style={styles.subtitle}>
-          Browse open tasks and assign them to yourself.
+          Xem các nhiệm vụ đang mở và nhận nhiệm vụ cho bản thân.
         </Text>
 
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={18} color="#9CA3AF" style={{ marginRight: 8 }} />
           <TextInput
-            placeholder="Search by keyword or region..."
+            placeholder="Tìm theo từ khóa hoặc vùng..."
             placeholderTextColor="#9CA3AF"
             style={styles.searchInput}
             value={keyword}
@@ -236,7 +246,7 @@ export default function TaskScreen() {
           loading ? null : (
             <View style={styles.emptyContainer}>
               <Ionicons name="clipboard-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>No tasks found</Text>
+              <Text style={styles.emptyText}>Không tìm thấy nhiệm vụ</Text>
             </View>
           )
         }
@@ -381,6 +391,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 17,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 8,
+  },
+  assignButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E40AF',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 5,
+    minWidth: 76,
+  },
+  assignButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
   },
   emptyContainer: {
     flex: 1,

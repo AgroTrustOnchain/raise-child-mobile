@@ -67,46 +67,46 @@ function UpdateScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Upload Updates</Text>
+        <Text style={styles.headerTitle}>Tải lên cập nhật</Text>
         <TouchableOpacity
           style={styles.headerActionBtn}
           onPress={() => navigation.navigate('SubmittedProofs')}
           activeOpacity={0.85}
         >
           <Ionicons name="document-text" size={16} color="#FFFFFF" />
-          <Text style={styles.headerActionText}>Submitted</Text>
+          <Text style={styles.headerActionText}>Đã nộp</Text>
         </TouchableOpacity>
       </View>
 
       {/* Subtitle */}
       <View style={styles.subtitleSection}>
         <Text style={styles.subtitle}>
-          Select a task to submit welfare updates and health metrics
+          Chọn nhiệm vụ để nộp cập nhật phúc lợi và chỉ số sức khỏe
         </Text>
-        <Text style={styles.childCount}>{isLoading ? '...' : tasks.length} tasks in your care</Text>
+        <Text style={styles.childCount}>{isLoading ? '...' : tasks.length} nhiệm vụ đang phụ trách</Text>
       </View>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1E40AF" />
-          <Text style={styles.loadingText}>Loading your tasks...</Text>
+          <Text style={styles.loadingText}>Đang tải nhiệm vụ...</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={64} color="#DC2626" />
-          <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+          <Text style={styles.errorTitle}>Đã xảy ra lỗi</Text>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
             <Ionicons name="refresh" size={20} color="#fff" />
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>Thử lại</Text>
           </TouchableOpacity>
         </View>
       ) : tasks.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="people-outline" size={64} color="#D1D5DB" />
-          <Text style={styles.emptyTitle}>No Tasks</Text>
+          <Text style={styles.emptyTitle}>Chưa có nhiệm vụ</Text>
           <Text style={styles.emptyText}>
-            You don't have any tasks assigned yet
+            Bạn chưa được giao nhiệm vụ nào
           </Text>
         </View>
       ) : (
@@ -115,7 +115,12 @@ function UpdateScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           {tasks.map((task) => (
-            <View key={task.id} style={styles.childCard}>
+            <TouchableOpacity
+              key={task.id}
+              style={styles.childCard}
+              onPress={() => navigation.navigate('TaskDetail', { taskId: task.id })}
+              activeOpacity={0.85}
+            >
               {/* Task Info */}
               <View style={styles.childInfoContainer}>
                 {/* Avatar or Icon */}
@@ -159,7 +164,10 @@ function UpdateScreen() {
               {/* Action Button */}
               <TouchableOpacity
                 style={[styles.uploadButton, task.is_submitted && styles.uploadButtonDisabled]}
-                onPress={() => handleUploadUpdate(task)}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleUploadUpdate(task);
+                }}
                 disabled={task.is_submitted}
                 activeOpacity={0.7}
               >
@@ -169,22 +177,22 @@ function UpdateScreen() {
                   color="#fff"
                 />
                 <Text style={styles.uploadButtonText}>
-                  {task.is_submitted ? 'Already Submitted' : 'Upload Welfare Update'}
+                  {task.is_submitted ? 'Đã nộp' : 'Tải lên cập nhật phúc lợi'}
                 </Text>
                 {!task.is_submitted && (
                   <Ionicons name="chevron-forward" size={18} color="#fff" />
                 )}
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           ))}
 
           {/* Info Card */}
           <View style={styles.infoCard}>
             <Ionicons name="information-circle" size={20} color="#1E40AF" />
             <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Regular Updates Required</Text>
+              <Text style={styles.infoTitle}>Cần cập nhật định kỳ</Text>
               <Text style={styles.infoText}>
-                Submit welfare updates at least once per week to maintain verification status and sponsor trust.
+                Nộp cập nhật phúc lợi ít nhất một lần mỗi tuần để duy trì trạng thái xác minh và niềm tin của nhà tài trợ.
               </Text>
             </View>
           </View>

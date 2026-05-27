@@ -9,8 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/useAuth';
@@ -18,6 +18,7 @@ import { useAuth } from '../../hooks/useAuth';
 const RegisterScreen = () => {
   const navigation = useNavigation();
   const { register, isLoading, error } = useAuth();
+  const modal = useModal();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -42,17 +43,17 @@ const RegisterScreen = () => {
   const handleRegister = async () => {
     // Validation
     if (!formData.name || !formData.email || !formData.password) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      modal.warning('Lỗi', 'Please fill in all required fields');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      modal.warning('Lỗi', 'Passwords do not match');
       return;
     }
 
     if (!formData.agreeToTerms) {
-      Alert.alert('Error', 'Please agree to the Terms of Service');
+      modal.warning('Lỗi', 'Please agree to the Terms of Service');
       return;
     }
 
@@ -61,13 +62,13 @@ const RegisterScreen = () => {
       await register(registerData);
       // Navigation handled by Redux state change
     } catch (err: any) {
-      Alert.alert('Registration Failed', err.message || 'Please try again');
+      modal.error('Đăng ký thất bại', err.message || 'Please try again');
     }
   };
 
   const detectLocation = () => {
     // TODO: Implement location detection
-    Alert.alert('Location Detection', 'Location detection will be implemented');
+    modal.alert('Location Detection', 'Location detection will be implemented');
   };
 
   return (

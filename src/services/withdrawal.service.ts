@@ -43,11 +43,36 @@ export type MappedWithdrawal = {
   verified: boolean;
   description: string;
   status: 'pending' | 'approved' | 'rejected' | 'executed';
+  uiStatus: WithdrawProposalUiStatusLabel;
   refuseReasons: string[];
   approvers: string[];
   refusers: string[];
   createdAt: string;
 };
+
+export type WithdrawProposalUiStatusLabel =
+  | 'đã nhận tiền'
+  | 'Đang bỏ phiếu'
+  | 'Chờ nhận tiền'
+  | 'Từ chối';
+
+export function getWithdrawProposalUiStatus(r: {
+  is_executed: boolean;
+  closed_at: string;
+  approve_weight: number;
+  withdraw_amount: number;
+}): WithdrawProposalUiStatusLabel {
+  if (r.is_executed) return 'đã nhận tiền';
+  const closed = r.closed_at?.trim();
+  if (!closed) return 'Đang bỏ phiếu';
+  const end = new Date(closed).getTime();
+  if (Number.isNaN(end)) return 'Đang bỏ phiếu';
+  if (Date.now() < end) return 'Đang bỏ phiếu';
+  if (!(r.withdraw_amount > 0)) return 'Từ chối';
+  const ratio = r.approve_weight / r.withdraw_amount;
+  if (ratio > 0.7) return 'Chờ nhận tiền';
+  return 'Từ chối';
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -75,10 +100,17 @@ const calcTimeRemaining = (closedAt: string): string => {
   return `${mins}m`;
 };
 
+const isClosed = (proposal: WithdrawalProposal): boolean => {
+  if (!isValidDate(proposal.closed_at)) return false;
+  return new Date(proposal.closed_at) <= new Date();
+};
+
 const deriveStatus = (proposal: WithdrawalProposal): MappedWithdrawal['status'] => {
   if (proposal.is_executed) return 'executed';
   if (proposal.refuse_weight > 0 && proposal.refusers.length > 0) return 'rejected';
   if (proposal.approve_weight > 0) return 'approved';
+  // Closed with no approvers means nobody voted yes — treat as rejected
+  if (isClosed(proposal) && proposal.approvers.length === 0) return 'rejected';
   return 'pending';
 };
 
@@ -104,6 +136,7 @@ export const mapWithdrawalProposal = (proposal: WithdrawalProposal): MappedWithd
     verified: proposal.is_from_local_pool,
     description: `${proposal.pool_name} — ${proposal.creator}`,
     status: deriveStatus(proposal),
+    uiStatus: getWithdrawProposalUiStatus(proposal),
     refuseReasons: proposal.refuse_reasons,
     approvers: proposal.approvers ?? [],
     refusers: proposal.refusers ?? [],

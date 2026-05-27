@@ -8,11 +8,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../../store';
+import { useModal } from '../../context/ModalContext';
 import { getSupportedChildren } from '../../services/child.service';
 import WalrusImage from '../../components/WalrusImage';
 
@@ -20,6 +20,7 @@ const MyTrackScreen = () => {
   const navigation = useNavigation<any>();
   const { user } = useAppSelector((state) => state.auth);
   const walletAddress = user?.walletAddress ?? '';
+  const modal = useModal();
 
   const [children, setChildren] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +43,7 @@ const MyTrackScreen = () => {
       setTotalAmount(res.amount || 0);
       setPage(pageNum);
     } catch {
-      Alert.alert('Lỗi', 'Không thể tải danh sách trẻ em. Vui lòng thử lại.');
+      modal.error('Lỗi', 'Không thể tải danh sách trẻ em. Vui lòng thử lại.');
     } finally {
       isFetching.current = false;
       setLoading(false);

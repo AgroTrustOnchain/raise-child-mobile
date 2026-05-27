@@ -13,7 +13,7 @@ const isRetryable = (error: AxiosError): boolean => {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const API_BASE_URL = 'https://agrotrust-server-production.onrender.com'; // production API base URL
+export const API_BASE_URL = 'https://agrotrust-fkhwgwh5ecgwhrbf.indonesiacentral-01.azurewebsites.net'; // production API base URL
 
 class ApiService {
   private axiosInstance: AxiosInstance;
@@ -77,6 +77,12 @@ class ApiService {
             await delay(RETRY_DELAY_MS * originalRequest._retryCount);
             return this.axiosInstance(originalRequest);
           }
+        }
+
+        // Extract { message } from BE error body so callers get a readable string
+        const beMessage = (error.response?.data as any)?.message;
+        if (beMessage && typeof beMessage === 'string') {
+          return Promise.reject(new Error(beMessage));
         }
 
         return Promise.reject(error);
