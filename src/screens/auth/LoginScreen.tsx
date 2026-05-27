@@ -7,11 +7,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
+import { useModal } from "../../context/ModalContext";
 import {
   GoogleSignin,
   isSuccessResponse,
@@ -44,6 +44,7 @@ const LoginScreen = () => {
   const [isInProgress, setIsInProgress] = useState(false);
   const { error } = useAuth();
   const { setWallet } = useWallet();
+  const modal = useModal();
 
   const handleLoginWithGoogle = async () => {
     try {
@@ -93,7 +94,7 @@ const LoginScreen = () => {
             // Alert.alert("Đăng nhập thành công", "Chào mừng trở lại!");
             setIsInProgress(false);
           } else {
-            Alert.alert("Đăng nhập thất bại", "Không thể xác thực với Google");
+            modal.error("Đăng nhập thất bại", "Không thể xác thực với Google");
             setIsInProgress(false);
           }
         } catch (saltError) {
@@ -102,15 +103,12 @@ const LoginScreen = () => {
         }
       } else {
         setIsInProgress(false);
-        Alert.alert("Đăng nhập Google thất bại", "Không thể đăng nhập bằng Google");
+        modal.error("Đăng nhập Google thất bại", "Không thể đăng nhập bằng Google");
       }
     } catch (err) {
       setIsInProgress(false);
       console.log("Google Sign-In Error:", err);
-      Alert.alert(
-        "Đăng nhập Google thất bại",
-        "Đã xảy ra lỗi khi đăng nhập bằng Google",
-      );
+      modal.error("Đăng nhập Google thất bại", "Đã xảy ra lỗi khi đăng nhập bằng Google");
     }
   };
 

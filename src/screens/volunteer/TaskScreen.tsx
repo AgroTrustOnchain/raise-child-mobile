@@ -8,7 +8,6 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +17,7 @@ import {
   TaskItem,
 } from '../../services/tasks.service';
 import { useAuth } from '../../hooks/useAuth';
+import { useModal } from '../../context/ModalContext';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/MainNavigator';
@@ -103,42 +103,38 @@ export default function TaskScreen() {
       })
     : tasks;
 
+  const modal = useModal();
+
   const handleAssign = useCallback(async (task: TaskItem) => {
     if (task.assigned_profile_id) {
-      Alert.alert('Đã được nhận', 'Nhiệm vụ này đã được nhận rồi.');
+      modal.alert('Đã được nhận', 'Nhiệm vụ này đã được nhận rồi.');
       return;
     }
-    Alert.alert(
+    modal.confirm(
       'Nhận nhiệm vụ',
       'Bạn có muốn nhận nhiệm vụ này không?',
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Nhận nhiệm vụ',
-          onPress: async () => {
-            try {
-              setAssigningId(task.id);
-              await assignTask(task.id);
-              setTasks((prev) =>
-                prev.map((t) =>
-                  t.id === task.id ? { ...t, assigned_profile_id: 'me' } : t
-                )
-              );
-              Alert.alert('Thành công', 'Nhiệm vụ đã được giao cho bạn.');
-            } catch (e: any) {
-              const msg =
-                e?.response?.data?.message ||
-                e?.message ||
-                'Không thể nhận nhiệm vụ';
-              Alert.alert('Lỗi', msg);
-            } finally {
-              setAssigningId(null);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setAssigningId(task.id);
+          await assignTask(task.id);
+          setTasks((prev) =>
+            prev.map((t) =>
+              t.id === task.id ? { ...t, assigned_profile_id: 'me' } : t
+            )
+          );
+          modal.success('Thành công', 'Nhiệm vụ đã được giao cho bạn.');
+        } catch (e: any) {
+          const msg =
+            e?.response?.data?.message ||
+            e?.message ||
+            'Không thể nhận nhiệm vụ';
+          modal.error('Lỗi', msg);
+        } finally {
+          setAssigningId(null);
+        }
+      },
     );
-  }, []);
+  }, [modal]);
 
   const renderItem = ({ item }: { item: TaskItem }) => {
     const status = getTaskStatus(item);

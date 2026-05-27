@@ -1,12 +1,13 @@
 // src/components/AppHeader.tsx
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../hooks/useAuth";
 import { useDispatch } from "react-redux";
 import { logout, logoutUser } from "../store/authSlice";
 import { useNavigation } from "@react-navigation/native";
+import { useModal } from "../context/ModalContext";
 
 type Props = {
   title: string;
@@ -22,29 +23,20 @@ const AppHeader = () => {
     navigation.navigate("Profile");
   }
 
+  const modal = useModal();
+
   const handleLogout = () => {
-    setTimeout(() => Alert.alert(
+    modal.confirm(
       "Đăng xuất",
       "Bạn có chắc chắn muốn đăng xuất không?",
-      [
-        {
-          text: "Hủy",
-          onPress: () => {},
-          style: "cancel",
-        },
-        {
-          text: "Đăng xuất",
-          onPress: async () => {
-            try {
-              dispatch(logout());
-            } catch (error) {
-              Alert.alert("Lỗi", "Đăng xuất thất bại");
-            }
-          },
-          style: "destructive",
-        },
-      ]
-    ), 0);
+      async () => {
+        try {
+          dispatch(logout());
+        } catch {
+          modal.error("Lỗi", "Đăng xuất thất bại");
+        }
+      },
+    );
   };
 
   return (

@@ -8,13 +8,14 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  Alert,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import * as ImagePicker from 'expo-image-picker';
 // import { useNFT } from '../../hooks/useNFT';
 
 const CreateNFTScreen = () => {
 //   const { createNewNFT, isLoading } = useNFT();
+  const modal = useModal();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -26,7 +27,7 @@ const CreateNFTScreen = () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow photo access');
+      modal.warning('Cần quyền truy cập', 'Please allow photo access');
       return;
     }
 
@@ -48,7 +49,7 @@ const CreateNFTScreen = () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow camera access');
+      modal.warning('Cần quyền truy cập', 'Please allow camera access');
       return;
     }
 
@@ -66,16 +67,16 @@ const CreateNFTScreen = () => {
 
   const handleCreate = async () => {
     if (!formData.name || !formData.description || !formData.image) {
-      Alert.alert('Error', 'Please fill all fields and select an image');
+      modal.warning('Lỗi', 'Please fill all fields and select an image');
       return;
     }
 
     try {
     //   await createNewNFT(formData);
-      Alert.alert('Success', 'NFT created successfully!');
+      modal.success('Thành công', 'NFT created successfully!');
       setFormData({ name: '', description: '', image: '' });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create NFT');
+      modal.error('Lỗi', error.message || 'Failed to create NFT');
     }
   };
 

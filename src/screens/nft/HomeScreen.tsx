@@ -14,12 +14,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   MappedTransaction,
   getTxRecords,
   mapTxRecord,
 } from '../../services/transaction.service';
 import { formatVNDNumber } from '../../utils/currency';
+import type { RootStackParamList } from '../../navigation/MainNavigator';
 
 // ─── Static data (campaigns stay static until a campaign API is added) ────────
 
@@ -56,6 +59,7 @@ type FilterType = 'all' | 'inflow' | 'outflow';
 
 const HomeScreen = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // ── Transaction state ──────────────────────────────────────────────────────
@@ -212,6 +216,56 @@ const HomeScreen = () => {
           ))}
         </ScrollView>
       </View> */}
+
+      {/* Quick Actions */}
+      <View style={styles.quickActionsSection}>
+        <Text style={styles.quickActionsTitle}>Thao tác nhanh</Text>
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity
+            style={styles.quickActionItem}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('ChildUploadReq')}
+          >
+            <View style={[styles.quickActionCircle, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="person-add" size={26} color="#1E40AF" />
+            </View>
+            <Text style={styles.quickActionLabel}>Đăng ký{'\n'}trẻ em</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickActionItem}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('CreateSupportedRegion')}
+          >
+            <View style={[styles.quickActionCircle, { backgroundColor: '#F0FDF4' }]}>
+              <Ionicons name="location" size={26} color="#16A34A" />
+            </View>
+            <Text style={styles.quickActionLabel}>Đề xuất{'\n'}vùng</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickActionItem}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('MySupportedRegions')}
+          >
+            <View style={[styles.quickActionCircle, { backgroundColor: '#FFF7ED' }]}>
+              <Ionicons name="map" size={26} color="#EA580C" />
+            </View>
+            <Text style={styles.quickActionLabel}>Vùng{'\n'}của tôi</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.quickActionItem}
+            activeOpacity={0.75}
+            onPress={() => navigation.navigate('SupportedRegions')}
+          >
+            <View style={[styles.quickActionCircle, { backgroundColor: '#FDF4FF' }]}>
+              <Ionicons name="earth" size={26} color="#9333EA" />
+            </View>
+            <Text style={styles.quickActionLabel}>Vùng cần{'\n'}hỗ trợ</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Ledger Header */}
       <View style={styles.ledgerHeader}>
@@ -425,13 +479,13 @@ const styles = StyleSheet.create({
   },
   poolContent: { padding: 24, alignItems: 'center' },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  verifiedText: { fontSize: 10, fontWeight: '700', color: '#1E40AF', letterSpacing: 1 },
+  verifiedText: { fontSize: 13, fontWeight: '700', color: '#1E40AF', letterSpacing: 0.5 },
   poolAmount: { fontSize: 36, fontWeight: '800', color: '#111827' },
-  poolCurrency: { fontSize: 16, fontWeight: '500', color: '#6B7280' },
-  poolUsd: { fontSize: 13, fontWeight: '500', color: '#6B7280', marginTop: 4 },
+  poolCurrency: { fontSize: 18, fontWeight: '500', color: '#4B5563' },
+  poolUsd: { fontSize: 14, fontWeight: '500', color: '#4B5563', marginTop: 4 },
   networkBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16,
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
     backgroundColor: '#EFF6FF', borderWidth: 1,
     borderColor: '#DBEAFE',
   },
@@ -440,7 +494,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 64, 175, 0.3)',
   },
   liveDotCore: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1E40AF' },
-  networkText: { fontSize: 12, fontWeight: '700', color: '#1E40AF', marginLeft: 10 },
+  networkText: { fontSize: 14, fontWeight: '700', color: '#1E40AF', marginLeft: 10 },
 
   // Campaigns
   campaignsSection: { marginTop: 8 },
@@ -487,73 +541,124 @@ const styles = StyleSheet.create({
   ledgerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   ledgerTitle: { fontSize: 16, fontWeight: '700', color: '#111827' },
   liveBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#EFF6FF', paddingHorizontal: 8,
-    paddingVertical: 2, borderRadius: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: '#EFF6FF', paddingHorizontal: 10,
+    paddingVertical: 4, borderRadius: 10,
   },
-  liveBadgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#1E40AF' },
-  liveBadgeText: { fontSize: 10, fontWeight: '700', color: '#1E40AF' },
+  liveBadgeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1E40AF' },
+  liveBadgeText: { fontSize: 12, fontWeight: '700', color: '#1E40AF' },
 
   // Filters
   filterContainer: {
     flexDirection: 'row', backgroundColor: '#F1F5F9',
-    borderRadius: 12, padding: 4, gap: 4,
+    borderRadius: 14, padding: 4, gap: 4,
   },
   filterButton: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 4, paddingVertical: 8, borderRadius: 8,
+    justifyContent: 'center', gap: 6, paddingVertical: 11, borderRadius: 10,
   },
   filterButtonActive: {
     backgroundColor: '#FFFFFF',
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06, shadowRadius: 2, elevation: 1,
   },
-  filterText: { fontSize: 12, fontWeight: '700', color: '#6B7280' },
+  filterText: { fontSize: 14, fontWeight: '700', color: '#6B7280' },
   filterTextActive: { color: '#111827' },
 
   // Error / empty
   errorBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#FEE2E2', paddingHorizontal: 16, paddingVertical: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#FEE2E2', paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: '#FECACA',
   },
-  errorBannerText: { flex: 1, fontSize: 13, color: '#DC2626' },
-  errorRetryText: { fontSize: 13, fontWeight: '700', color: '#1E40AF' },
+  errorBannerText: { flex: 1, fontSize: 15, color: '#DC2626' },
+  errorRetryText: { fontSize: 15, fontWeight: '700', color: '#1E40AF' },
   emptyBox: {
-    alignItems: 'center', gap: 8, paddingVertical: 40,
+    alignItems: 'center', gap: 10, paddingVertical: 48,
     backgroundColor: '#FFFFFF',
   },
-  emptyText: { fontSize: 14, color: '#9CA3AF' },
+  emptyText: { fontSize: 16, color: '#6B7280' },
 
   // Transaction row
   transactionItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 14,
+    paddingHorizontal: 16, paddingVertical: 16,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
   },
   transactionOutflow: { backgroundColor: '#FFF7ED' },
-  transactionLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  transactionLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
   transactionIcon: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 46, height: 46, borderRadius: 23,
     justifyContent: 'center', alignItems: 'center',
   },
   iconInflow: { backgroundColor: '#EFF6FF' },
   iconOutflow: { backgroundColor: '#FFEDD5' },
   transactionDetails: { flex: 1 },
-  addressRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  transactionAddress: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  transactionMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
-  transactionTime: { fontSize: 11, color: '#6B7280' },
+  addressRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  transactionAddress: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  transactionMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
+  transactionTime: { fontSize: 13, color: '#4B5563' },
   metaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: '#D1D5DB' },
-  transactionCategory: { fontSize: 11, fontWeight: '600' },
-  transactionPoolName: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
-  transactionRight: { alignItems: 'flex-end', minWidth: 90 },
-  transactionAmount: { fontSize: 14, fontWeight: '700' },
+  transactionCategory: { fontSize: 13, fontWeight: '600' },
+  transactionPoolName: { fontSize: 13, color: '#6B7280', marginTop: 2 },
+  transactionRight: { alignItems: 'flex-end', minWidth: 95 },
+  transactionAmount: { fontSize: 15, fontWeight: '700' },
   amountInflow: { color: '#1E40AF' },
   amountOutflow: { color: '#EA580C' },
-  transactionDescription: { fontSize: 10, color: '#9CA3AF', marginTop: 2, maxWidth: 100 },
-  transactionMessage: { fontSize: 14, fontWeight: '700', color: '#111827', marginBottom: 2 },
-  transactionCoinSuffix: { fontSize: 11, color: '#9CA3AF', marginTop: 2, fontWeight: '600' },
+  transactionDescription: { fontSize: 12, color: '#6B7280', marginTop: 2, maxWidth: 100 },
+  transactionMessage: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 2 },
+  transactionCoinSuffix: { fontSize: 13, color: '#6B7280', marginTop: 2, fontWeight: '600' },
+
+  // Quick Actions
+  quickActionsSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+    backgroundColor: '#FFFFFF',
+    marginTop: 12,
+    borderRadius: 18,
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  quickActionsTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 16,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  quickActionItem: {
+    alignItems: 'center',
+    gap: 10,
+    width: 76,
+  },
+  quickActionCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  quickActionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 
   // Load more
   loadMoreBtn: {

@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   Image,
   Modal,
@@ -14,19 +13,60 @@ import {
   Platform,
   FlatList,
 } from "react-native";
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
-import { uploadImageToWalrus } from "../../services/walrus.service";
+import { uploadImageToCloudinary, uploadImageToWalrus } from "../../services/walrus.service";
 import {
   submitChildUploadRequest,
   ChildUploadReqPayload,
 } from "../../services/child-upload.service";
 import { getEstablishedRegions } from "../../services/registration.service";
+import { apiService } from "../../services/api.service";
+
+interface OcrChildInfo {
+  first_name?: string;
+  last_name?: string;
+  gender?: string;
+  date_of_birth?: string;
+  identity_code?: string;
+  home_address?: string;
+  first_guardian_full_name?: string;
+  first_guardian_phone_number?: string;
+  first_guardian_relation?: string;
+  second_guardian_full_name?: string;
+  second_guardian_phone_number?: string;
+  second_guardian_relation?: string;
+}
+
+const extractChildInfo = async (
+  imageUrl: string,
+  slot: "birthCertificate" | "firstGuardianId" | "secondGuardianId" = "birthCertificate",
+): Promise<OcrChildInfo | undefined> => {
+  try {
+    const body =
+      slot === "firstGuardianId"
+        ? { first_guardian_id_card_url: imageUrl }
+        : slot === "secondGuardianId"
+        ? { second_guardian_id_card_url: imageUrl }
+        : { child_birth_certificate_url: imageUrl };
+    const res = await apiService.post<OcrChildInfo>("/ocr/extract-child-info", body);
+    console.log("OCR Response:", res.data);
+    return res.data;
+  } catch (e) {
+    console.warn("OCR extraction failed", e);
+  }
+};
 
 type Gender = "Male" | "Female" | "Other" | "";
-type ImageSlot = "avatar" | "birthCertificate" | "home" | "firstGuardianId" | "secondGuardianId";
+type ImageSlot =
+  | "avatar"
+  | "birthCertificate"
+  | "home"
+  | "firstGuardianId"
+  | "secondGuardianId";
 
 interface GuardianForm {
   fullName: string;
@@ -60,6 +100,7 @@ const relationLabel = (value: string) =>
 const ChildUploadReqScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const modal = useModal();
 
   // Image fields
   const [avatarBlobId, setAvatarBlobId] = useState<string | undefined>();
@@ -67,7 +108,9 @@ const ChildUploadReqScreen = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const [birthCertBlobId, setBirthCertBlobId] = useState<string | undefined>();
   const [birthCertBase64, setBirthCertBase64] = useState<string | undefined>();
-  const [birthCertPreview, setBirthCertPreview] = useState<string | undefined>();
+  const [birthCertPreview, setBirthCertPreview] = useState<
+    string | undefined
+  >();
   const [homeBlobId, setHomeBlobId] = useState<string | undefined>();
   const [homeBase64, setHomeBase64] = useState<string | undefined>();
   const [homePreview, setHomePreview] = useState<string | undefined>();
@@ -82,9 +125,11 @@ const ChildUploadReqScreen = () => {
   const [region, setRegion] = useState("");
 
   // Guardians
-  const [firstGuardian, setFirstGuardian] = useState<GuardianForm>(emptyGuardian());
+  const [firstGuardian, setFirstGuardian] =
+    useState<GuardianForm>(emptyGuardian());
   const [hasSecondGuardian, setHasSecondGuardian] = useState(false);
-  const [secondGuardian, setSecondGuardian] = useState<GuardianForm>(emptyGuardian());
+  const [secondGuardian, setSecondGuardian] =
+    useState<GuardianForm>(emptyGuardian());
 
   // UI state
   const [uploadingSlot, setUploadingSlot] = useState<ImageSlot | null>(null);
@@ -206,33 +251,87 @@ const ChildUploadReqScreen = () => {
 
       const uri = result.assets[0].uri;
       setUploadingSlot(slot);
-      const blob = await uploadImageToWalrus(uri);
+      const uploadFn = slot === 'avatar' || slot === 'home' ? uploadImageToWalrus : uploadImageToCloudinary;
+      const blob = await uploadFn(uri);
 
       switch (slot) {
         case "avatar":
           setAvatarBlobId(blob.blobId);
-          setAvatarBase64(blob.base64);
+          // setAvatarBase64(blob.base64);
           setAvatarPreview(uri);
           break;
         case "birthCertificate":
           setBirthCertBlobId(blob.blobId);
-          setBirthCertBase64(blob.base64);
+          // setBirthCertBase64(blob.base64);
           setBirthCertPreview(uri);
+          try {
+            const info = await extractChildInfo(blob.url);
+            if (!info) break;
+            console.log("Extracted child info from OCR:", info);
+            if (info.first_name) setFirstName(info.first_name);
+            if (info.last_name) setLastName(info.last_name);
+            if (info.identity_code) setIdentityCode(info.identity_code);
+            if (info.home_address) setHomeAddress(info.home_address);
+            if (info.date_of_birth) setDateOfBirth(info.date_of_birth);
+            if (info.gender) {
+              const g = info.gender.trim().toLowerCase();
+              if (g === "male" || g === "nam") setGender("Male");
+              else if (g === "female" || g === "nữ" || g === "nu")
+                setGender("Female");
+            }
+          } catch {
+            // OCR is best-effort — silently ignore failures
+          }
           break;
         case "home":
           setHomeBlobId(blob.blobId);
-          setHomeBase64(blob.base64);
+          // setHomeBase64(blob.base64);
           setHomePreview(uri);
           break;
         case "firstGuardianId":
-          setFirstGuardian((g) => ({ ...g, idCardBlobId: blob.blobId, idCardBase64: blob.base64, idCardPreview: uri }));
+          setFirstGuardian((g) => ({
+            ...g,
+            idCardBlobId: blob.blobId,
+            // idCardBase64: blob.base64,
+            idCardPreview: uri,
+          }));
+          try {
+            const info = await extractChildInfo(blob.url, "firstGuardianId");
+            if (info?.first_guardian_full_name)
+              setFirstGuardian((g) => ({ ...g, fullName: info.first_guardian_full_name! }));
+            if (info?.first_guardian_phone_number)
+              setFirstGuardian((g) => ({ ...g, phoneNumber: info.first_guardian_phone_number! }));
+            if (info?.first_guardian_relation)
+              setFirstGuardian((g) => ({ ...g, relation: info.first_guardian_relation! }));
+          } catch {
+            // OCR is best-effort — silently ignore failures
+          }
           break;
         case "secondGuardianId":
-          setSecondGuardian((g) => ({ ...g, idCardBlobId: blob.blobId, idCardBase64: blob.base64, idCardPreview: uri }));
+          setSecondGuardian((g) => ({
+            ...g,
+            idCardBlobId: blob.blobId,
+            // idCardBase64: blob.base64,
+            idCardPreview: uri,
+          }));
+          try {
+            const info = await extractChildInfo(blob.url, "secondGuardianId");
+            if (info?.second_guardian_full_name)
+              setSecondGuardian((g) => ({ ...g, fullName: info.second_guardian_full_name! }));
+            if (info?.second_guardian_phone_number)
+              setSecondGuardian((g) => ({ ...g, phoneNumber: info.second_guardian_phone_number! }));
+            if (info?.second_guardian_relation)
+              setSecondGuardian((g) => ({ ...g, relation: info.second_guardian_relation! }));
+          } catch {
+            // OCR is best-effort — silently ignore failures
+          }
           break;
       }
     } catch (e: any) {
-      Alert.alert("Lỗi", e?.message || "Không thể tải ảnh lên. Vui lòng thử lại.");
+      modal.error(
+        "Lỗi",
+        e?.message || "Không thể tải ảnh lên. Vui lòng thử lại.",
+      );
     } finally {
       setUploadingSlot(null);
     }
@@ -277,22 +376,21 @@ const ChildUploadReqScreen = () => {
 
   const buildPayload = (): ChildUploadReqPayload => ({
     avatar_blob_id: avatarBlobId!,
-    avatar_base64: avatarBase64 ?? "",
+    // avatar_base64: avatarBase64 ?? "",
     birth_certificate_blob_id: birthCertBlobId!,
-    birth_certificate_base64: birthCertBase64 ?? "",
     date_of_birth: dateOfBirth,
     first_guardian: {
       guardian_full_name: firstGuardian.fullName,
       guardian_phone_number: firstGuardian.phoneNumber,
       guardian_relation: firstGuardian.relation,
       identity_card_blob_id: firstGuardian.idCardBlobId!,
-      identity_card_base64: firstGuardian.idCardBase64 ?? "",
+      // identity_card_base64: firstGuardian.idCardBase64 ?? "",
     },
     first_name: firstName,
     gender,
     home_address: homeAddress,
     home_blob_id: homeBlobId!,
-    home_base64: homeBase64 ?? "",
+    // home_base64: homeBase64 ?? "",
     identity_code: identityCode,
     last_name: lastName,
     region,
@@ -302,19 +400,22 @@ const ChildUploadReqScreen = () => {
         guardian_phone_number: secondGuardian.phoneNumber,
         guardian_relation: secondGuardian.relation,
         identity_card_blob_id: secondGuardian.idCardBlobId!,
-        identity_card_base64: secondGuardian.idCardBase64 ?? "",
+        // identity_card_base64: secondGuardian.idCardBase64 ?? "",
       },
     }),
   });
 
   const submit = async () => {
     if (!isFormValid) {
-      Alert.alert("Thiếu thông tin", "Vui lòng điền đầy đủ các trường bắt buộc.");
+      modal.warning(
+        "Thiếu thông tin",
+        "Vui lòng điền đầy đủ các trường bắt buộc.",
+      );
       return;
     }
     try {
       setIsSubmitting(true);
-      console.log(buildPayload())
+      console.log(buildPayload());
       await submitChildUploadRequest(buildPayload());
       navigation.replace("PaymentCallbackScreen", {
         status: "success",
@@ -322,7 +423,7 @@ const ChildUploadReqScreen = () => {
         message: "Yêu cầu đăng ký trẻ em đã được gửi để xét duyệt.",
       });
     } catch (e: any) {
-      Alert.alert(
+      modal.error(
         "Gửi thất bại",
         e?.response?.data?.message || e?.message || "Vui lòng thử lại.",
       );
@@ -381,112 +482,113 @@ const ChildUploadReqScreen = () => {
     slot: "firstGuardianId" | "secondGuardianId",
     isOptional = false,
   ) => {
-  const relationKey = slot === "firstGuardianId" ? "first" : "second";
-  const isPickerOpen = openRelationPicker === relationKey;
-  return (
-    <View>
-      <View style={styles.fieldGroup}>
-        <Text style={styles.label}>
-          Họ và tên người giám hộ
-          {!isOptional && <Text style={styles.requiredStar}> *</Text>}
-        </Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Nguyễn Văn A"
-          placeholderTextColor="#9CA3AF"
-          value={guardian.fullName}
-          onChangeText={(v) => setGuardian({ ...guardian, fullName: v })}
-        />
-      </View>
-
-      <View style={styles.row}>
-        <View style={[styles.fieldGroup, { flex: 1 }]}>
+    const relationKey = slot === "firstGuardianId" ? "first" : "second";
+    const isPickerOpen = openRelationPicker === relationKey;
+    return (
+      <View>
+        <View style={styles.fieldGroup}>
           <Text style={styles.label}>
-            Số điện thoại
+            Họ và tên người giám hộ
             {!isOptional && <Text style={styles.requiredStar}> *</Text>}
           </Text>
           <TextInput
             style={styles.input}
-            placeholder="0901234567"
+            placeholder="Nguyễn Văn A"
             placeholderTextColor="#9CA3AF"
-            value={guardian.phoneNumber}
-            onChangeText={(v) =>
-              setGuardian({
-                ...guardian,
-                phoneNumber: v.replace(/\D/g, "").slice(0, 10),
-              })
-            }
-            keyboardType="phone-pad"
-            maxLength={10}
+            value={guardian.fullName}
+            onChangeText={(v) => setGuardian({ ...guardian, fullName: v })}
           />
         </View>
-        <View style={[styles.fieldGroup, { flex: 1 }]}>
-          <Text style={styles.label}>
-            Quan hệ
-            {!isOptional && <Text style={styles.requiredStar}> *</Text>}
-          </Text>
-          <TouchableOpacity
-            style={styles.pickerButton}
-            onPress={() =>
-              setOpenRelationPicker(isPickerOpen ? null : relationKey)
-            }
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[
-                styles.pickerText,
-                !guardian.relation && styles.pickerPlaceholder,
-              ]}
-            >
-              {relationLabel(guardian.relation) || "Chọn"}
-            </Text>
-            <Ionicons
-              name={isPickerOpen ? "chevron-up" : "chevron-down"}
-              size={18}
-              color="#9CA3AF"
-            />
-          </TouchableOpacity>
-          {isPickerOpen && (
-            <View style={styles.dropdown}>
-              {RELATION_OPTIONS.map((opt) => (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={[
-                    styles.dropdownItem,
-                    guardian.relation === opt.value && styles.dropdownItemSelected,
-                  ]}
-                  onPress={() => {
-                    setGuardian({ ...guardian, relation: opt.value });
-                    setOpenRelationPicker(null);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItemText,
-                      guardian.relation === opt.value &&
-                        styles.dropdownItemTextSelected,
-                    ]}
-                  >
-                    {opt.label}
-                  </Text>
-                  {guardian.relation === opt.value && (
-                    <Ionicons name="checkmark" size={16} color="#1E40AF" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-      </View>
 
-      {renderImageUpload(
-        slot,
-        "Ảnh CMND/CCCD người giám hộ",
-        guardian.idCardBlobId,
-        guardian.idCardPreview,
-      )}
-    </View>
-  );
+        <View style={styles.row}>
+          <View style={[styles.fieldGroup, { flex: 1 }]}>
+            <Text style={styles.label}>
+              Số điện thoại
+              {!isOptional && <Text style={styles.requiredStar}> *</Text>}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="0901234567"
+              placeholderTextColor="#9CA3AF"
+              value={guardian.phoneNumber}
+              onChangeText={(v) =>
+                setGuardian({
+                  ...guardian,
+                  phoneNumber: v.replace(/\D/g, "").slice(0, 10),
+                })
+              }
+              keyboardType="phone-pad"
+              maxLength={10}
+            />
+          </View>
+          <View style={[styles.fieldGroup, { flex: 1 }]}>
+            <Text style={styles.label}>
+              Quan hệ
+              {!isOptional && <Text style={styles.requiredStar}> *</Text>}
+            </Text>
+            <TouchableOpacity
+              style={styles.pickerButton}
+              onPress={() =>
+                setOpenRelationPicker(isPickerOpen ? null : relationKey)
+              }
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.pickerText,
+                  !guardian.relation && styles.pickerPlaceholder,
+                ]}
+              >
+                {relationLabel(guardian.relation) || "Chọn"}
+              </Text>
+              <Ionicons
+                name={isPickerOpen ? "chevron-up" : "chevron-down"}
+                size={18}
+                color="#9CA3AF"
+              />
+            </TouchableOpacity>
+            {isPickerOpen && (
+              <View style={styles.dropdown}>
+                {RELATION_OPTIONS.map((opt) => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={[
+                      styles.dropdownItem,
+                      guardian.relation === opt.value &&
+                        styles.dropdownItemSelected,
+                    ]}
+                    onPress={() => {
+                      setGuardian({ ...guardian, relation: opt.value });
+                      setOpenRelationPicker(null);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        guardian.relation === opt.value &&
+                          styles.dropdownItemTextSelected,
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                    {guardian.relation === opt.value && (
+                      <Ionicons name="checkmark" size={16} color="#1E40AF" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+
+        {renderImageUpload(
+          slot,
+          "Ảnh CMND/CCCD người giám hộ",
+          guardian.idCardBlobId,
+          guardian.idCardPreview,
+        )}
+      </View>
+    );
   };
 
   return (
@@ -496,7 +598,10 @@ const ChildUploadReqScreen = () => {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerButton}
+        >
           <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Đăng ký trẻ em</Text>
@@ -511,14 +616,20 @@ const ChildUploadReqScreen = () => {
         <View style={styles.intro}>
           <Text style={styles.introTitle}>Hồ sơ trẻ em mới</Text>
           <Text style={styles.introText}>
-            Vui lòng điền đầy đủ thông tin và ảnh đính kèm. Yêu cầu sẽ được xét duyệt trước khi công khai.
+            Vui lòng điền đầy đủ thông tin và ảnh đính kèm. Yêu cầu sẽ được xét
+            duyệt trước khi công khai.
           </Text>
         </View>
 
         {/* Section: Trẻ em */}
         <Text style={styles.sectionTitle}>Thông tin trẻ em</Text>
 
-        {renderImageUpload("avatar", "Ảnh đại diện", avatarBlobId, avatarPreview)}
+        {renderImageUpload(
+          "avatar",
+          "Ảnh đại diện",
+          avatarBlobId,
+          avatarPreview,
+        )}
 
         <View style={styles.row}>
           <View style={[styles.fieldGroup, { flex: 1 }]}>
@@ -557,7 +668,9 @@ const ChildUploadReqScreen = () => {
             style={styles.pickerButton}
             onPress={() => setShowGenderPicker((v) => !v)}
           >
-            <Text style={[styles.pickerText, !gender && styles.pickerPlaceholder]}>
+            <Text
+              style={[styles.pickerText, !gender && styles.pickerPlaceholder]}
+            >
               {gender || "Chọn giới tính"}
             </Text>
             <Ionicons
@@ -601,8 +714,16 @@ const ChildUploadReqScreen = () => {
           <Text style={styles.label}>
             Ngày sinh <Text style={styles.requiredStar}>*</Text>
           </Text>
-          <TouchableOpacity style={styles.pickerButton} onPress={openDatePicker}>
-            <Text style={[styles.pickerText, !dateOfBirth && styles.pickerPlaceholder]}>
+          <TouchableOpacity
+            style={styles.pickerButton}
+            onPress={openDatePicker}
+          >
+            <Text
+              style={[
+                styles.pickerText,
+                !dateOfBirth && styles.pickerPlaceholder,
+              ]}
+            >
               {dateOfBirth || "DD/MM/YYYY"}
             </Text>
             <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
@@ -618,12 +739,17 @@ const ChildUploadReqScreen = () => {
             placeholder="123456789012"
             placeholderTextColor="#9CA3AF"
             value={identityCode}
-            onChangeText={(v) => setIdentityCode(v.replace(/\D/g, "").slice(0, 12))}
+            onChangeText={(v) =>
+              setIdentityCode(v.replace(/\D/g, "").slice(0, 12))
+            }
             keyboardType="number-pad"
             maxLength={12}
           />
           {identityCode.length > 0 &&
-            !isValidVietnamCCCD(identityCode.trim(), { dob: dateOfBirth, gender }) && (
+            !isValidVietnamCCCD(identityCode.trim(), {
+              dob: dateOfBirth,
+              gender,
+            }) && (
               <Text style={styles.cccdError}>
                 {identityCode.length < 12
                   ? `Cần đủ 12 chữ số (còn ${12 - identityCode.length}).`
@@ -667,8 +793,13 @@ const ChildUploadReqScreen = () => {
             activeOpacity={0.8}
           >
             <Ionicons name="location-outline" size={18} color="#1E40AF" />
-            <Text style={[styles.pickerText, !region && styles.pickerPlaceholder]}>
-              {region || (loadingRegions ? "Đang tải khu vực…" : "Chọn khu vực đã thành lập")}
+            <Text
+              style={[styles.pickerText, !region && styles.pickerPlaceholder]}
+            >
+              {region ||
+                (loadingRegions
+                  ? "Đang tải khu vực…"
+                  : "Chọn khu vực đã thành lập")}
             </Text>
             <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
           </TouchableOpacity>
@@ -691,11 +822,21 @@ const ChildUploadReqScreen = () => {
             onPress={() => setHasSecondGuardian((v) => !v)}
             activeOpacity={0.8}
           >
-            <View style={[styles.toggleKnob, hasSecondGuardian && styles.toggleKnobActive]} />
+            <View
+              style={[
+                styles.toggleKnob,
+                hasSecondGuardian && styles.toggleKnobActive,
+              ]}
+            />
           </TouchableOpacity>
         </View>
         {hasSecondGuardian &&
-          renderGuardianForm(secondGuardian, setSecondGuardian, "secondGuardianId", true)}
+          renderGuardianForm(
+            secondGuardian,
+            setSecondGuardian,
+            "secondGuardianId",
+            true,
+          )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -750,10 +891,15 @@ const ChildUploadReqScreen = () => {
             </View>
 
             <View style={styles.regionNoticeCard}>
-              <Ionicons name="information-circle-outline" size={18} color="#1E40AF" />
+              <Ionicons
+                name="information-circle-outline"
+                size={18}
+                color="#1E40AF"
+              />
               <View style={{ flex: 1 }}>
                 <Text style={styles.regionNoticeText}>
-                  Không tìm thấy khu vực của trẻ? Hãy đề xuất khu vực cần hỗ trợ để được xét duyệt.
+                  Không tìm thấy khu vực của trẻ? Hãy đề xuất khu vực cần hỗ trợ
+                  để được xét duyệt.
                 </Text>
                 <TouchableOpacity
                   style={styles.regionNoticeButton}
@@ -763,14 +909,24 @@ const ChildUploadReqScreen = () => {
                   }}
                   activeOpacity={0.85}
                 >
-                  <Ionicons name="add-circle-outline" size={16} color="#FFFFFF" />
-                  <Text style={styles.regionNoticeButtonText}>Đề xuất khu vực</Text>
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={16}
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.regionNoticeButtonText}>
+                    Đề xuất khu vực
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
 
             {loadingRegions ? (
-              <ActivityIndicator size="large" color="#1E40AF" style={{ padding: 32 }} />
+              <ActivityIndicator
+                size="large"
+                color="#1E40AF"
+                style={{ padding: 32 }}
+              />
             ) : (
               <FlatList
                 data={filteredRegions}
@@ -789,7 +945,11 @@ const ChildUploadReqScreen = () => {
                       setRegionQuery("");
                     }}
                   >
-                    <Ionicons name="location-outline" size={18} color="#1E40AF" />
+                    <Ionicons
+                      name="location-outline"
+                      size={18}
+                      color="#1E40AF"
+                    />
                     <Text
                       style={[
                         styles.regionItemText,
@@ -832,9 +992,27 @@ const ChildUploadReqScreen = () => {
             <Text style={styles.modalTitle}>Chọn ngày sinh</Text>
             <View style={styles.dateColumns}>
               {[
-                { data: dayOptions, value: pickerDay, set: setPickerDay, label: "Ngày", fmt: pad2 },
-                { data: monthOptions, value: pickerMonth, set: setPickerMonth, label: "Tháng", fmt: pad2 },
-                { data: yearOptions, value: pickerYear, set: setPickerYear, label: "Năm", fmt: (n: number) => `${n}` },
+                {
+                  data: dayOptions,
+                  value: pickerDay,
+                  set: setPickerDay,
+                  label: "Ngày",
+                  fmt: pad2,
+                },
+                {
+                  data: monthOptions,
+                  value: pickerMonth,
+                  set: setPickerMonth,
+                  label: "Tháng",
+                  fmt: pad2,
+                },
+                {
+                  data: yearOptions,
+                  value: pickerYear,
+                  set: setPickerYear,
+                  label: "Năm",
+                  fmt: (n: number) => `${n}`,
+                },
               ].map((col, idx) => (
                 <View style={styles.dateColumn} key={idx}>
                   <Text style={styles.dateColumnLabel}>{col.label}</Text>
@@ -871,7 +1049,10 @@ const ChildUploadReqScreen = () => {
               >
                 <Text style={styles.dateCancelText}>Huỷ</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.dateConfirm} onPress={confirmDate}>
+              <TouchableOpacity
+                style={styles.dateConfirm}
+                onPress={confirmDate}
+              >
                 <Text style={styles.dateConfirmText}>Xác nhận</Text>
               </TouchableOpacity>
             </View>
@@ -907,34 +1088,39 @@ const styles = StyleSheet.create({
     backgroundColor: "#EFF6FF",
     borderWidth: 1,
     borderColor: "#DBEAFE",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 18,
   },
-  introTitle: { fontSize: 14, fontWeight: "800", color: "#1E40AF", marginBottom: 4 },
-  introText: { fontSize: 12, color: "#1E40AF", lineHeight: 18 },
+  introTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1E40AF",
+    marginBottom: 6,
+  },
+  introText: { fontSize: 15, color: "#1E40AF", lineHeight: 22 },
 
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "800",
     color: "#111827",
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginTop: 12,
-    marginBottom: 12,
+    letterSpacing: 0.8,
+    marginTop: 16,
+    marginBottom: 14,
   },
 
-  fieldGroup: { marginBottom: 14 },
-  label: { fontSize: 13, fontWeight: "700", color: "#111827", marginBottom: 6 },
+  fieldGroup: { marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: "700", color: "#111827", marginBottom: 8 },
   requiredStar: { color: "#DC2626", fontWeight: "700" },
-  cccdError: { fontSize: 12, color: "#DC2626", marginTop: 6, lineHeight: 16 },
+  cccdError: { fontSize: 14, color: "#DC2626", marginTop: 6, lineHeight: 20 },
 
   row: { flexDirection: "row", gap: 12 },
 
   input: {
     height: 50,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
     backgroundColor: "#F8FAFF",
     borderWidth: 1,
     borderColor: "#DBEAFE",
@@ -947,19 +1133,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     height: 50,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    borderRadius: 14,
     backgroundColor: "#F8FAFF",
     borderWidth: 1,
     borderColor: "#DBEAFE",
   },
-  pickerText: { fontSize: 14, color: "#111827", fontWeight: "500" },
+  pickerText: { fontSize: 16, color: "#111827", fontWeight: "500" },
   pickerPlaceholder: { color: "#9CA3AF", fontWeight: "400" },
 
   dropdown: {
     marginTop: 4,
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "#F1F5F9",
     overflow: "hidden",
@@ -968,31 +1154,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
   dropdownItemSelected: { backgroundColor: "#EFF6FF" },
-  dropdownItemText: { fontSize: 14, fontWeight: "500", color: "#374151" },
+  dropdownItemText: { fontSize: 16, fontWeight: "500", color: "#374151" },
   dropdownItemTextSelected: { color: "#1E40AF", fontWeight: "700" },
 
   imageUpload: {
     borderWidth: 1,
     borderColor: "#DBEAFE",
     borderStyle: "dashed",
-    borderRadius: 12,
+    borderRadius: 14,
     backgroundColor: "#F8FAFF",
-    minHeight: 120,
+    minHeight: 130,
     overflow: "hidden",
   },
   uploadCenter: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 28,
-    gap: 6,
+    paddingVertical: 32,
+    gap: 8,
   },
-  uploadHint: { fontSize: 12, color: "#6B7280" },
+  uploadHint: { fontSize: 15, color: "#4B5563" },
   uploadPreviewWrap: { width: "100%", height: 160, position: "relative" },
   uploadPreview: { width: "100%", height: "100%", resizeMode: "cover" },
   uploadOverlay: {
@@ -1015,7 +1201,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 12,
   },
-  optionalHint: { fontSize: 11, color: "#9CA3AF", marginTop: -8 },
+  optionalHint: { fontSize: 14, color: "#6B7280", marginTop: -6 },
   toggle: {
     width: 50,
     height: 28,
@@ -1049,10 +1235,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
     backgroundColor: "#1E40AF",
     height: 56,
-    borderRadius: 14,
+    borderRadius: 16,
   },
   submitDisabled: { opacity: 0.5 },
   submitText: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
@@ -1063,62 +1249,67 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "800",
     color: "#111827",
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   regionSheet: {
     width: "100%",
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 18,
+    padding: 18,
     maxHeight: "80%",
   },
   regionSheetHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   regionSearchWrap: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
     backgroundColor: "#F3F4F6",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 42,
-    marginBottom: 12,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 50,
+    marginBottom: 14,
   },
-  regionSearchInput: { flex: 1, fontSize: 14, color: "#111827" },
+  regionSearchInput: { flex: 1, fontSize: 16, color: "#111827" },
   regionNoticeCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 10,
+    gap: 12,
     backgroundColor: "#EFF6FF",
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: "#DBEAFE",
-    padding: 12,
-    marginBottom: 12,
+    padding: 14,
+    marginBottom: 14,
   },
-  regionNoticeText: { fontSize: 12, color: "#1E40AF", lineHeight: 18, marginBottom: 8 },
+  regionNoticeText: {
+    fontSize: 14,
+    color: "#1E40AF",
+    lineHeight: 21,
+    marginBottom: 10,
+  },
   regionNoticeButton: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    gap: 6,
+    gap: 8,
     backgroundColor: "#1E40AF",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
-  regionNoticeButtonText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
+  regionNoticeButtonText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
   regionModalCard: {
     width: "100%",
     backgroundColor: "#FFFFFF",
@@ -1129,14 +1320,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    borderRadius: 12,
   },
   regionItemSelected: { backgroundColor: "#EFF6FF" },
-  regionItemText: { fontSize: 14, color: "#374151", fontWeight: "500" },
+  regionItemText: { fontSize: 16, color: "#374151", fontWeight: "500" },
   regionItemTextSelected: { color: "#1E40AF", fontWeight: "700" },
-  emptyText: { textAlign: "center", color: "#9CA3AF", paddingVertical: 24 },
+  emptyText: {
+    textAlign: "center",
+    color: "#6B7280",
+    fontSize: 15,
+    paddingVertical: 28,
+  },
   modalCloseBtn: {
     marginTop: 12,
     height: 48,
@@ -1150,48 +1346,48 @@ const styles = StyleSheet.create({
   dateModalCard: {
     width: "100%",
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 20,
+    padding: 20,
   },
-  dateColumns: { flexDirection: "row", height: 220, gap: 8 },
+  dateColumns: { flexDirection: "row", height: 240, gap: 8 },
   dateColumn: { flex: 1 },
   dateColumnLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "700",
-    color: "#9CA3AF",
+    color: "#4B5563",
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   dateOption: {
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: "center",
     marginBottom: 4,
   },
   dateOptionSelected: { backgroundColor: "#1E40AF" },
-  dateOptionText: { fontSize: 14, color: "#374151", fontWeight: "500" },
+  dateOptionText: { fontSize: 16, color: "#374151", fontWeight: "500" },
   dateOptionTextSelected: { color: "#FFFFFF", fontWeight: "700" },
-  dateActions: { flexDirection: "row", gap: 12, marginTop: 16 },
+  dateActions: { flexDirection: "row", gap: 12, marginTop: 20 },
   dateCancel: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
+    height: 54,
+    borderRadius: 14,
     backgroundColor: "#F1F5F9",
     alignItems: "center",
     justifyContent: "center",
   },
-  dateCancelText: { color: "#6B7280", fontWeight: "700" },
+  dateCancelText: { color: "#4B5563", fontWeight: "700", fontSize: 16 },
   dateConfirm: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
+    height: 54,
+    borderRadius: 14,
     backgroundColor: "#1E40AF",
     alignItems: "center",
     justifyContent: "center",
   },
-  dateConfirmText: { color: "#FFFFFF", fontWeight: "800" },
+  dateConfirmText: { color: "#FFFFFF", fontWeight: "800", fontSize: 16 },
 });
 
 export default ChildUploadReqScreen;

@@ -4,9 +4,7 @@ import { STORAGE_KEYS } from "../utils/constants";
 
 export interface RegistrationPayload {
   avatar_blob_id: string;
-  avatar_base64?: string;
-  identity_card_blob_id: string;
-  identity_card_base64?: string;
+  identity_card_cloudinary_id: string;
   region: string;
   register_role: string;
 }

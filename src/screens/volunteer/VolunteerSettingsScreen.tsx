@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  Alert,
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +14,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store';
 import { logout, setRole } from '../../store/authSlice';
+import { useModal } from '../../context/ModalContext';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -27,37 +27,21 @@ const VolunteerSettingsScreen = () => {
   const [notifications, setNotifications] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [privateProfile, setPrivateProfile] = useState(false);
+  const modal = useModal();
 
   const handleSwitchRole = () => {
-    Alert.alert(
+    modal.confirm(
       'Chuyển sang người dùng',
       'Bạn có muốn chuyển vai trò tài khoản từ Tình nguyện viên sang Người dùng không? Bạn có thể chuyển lại bất cứ lúc nào.',
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Chuyển',
-          onPress: () => {
-            dispatch(setRole('User'));
-          },
-        },
-      ]
+      () => dispatch(setRole('User')),
     );
   };
 
   const handleLogout = () => {
-    Alert.alert(
+    modal.confirm(
       'Đăng xuất',
       'Bạn có chắc muốn đăng xuất không?',
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Đăng xuất',
-          style: 'destructive',
-          onPress: () => {
-            dispatch(logout());
-          },
-        },
-      ]
+      () => dispatch(logout()),
     );
   };
 
@@ -125,9 +109,7 @@ const VolunteerSettingsScreen = () => {
             icon="lock"
             label="Đổi mật khẩu"
             subtitle="Cập nhật cài đặt bảo mật"
-            onPress={() => {
-              Alert.alert('Đổi mật khẩu', 'Tính năng đổi mật khẩu sắp ra mắt');
-            }}
+            onPress={() => modal.alert('Đổi mật khẩu', 'Tính năng đổi mật khẩu sắp ra mắt')}
           />
           <View style={styles.divider} />
           <SettingItem
@@ -189,9 +171,7 @@ const VolunteerSettingsScreen = () => {
             icon="alert-circle"
             label="Dữ liệu & Quyền riêng tư"
             subtitle="Xem và quản lý dữ liệu của bạn"
-            onPress={() => {
-              Alert.alert('Dữ liệu & Quyền riêng tư', 'Chính sách quyền riêng tư sắp ra mắt');
-            }}
+            onPress={() => modal.alert('Dữ liệu & Quyền riêng tư', 'Chính sách quyền riêng tư sắp ra mắt')}
           />
         </SettingSection>
 
@@ -228,18 +208,14 @@ const VolunteerSettingsScreen = () => {
             icon="help-circle"
             label="Trợ giúp & Hỗ trợ"
             subtitle="Nhận trợ giúp và báo cáo sự cố"
-            onPress={() => {
-              Alert.alert('Trợ giúp & Hỗ trợ', 'Trang hỗ trợ sắp ra mắt');
-            }}
+            onPress={() => modal.alert('Trợ giúp & Hỗ trợ', 'Trang hỗ trợ sắp ra mắt')}
           />
           <View style={styles.divider} />
           <SettingItem
             icon="document"
             label="Điều khoản & Điều kiện"
             subtitle="Xem điều khoản dịch vụ của chúng tôi"
-            onPress={() => {
-              Alert.alert('Điều khoản & Điều kiện', 'Trang điều khoản sắp ra mắt');
-            }}
+            onPress={() => modal.alert('Điều khoản & Điều kiện', 'Trang điều khoản sắp ra mắt')}
           />
         </SettingSection>
 

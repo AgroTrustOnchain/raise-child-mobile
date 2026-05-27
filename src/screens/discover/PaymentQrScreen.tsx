@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   ScrollView,
   Linking,
 } from "react-native";
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getPaymentStatus } from "../../services/payment.service";
@@ -30,6 +30,7 @@ const SUCCESS_STATUSES = new Set([
 const PaymentQrScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const modal = useModal();
   const { paymentUrl, paymentId, title = "Hoàn tất thanh toán" } = route.params as {
     paymentUrl: string;
     paymentId?: string | number;
@@ -128,14 +129,14 @@ const PaymentQrScreen = () => {
           message: buildSuccessMessage(data),
         });
       } else {
-        Alert.alert(
+        modal.alert(
           "Chưa xác nhận",
           `Trạng thái hiện tại: ${status || "Đang xử lý"}. Vui lòng thử lại sau vài giây.`
         );
         schedulePoll();
       }
     } catch {
-      Alert.alert("Lỗi", "Không thể kiểm tra trạng thái. Vui lòng thử lại.");
+      modal.error("Lỗi", "Không thể kiểm tra trạng thái. Vui lòng thử lại.");
       schedulePoll();
     } finally {
       setChecking(false);
@@ -147,7 +148,7 @@ const PaymentQrScreen = () => {
     if (supported) {
       await Linking.openURL(paymentUrl);
     } else {
-      Alert.alert("Lỗi", "Không thể mở liên kết thanh toán.");
+      modal.error("Lỗi", "Không thể mở liên kết thanh toán.");
     }
   };
 

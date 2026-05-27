@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -192,6 +192,7 @@ const RegionsTab = () => {
 
 const RegistrationsTab = () => {
   const { wallet } = useWallet();
+  const modal = useModal();
   const [registrations, setRegistrations] = useState<UserRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -220,46 +221,40 @@ const RegistrationsTab = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleConfirm = async (reg: UserRegistration) => {
-    Alert.alert(
+    modal.confirm(
       'Xác nhận đăng ký',
       `Xác nhận đăng ký của bạn cho ${reg.region} với vai trò ${reg.register_role}?`,
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Xác nhận',
-          onPress: async () => {
-            try {
-              setConfirming(reg.id);
-              const res = await confirmRegistration(reg.id)
+      async () => {
+        try {
+          setConfirming(reg.id);
+          const res = await confirmRegistration(reg.id)
 
-              if (res?.tx_bytes) {
-                if (!wallet) throw new Error('Wallet not connected. Please log in again.');
+          if (res?.tx_bytes) {
+            if (!wallet) throw new Error('Wallet not connected. Please log in again.');
 
-                const { signature } = await wallet.ephemeralKeyPair.signTransaction(fromBase64(res.tx_bytes));
+            const { signature } = await wallet.ephemeralKeyPair.signTransaction(fromBase64(res.tx_bytes));
 
-                await executeTransaction({
-                  tx_bytes: res.tx_bytes,
-                  signature,
-                  proposal_id: res.proposal_id ?? '',
-                  center_req: res.center_req ?? '',
-                  registration_req: res.registration_req ?? '',
-                  upload_child_req: res.upload_child_req ?? '',
-                });
-              }
+            await executeTransaction({
+              tx_bytes: res.tx_bytes,
+              signature,
+              proposal_id: res.proposal_id ?? '',
+              center_req: res.center_req ?? '',
+              registration_req: res.registration_req ?? '',
+              upload_child_req: res.upload_child_req ?? '',
+            });
+          }
 
-              setRegistrations((prev) =>
-                prev.map((r) => (r.id === reg.id ? { ...r, status: 'confirmed' } : r))
-              );
-              Alert.alert('Thành công', 'Đã xác nhận đăng ký thành công!');
-            } catch (e: any) {
-              console.log(e)
-              Alert.alert('Error', e?.response?.data?.message || 'Confirmation failed.');
-            } finally {
-              setConfirming(null);
-            }
-          },
-        },
-      ]
+          setRegistrations((prev) =>
+            prev.map((r) => (r.id === reg.id ? { ...r, status: 'confirmed' } : r))
+          );
+          modal.success('Thành công', 'Đã xác nhận đăng ký thành công!');
+        } catch (e: any) {
+          console.log(e)
+          modal.error('Lỗi', e?.response?.data?.message || 'Confirmation failed.');
+        } finally {
+          setConfirming(null);
+        }
+      },
     );
   };
 

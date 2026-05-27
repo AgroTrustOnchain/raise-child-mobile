@@ -6,11 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,6 +26,7 @@ const MAX_CONTENT = 500;
 const CreateSupportedRegionScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const modal = useModal();
 
   const [region, setRegion] = useState('');
   const [content, setContent] = useState('');
@@ -33,11 +34,11 @@ const CreateSupportedRegionScreen = () => {
 
   const handleSubmit = async () => {
     if (!region.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng chọn vùng.');
+      modal.warning('Lỗi', 'Vui lòng chọn vùng.');
       return;
     }
     if (!content.trim()) {
-      Alert.alert('Lỗi', 'Vui lòng nhập mô tả nhu cầu hỗ trợ.');
+      modal.warning('Lỗi', 'Vui lòng nhập mô tả nhu cầu hỗ trợ.');
       return;
     }
     try {
@@ -46,11 +47,9 @@ const CreateSupportedRegionScreen = () => {
         region: region.trim(),
         content: content.trim(),
       });
-      Alert.alert('Thành công', 'Đề xuất vùng đã được gửi.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      modal.success('Thành công', 'Đề xuất vùng đã được gửi.', () => navigation.goBack());
     } catch (e: any) {
-      Alert.alert(
+      modal.error(
         'Gửi thất bại',
         e?.response?.data?.message || e?.message || 'Vui lòng thử lại.',
       );

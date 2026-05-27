@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-  Alert,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAppSelector } from '../../store';
@@ -104,6 +104,7 @@ const TransactionItem = ({ tx }: { tx: TransactionRecord }) => {
 const WalletScreen = () => {
   const navigation = useNavigation();
   const { user } = useAppSelector((state) => state.auth);
+  const modal = useModal();
   const walletAddress = user?.walletAddress ?? '';
 
   const [profile, setProfile] = useState<WalletProfile | null>(null);
@@ -127,7 +128,7 @@ const WalletScreen = () => {
         setRecords((prev) => (replace ? incoming : [...prev, ...incoming]));
         setPage(pageNum);
       } catch {
-        Alert.alert('Lỗi', 'Không thể tải dữ liệu ví. Vui lòng thử lại.');
+        modal.error('Lỗi', 'Không thể tải dữ liệu ví. Vui lòng thử lại.');
       } finally {
         isFetching.current = false;
         setLoading(false);
@@ -204,7 +205,7 @@ const WalletScreen = () => {
           </View>
           <TouchableOpacity
             style={styles.qrButton}
-            onPress={() => Alert.alert('Mã QR', 'Hiển thị mã QR ví')}
+            onPress={() => modal.alert('Mã QR', 'Hiển thị mã QR ví')}
           >
             <Ionicons name="qr-code" size={28} color="#FFFFFF" />
           </TouchableOpacity>

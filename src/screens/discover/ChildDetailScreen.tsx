@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   Share,
   Dimensions,
   TextInput,
@@ -28,6 +27,7 @@ import {
 } from '../../services/sponsorship.service';
 import { getPaymentStatus } from '../../services/payment.service';
 import { formatVND, formatVNDNumber } from '../../utils/currency';
+import { useModal } from '../../context/ModalContext';
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLLS = 20;
@@ -40,6 +40,7 @@ const { width } = Dimensions.get('window');
 const ChildDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
+  const modal = useModal();
 
   const [beneficiary, setBeneficiary] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
@@ -243,18 +244,18 @@ const ChildDetailScreen = () => {
 
   const handleAuthorize = async () => {
     if (!selectedSupport) {
-      Alert.alert('Lỗi', 'Vui lòng chọn loại hỗ trợ');
+      modal.warning('Lỗi', 'Vui lòng chọn loại hỗ trợ');
       return;
     }
     if (!beneficiary) return;
     const { raw } = beneficiary;
     const months = parseInt(mealMonths, 10);
     if (selectedSupport === 'meals' && (!months || months < 1)) {
-      Alert.alert('Lỗi', 'Vui lòng nhập số tháng hợp lệ');
+      modal.warning('Lỗi', 'Vui lòng nhập số tháng hợp lệ');
       return;
     }
     if (selectedSupport === 'meals' && months > mealRemainingMonths) {
-      Alert.alert('Lỗi', `Chỉ còn ${mealRemainingMonths} tháng có thể hỗ trợ trong năm nay (tối đa 12 tháng/năm).`);
+      modal.warning('Lỗi', `Chỉ còn ${mealRemainingMonths} tháng có thể hỗ trợ trong năm nay (tối đa 12 tháng/năm).`);
       return;
     }
     try {
@@ -263,7 +264,7 @@ const ChildDetailScreen = () => {
       if (selectedSupport === 'books') {
         const sem = bookSemesters[selectedBookSemester];
         if (!sem || sem.funded) {
-          Alert.alert('Lỗi', 'Học kỳ này đã được hỗ trợ.');
+          modal.warning('Lỗi', 'Học kỳ này đã được hỗ trợ.');
           return;
         }
         res = await submitSponsorship({ type: 'books', childId: sem.needId });
@@ -276,7 +277,7 @@ const ChildDetailScreen = () => {
       if (res?.url) {
         const supported = await Linking.canOpenURL(res.url);
         if (supported) await Linking.openURL(res.url);
-        else Alert.alert('Lỗi', 'Không thể mở liên kết thanh toán.');
+        else modal.error('Lỗi', 'Không thể mở liên kết thanh toán.');
 
         const pid = res.payment_id ?? res.order_code ?? res.id ?? null;
         if (pid) {
@@ -288,14 +289,14 @@ const ChildDetailScreen = () => {
           pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
         }
       } else {
-        Alert.alert(
+        modal.success(
           'Đã gửi bảo trợ!',
           `Hỗ trợ của bạn cho ${beneficiary.name} đã được xác nhận.`,
-          [{ text: 'OK', onPress: () => navigation.goBack() }],
+          () => navigation.goBack(),
         );
       }
     } catch (err: any) {
-      Alert.alert('Xác nhận thất bại', err.message || 'Vui lòng thử lại');
+      modal.error('Xác nhận thất bại', err.message || 'Vui lòng thử lại');
     } finally {
       setIsSubmitting(false);
     }
@@ -315,11 +316,11 @@ const ChildDetailScreen = () => {
       } else if (CANCELLED_STATUSES.has(status)) {
         navigateToResult('cancelled', data);
       } else {
-        Alert.alert('Chưa xác nhận', `Trạng thái: ${status || 'Đang xử lý'}. Vui lòng thử lại sau vài giây.`);
+        modal.info('Chưa xác nhận', `Trạng thái: ${status || 'Đang xử lý'}. Vui lòng thử lại sau vài giây.`);
         pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
       }
     } catch {
-      Alert.alert('Lỗi', 'Không thể kiểm tra trạng thái. Vui lòng thử lại.');
+      modal.error('Lỗi', 'Không thể kiểm tra trạng thái. Vui lòng thử lại.');
       pollTimer.current = setTimeout(checkStatus, POLL_INTERVAL_MS);
     } finally {
       setChecking(false);
@@ -898,63 +899,63 @@ const styles = StyleSheet.create({
   blobImage: {
     width: '100%', aspectRatio: 4 / 3, borderRadius: 12, backgroundColor: '#F1F5F9',
   },
-  guardianDetails: { paddingLeft: 52, gap: 8 },
-  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  guardianDetails: { paddingLeft: 60, gap: 10 },
+  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   detailIcon: { marginTop: 2 },
-  detailValue: { fontSize: 13, color: '#4B5563', fontWeight: '500' },
+  detailValue: { fontSize: 15, color: '#374151', fontWeight: '500' },
   blockchainCard: {
     backgroundColor: '#1F2937', borderRadius: 16, padding: 20,
     position: 'relative', overflow: 'hidden', marginTop: 12,
   },
   blockchainIcon: { position: 'absolute', right: -16, top: -16, transform: [{ rotate: '12deg' }] },
   blockchainContent: { position: 'relative', zIndex: 10 },
-  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
-  verifiedText: { fontSize: 12, fontWeight: 'bold', color: '#1E40AF', letterSpacing: 0.5 },
-  blockchainDescription: { fontSize: 12, color: '#D1D5DB', lineHeight: 18 },
+  verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  verifiedText: { fontSize: 14, fontWeight: 'bold', color: '#60A5FA', letterSpacing: 0.5 },
+  blockchainDescription: { fontSize: 14, color: '#D1D5DB', lineHeight: 22 },
   // Support options
   supportOption: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    padding: 14, borderRadius: 14, borderWidth: 1,
-    borderColor: '#E5E7EB', marginBottom: 10, backgroundColor: '#FFFFFF',
+    padding: 16, borderRadius: 16, borderWidth: 1,
+    borderColor: '#E5E7EB', marginBottom: 12, backgroundColor: '#FFFFFF',
   },
   urgentOption: { borderColor: '#FED7AA', backgroundColor: 'rgba(255,247,237,0.5)' },
   supportOptionSelected: { borderColor: '#1E40AF', borderWidth: 2 },
   supportOptionDisabled: { opacity: 0.55, backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' },
-  supportedNote: { fontSize: 11, color: '#6B7280', marginTop: 2, fontStyle: 'italic' },
+  supportedNote: { fontSize: 13, color: '#4B5563', marginTop: 4, fontStyle: 'italic' },
   urgentOptionSelected: { borderColor: '#EA580C', borderWidth: 2 },
   supportOptionLeft: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
   supportIconContainer: {
-    width: 46, height: 46, borderRadius: 23,
+    width: 50, height: 50, borderRadius: 25,
     backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center',
   },
   supportIconContainerSelected: { backgroundColor: '#1E40AF' },
-  supportOptionTitle: { fontSize: 14, fontWeight: '700', color: '#111827', flex: 1 },
+  supportOptionTitle: { fontSize: 15, fontWeight: '700', color: '#111827', flex: 1 },
   supportOptionRight: { alignItems: 'flex-end' },
   supportOptionPrice: { fontSize: 18, fontWeight: '800', color: '#1E40AF' },
   supportOptionFrequency: {
-    fontSize: 10, fontWeight: '700', color: '#9CA3AF',
-    textTransform: 'uppercase', letterSpacing: 0.5,
+    fontSize: 12, fontWeight: '600', color: '#6B7280',
+    marginTop: 2,
   },
   monthsInputContainer: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#F8FAFF', borderRadius: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#F8FAFF', borderRadius: 14,
     borderWidth: 1, borderColor: '#DBEAFE',
-    paddingHorizontal: 14, paddingVertical: 10, marginBottom: 10,
+    paddingHorizontal: 16, paddingVertical: 12, marginBottom: 12,
   },
-  monthsLabel: { fontSize: 13, fontWeight: '500', color: '#374151', flex: 1 },
+  monthsLabel: { fontSize: 15, fontWeight: '500', color: '#374151', flex: 1 },
   monthsInput: {
-    width: 48, textAlign: 'center', fontSize: 16, fontWeight: '700',
-    color: '#1E40AF', backgroundColor: '#EFF6FF', borderRadius: 8, paddingVertical: 4,
+    width: 52, textAlign: 'center', fontSize: 18, fontWeight: '700',
+    color: '#1E40AF', backgroundColor: '#EFF6FF', borderRadius: 10, paddingVertical: 6,
   },
-  monthsUnit: { fontSize: 12, color: '#6B7280', fontWeight: '500' },
+  monthsUnit: { fontSize: 14, color: '#4B5563', fontWeight: '500' },
   recurringRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  recurringLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  recurringLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   recurringIconContainer: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 46, height: 46, borderRadius: 23,
     backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center',
   },
   recurringTitle: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  recurringSubtitle: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  recurringSubtitle: { fontSize: 12, color: '#4B5563', marginTop: 3 },
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     backgroundColor: 'rgba(255, 255, 255, 0.97)',
@@ -990,7 +991,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center',
   },
   proofCardTitle: { fontSize: 14, fontWeight: '700', color: '#111827' },
-  proofCardSubtitle: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  proofCardSubtitle: { fontSize: 12, color: '#4B5563', marginTop: 3 },
 });
 
 export default ChildDetailScreen;

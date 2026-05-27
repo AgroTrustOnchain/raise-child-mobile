@@ -44,8 +44,8 @@ export const getRegionTaskProofs = async (
 
 export interface SubmitTaskProofParams {
   taskId: string | number;
-  imageBlobId: string;
-  imageBlobIdBase64: string;
+  imageCloudinaryBlobId: string;
+  imageUrl: string;
 }
 
 export interface TaskProofResponse {
@@ -65,25 +65,21 @@ export const submitTaskProof = async (
   params: SubmitTaskProofParams
 ): Promise<TaskProofResponse> => {
   try {
-    const { taskId, imageBlobId, imageBlobIdBase64 } = params;
+    const { taskId, imageCloudinaryBlobId, imageUrl } = params;
 
     if (!taskId) {
       throw new Error('Task ID is required');
     }
 
-    if (!imageBlobId) {
-      throw new Error('Image blob ID is required');
+    if (!imageCloudinaryBlobId) {
+      throw new Error('Image cloudinary blob ID is required');
     }
 
     const url = `/task-proofs/task/${taskId}/submit`;
 
-    console.log(`Submitting task proof for task ${taskId} with image blob ID ${imageBlobId}`);
-
-    console.log(imageBlobIdBase64)
-
     const response = await apiService.post<TaskProofResponse>(url, {
-      image_blob_id: imageBlobId,
-      image_base64: imageBlobIdBase64,
+      image_cloudinary_blob_id: imageCloudinaryBlobId,
+      image_url: imageUrl,
     });
 
     return response.data;

@@ -8,10 +8,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   Switch,
   ActivityIndicator,
 } from "react-native";
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import {
@@ -39,6 +39,7 @@ const SponsorshipScreen = () => {
   const route = useRoute<any>();
   const { childId } = route.params;
   const navigation = useNavigation();
+  const modal = useModal();
 
   const [child, setChild] = useState<ChildDetail | null>(null);
   const [loadingChild, setLoadingChild] = useState(true);
@@ -101,17 +102,17 @@ const SponsorshipScreen = () => {
   // ── Authorize handler ──────────────────────────────────────────────────────
   const handleAuthorize = async () => {
     if (!selectedSupport) {
-      Alert.alert("Error", "Please select a support type");
+      modal.warning("Lỗi", "Please select a support type");
       return;
     }
     if (!child) {
-      Alert.alert("Error", "Child data not loaded yet");
+      modal.warning("Lỗi", "Child data not loaded yet");
       return;
     }
 
     const months = parseInt(mealMonths, 10);
     if (selectedSupport === 'meals' && (!months || months < 1)) {
-      Alert.alert("Error", "Please enter a valid number of months");
+      modal.warning("Lỗi", "Please enter a valid number of months");
       return;
     }
 
@@ -126,20 +127,20 @@ const SponsorshipScreen = () => {
         await submitSponsorship({ type: 'health', childId: child.health_insurance_need });
       }
 
-      Alert.alert(
-        "Sponsorship Submitted! 🎉",
+      modal.success(
+        "Bảo trợ thành công!",
         `Your support for ${child.first_name} ${child.last_name} has been authorized on Sui Network.`,
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
+        () => navigation.goBack(),
       );
     } catch (err: any) {
-      Alert.alert("Authorization Failed", err.message || "Please try again");
+      modal.error("Xác nhận thất bại", err.message || "Please try again");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleInfo = () => {
-    Alert.alert(
+    modal.alert(
       "About Sponsorship",
       "Your contribution is secured and tracked on the Sui blockchain for full transparency.",
     );

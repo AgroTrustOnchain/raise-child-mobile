@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { ENV } from "./src/config/env";
 import { WalletCustomProvider } from "./src/context/WalletContext";
+import { ModalProvider } from "./src/context/ModalContext";
 
 export default function App() {
   useEffect(() => {
@@ -21,8 +22,10 @@ export default function App() {
     <Provider store={store}>
       <SafeAreaProvider>
         <WalletCustomProvider>
-          <AppNavigator />
-          <StatusBar style="auto" />
+          <ModalProvider>
+            <AppNavigator />
+            <StatusBar style="auto" />
+          </ModalProvider>
         </WalletCustomProvider>
       </SafeAreaProvider>
     </Provider>

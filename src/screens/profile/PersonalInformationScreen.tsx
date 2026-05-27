@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   Image,
   Platform,
   KeyboardAvoidingView,
   Modal,
   FlatList,
 } from 'react-native';
+import { useModal } from '../../context/ModalContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,6 +34,7 @@ const PersonalInformationScreen = () => {
   const { user } = useAuth();
   const { profile, refresh } = useProfile();
   const { wallet } = useWallet();
+  const modal = useModal();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -183,10 +184,10 @@ const PersonalInformationScreen = () => {
       if (wallet?.sub) {
         refresh(wallet.sub);
       }
-      Alert.alert('Success', 'Your profile has been updated.');
+      modal.success('Success', 'Your profile has been updated.');
     } catch (err: any) {
       console.error(err);
-      Alert.alert('Failed', err?.response?.data?.message || 'Please try again');
+      modal.error('Failed', err?.response?.data?.message || 'Please try again');
     } finally {
       setIsSaving(false);
     }
@@ -194,28 +195,25 @@ const PersonalInformationScreen = () => {
 
   const handleSave = () => {
     if (isProfileLocked) {
-      Alert.alert(
+      modal.alert(
         'Profile already set',
         'Your profile has already been submitted and cannot be changed.',
       );
       return;
     }
     if (!isFormValid) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      modal.warning('Error', 'Please fill in all required fields');
       return;
     }
-    Alert.alert(
+    modal.confirm(
       'Confirm submission',
       'You can only update your profile once. Please review your information carefully before submitting — this action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Submit', style: 'destructive', onPress: submitProfile },
-      ],
+      submitProfile,
     );
   };
 
   const handleChangePhoto = () => {
-    Alert.alert('Change Photo', 'Photo upload will be implemented');
+    modal.alert('Change Photo', 'Photo upload will be implemented');
   };
 
   return (

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Modal,
   TextInput,
   KeyboardAvoidingView,
@@ -18,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apiService } from '../../services/api.service';
 import WalrusImage from '../../components/WalrusImage';
 import { useAuth } from '../../hooks/useAuth';
+import { useModal } from '../../context/ModalContext';
 
 interface CenterReq {
   id: string;
@@ -98,6 +98,7 @@ const voteForReq = async (
 const CenterReqScreen = () => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const modal = useModal();
   const myWallet = user?.walletAddress?.toLowerCase() ?? null;
   const [items, setItems] = useState<CenterReq[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,7 +149,7 @@ const CenterReqScreen = () => {
       );
     } catch (e: any) {
       console.log(e);
-      Alert.alert(
+      modal.error(
         'Lỗi',
         e?.response?.data?.message ||
           'Bình chọn thất bại. Vui lòng thử lại.',
@@ -166,22 +167,16 @@ const CenterReqScreen = () => {
       setShowRefuseModal(true);
       return;
     }
-    Alert.alert(
+    modal.confirm(
       'Bình chọn',
       `Đồng ý với yêu cầu vùng "${item.region}"?`,
-      [
-        { text: 'Hủy', style: 'cancel' },
-        {
-          text: 'Đồng ý',
-          onPress: () => submitVote(item.id, true),
-        },
-      ],
+      () => submitVote(item.id, true),
     );
   };
 
   const handleSubmitRefuse = () => {
     if (!refuseReason.trim()) {
-      Alert.alert('Bắt buộc', 'Vui lòng cung cấp lý do từ chối.');
+      modal.warning('Bắt buộc', 'Vui lòng cung cấp lý do từ chối.');
       return;
     }
     setShowRefuseModal(false);
