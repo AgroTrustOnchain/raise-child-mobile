@@ -18,6 +18,8 @@ import { apiService } from '../../services/api.service';
 import WalrusImage from '../../components/WalrusImage';
 import { useAuth } from '../../hooks/useAuth';
 import { useModal } from '../../context/ModalContext';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 
 interface CenterReq {
   id: string;
@@ -74,8 +76,10 @@ const shortenAddress = (a: string) =>
 const getStatusConfig = (status: string) =>
   STATUS_CONFIG[status?.toLowerCase()] ?? STATUS_CONFIG['pending'];
 
-const fetchCenterReqs = async (page = 0, pageSize = 10): Promise<CenterReq[]> => {
-  const res = await apiService.get(`/center-reqs?page=${page}&page_size=${pageSize}`);
+const fetchCenterReqs = async (page = 0, pageSize = 10, region?: string): Promise<CenterReq[]> => {
+  const params: Record<string, any> = { page, page_size: pageSize };
+  if (region) params.region = region;
+  const res = await apiService.get('/center-reqs', { params });
   const data = res.data;
   if (Array.isArray(data)) return data;
   if (data?.data && Array.isArray(data.data)) return data.data;
@@ -99,6 +103,7 @@ const CenterReqScreen = () => {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const modal = useModal();
+  const region = useSelector((state: RootState) => state.auth.profile?.region);
   const myWallet = user?.walletAddress?.toLowerCase() ?? null;
   const [items, setItems] = useState<CenterReq[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +118,7 @@ const CenterReqScreen = () => {
     try {
       if (!silent) setLoading(true);
       setError(null);
-      setItems(await fetchCenterReqs());
+      setItems(await fetchCenterReqs(0, 10, region));
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || 'Failed to load requests');
     } finally {

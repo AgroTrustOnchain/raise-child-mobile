@@ -185,7 +185,7 @@ const VolunteerSettingsScreen = () => {
             <TouchableOpacity
               style={[styles.switchRoleButton, !hasDonorRole && styles.switchRoleButtonDisabled]}
               onPress={handleSwitchRole}
-              disabled={!hasDonorRole}
+              // disabled={!hasDonorRole}
             >
               <MaterialIcons name="swap-horiz" size={18} color="#fff" />
               <Text style={styles.switchRoleButtonText}>Chuyển sang người dùng</Text>

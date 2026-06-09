@@ -272,7 +272,12 @@ const ChildUploadReqScreen = () => {
             if (info.last_name) setLastName(info.last_name);
             if (info.identity_code) setIdentityCode(info.identity_code);
             if (info.home_address) setHomeAddress(info.home_address);
-            if (info.date_of_birth) setDateOfBirth(info.date_of_birth);
+            if (info.date_of_birth) {
+              const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(info.date_of_birth);
+              setDateOfBirth(isoMatch
+                ? `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`
+                : info.date_of_birth);
+            }
             if (info.gender) {
               const g = info.gender.trim().toLowerCase();
               if (g === "male" || g === "nam") setGender("Male");
