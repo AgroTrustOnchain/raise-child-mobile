@@ -68,6 +68,7 @@ export const getPersonalWalletProfile = async (
 export const getProfile = async (profileId: string): Promise<Profile> => {
   try {
     const res = await apiService.get<Profile>(`/profiles/${profileId}`);
+    console.log(res.data)
     return res.data;
   } catch (error) {
     console.error(`Failed to fetch profile ${profileId}:`, error);

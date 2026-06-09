@@ -99,7 +99,7 @@ export const getSupportedRegionSuggestions = async (): Promise<
 > => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/regions/supported-suggestions`,
+      `${API_BASE_URL}/regions/supported-suggestionsv2`,
       { method: "GET", headers: { Accept: "application/json" } },
     );
     if (!response.ok) throw new Error("Failed to fetch region suggestions");

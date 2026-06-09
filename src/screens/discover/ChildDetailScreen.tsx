@@ -420,9 +420,12 @@ const ChildDetailScreen = () => {
   const hasMeals = !!raw.meal_need && mealValue > 0;
   const hasHealth = !!raw.health_insurance_need && healthValue > 0;
 
-  const currentYear = new Date().getFullYear();
+  const now = new Date();
+  const currentYear = now.getFullYear();
   const healthSupported = healthSupportedYears.includes(currentYear) || healthFunded;
-  const mealRemainingMonths = Math.max(0, 12 - mealSupportedMonths);
+  // getMonth() is 0-based: Jan=0, Dec=11 → months left including current = 12 - getMonth()
+  const monthsLeftInYear = 12 - now.getMonth();
+  const mealRemainingMonths = Math.max(0, Math.min(12 - mealSupportedMonths, monthsLeftInYear));
   const mealSupported = mealRemainingMonths === 0;
 
   const formatPeriod = (p: string) => {
@@ -584,7 +587,7 @@ const ChildDetailScreen = () => {
                   <Text style={styles.verifiedText}>ĐÃ XÁC MINH BLOCKCHAIN</Text>
                 </View>
                 <Text style={styles.blockchainDescription}>
-                  Đóng góp của bạn được bảo mật và theo dõi trên blockchain Sui để đảm bảo minh bạch hoàn toàn.
+                  Đóng góp của bạn được bảo mật và theo dõi trên blockchain để đảm bảo minh bạch hoàn toàn.
                 </Text>
               </View>
             </View>
@@ -677,7 +680,7 @@ const ChildDetailScreen = () => {
                         {mealSupported ? (
                           <Text style={styles.supportedNote}>Đã đủ 12 tháng năm {currentYear}{mealDurationLabel ? ` (${mealDurationLabel})` : ''}</Text>
                         ) : mealSupportedMonths > 0 ? (
-                          <Text style={styles.supportedNote}>Đã hỗ trợ {mealSupportedMonths}/12 tháng — còn lại {mealRemainingMonths} tháng</Text>
+                          <Text style={styles.supportedNote}>Đã hỗ trợ {mealSupportedMonths}/{mealRemainingMonths + 1} tháng — còn lại {mealRemainingMonths} tháng</Text>
                         ) : null}
                       </View>
                     </View>
@@ -792,7 +795,7 @@ const ChildDetailScreen = () => {
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
             <>
-              <Text style={styles.authorizeButtonText}>Xác nhận trên Sui</Text>
+              <Text style={styles.authorizeButtonText}>Xác nhận</Text>
               <Ionicons name="flash" size={20} color="#FFFFFF" />
             </>
           )}

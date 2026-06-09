@@ -170,7 +170,7 @@ const CampaignDetail = () => {
         <Text style={styles.raisedLabel}>TOTAL RAISED</Text>
         <Text style={styles.raisedAmount}>
           {formatVNDLower(regionInfo?.total_donated ?? 0)}{" "}
-          <Text style={styles.raisedCurrency}>SUI</Text>
+
         </Text>
         <TouchableOpacity
           style={styles.donateButton}

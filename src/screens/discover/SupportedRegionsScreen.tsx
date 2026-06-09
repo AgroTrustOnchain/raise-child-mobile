@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useModal } from '../../context/ModalContext';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/MainNavigator';
@@ -352,18 +352,25 @@ const RegistrationsTab = () => {
 const SupportedRegionsScreen = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute();
   const [activeTab, setActiveTab] = useState<Tab>('regions');
 
+  // 'SupportedRegions' = pushed from root stack (no external header)
+  // 'Regions' = rendered as bottom tab (AppHeader already shown above)
+  const isStackScreen = route.name === 'SupportedRegions';
+
   return (
-    <View style={[styles.container]}>
-      {/* Header */}
-      {/* <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Vùng cần hỗ trợ</Text>
-        <View style={styles.headerButton} />
-      </View> */}
+    <View style={[styles.container, isStackScreen && { paddingTop: insets.top }]}>
+      {/* Header — only shown when accessed as a stack screen, not as a bottom tab */}
+      {isStackScreen && (
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="chevron-back" size={22} color="#111827" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Vùng cần hỗ trợ</Text>
+          <View style={styles.headerButton} />
+        </View>
+      )}
 
       {/* Tabs */}
       <View style={styles.tabBar}>
